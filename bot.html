@@ -346,33 +346,27 @@ function extraerDeResumen(texto) {
     if (fm && !reg.fecha_reserva) reg.fecha_reserva = fm[0];
   }
 
-  // Horario — rangos exactos primero, luego por hora de inicio
-  const RANGOS = [
-    { p: '7-9am',    v: '7-9am'    },
-    { p: '9-11am',   v: '9-11am'   },
-    { p: '11am-1pm', v: '11am-1pm' },
-    { p: '1-3pm',    v: '1-3pm'    },
-    { p: '3-5pm',    v: '3-5pm'    },
-    { p: '5-7pm',    v: '5-7pm'    },
+  // Horario — buscar el slot exacto del sistema en el texto del resumen
+  const TODOS_SLOTS = [
+    // Slots 2h (canchitas)
+    '8-10am','10am-12pm','12-2pm','2-4pm','4-6pm','6-8pm','8-10pm',
+    // Slots 1h (taka taka, ajedrez, sapito)
+    '8-9am','9-10am','10-11am','11am-12pm','12-1pm','1-2pm',
+    '2-3pm','3-4pm','4-5pm','5-6pm','6-7pm','7-8pm','8-9pm','9-10pm',
+    // Slots genéricos anteriores (compatibilidad)
+    '7-9am','9-11am','11am-1pm','1-3pm','3-5pm','5-7pm',
   ];
-  for (const r of RANGOS) {
-    if (tl.includes(r.p)) { reg.horario = r.v; break; }
+  for (const slot of TODOS_SLOTS) {
+    if (tl.includes(slot.toLowerCase())) { reg.horario = slot; break; }
   }
+  // Si no encontró slot exacto, intentar detectar por hora mencionada
   if (!reg.horario) {
-    const hm = tl.match(/(\d{1,2})(?::\d{2})?\s*(?:a\.?m\.?|am)/);
+    const hm = tl.match(/horario:\s*([^\n]+)/i);
     if (hm) {
-      const h = parseInt(hm[1]);
-      if      (h <= 8)  reg.horario = '7-9am';
-      else if (h <= 10) reg.horario = '9-11am';
-      else              reg.horario = '11am-1pm';
-    }
-    const hp = tl.match(/(\d{1,2})(?::\d{2})?\s*(?:p\.?m\.?|pm)/);
-    if (hp && !reg.horario) {
-      const h = parseInt(hp[1]);
-      if      (h === 12 || h <= 1) reg.horario = '11am-1pm';
-      else if (h <= 3)  reg.horario = '1-3pm';
-      else if (h <= 5)  reg.horario = '3-5pm';
-      else              reg.horario = '5-7pm';
+      const h = hm[1].trim();
+      // Buscar coincidencia parcial con algún slot
+      const match = TODOS_SLOTS.find(s => h.toLowerCase().includes(s.toLowerCase()));
+      if (match) reg.horario = match;
     }
   }
 
