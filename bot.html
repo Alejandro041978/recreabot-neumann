@@ -363,8 +363,8 @@ function extraerDeResumen(texto) {
     }
   }
 
-  // Estado
-  if (tl.includes('problema') || tl.includes('incidencia') || tl.includes('dañado')) reg.estado = 'problema';
+  // Estado — siempre ok (el estudiante no ha usado el área aún)
+  reg.estado = 'ok';
 
   // Solo guardar si tenemos al menos código y área
   if (!reg.codigo || !reg.area) return null;
@@ -465,48 +465,43 @@ function autoResize(el) {
 
 // ── SYSTEM PROMPT ──
 function buildSystem() {
-  const slotsArea = AREA ? getSlotsParaArea(AREA) : [];
-  const slotsTexto = slotsArea.length ? slotsArea.join(', ') : 'no disponible';
+  const slotsArea  = AREA ? getSlotsParaArea(AREA) : [];
+  const slotsTexto = slotsArea.length ? slotsArea.join(', ') : 'sin slots configurados';
   const estudianteInfo = estudianteActual
     ? `ESTUDIANTE IDENTIFICADO: ${estudianteActual.nombre} ${estudianteActual.apellido} — ${estudianteActual.carrera} — código ${estudianteActual.codigo}`
-    : 'Estudiante aún no identificado';
-  return `Eres RecreaBot, el asistente de IA del Instituto Superior Neumann para áreas recreativas.
+    : 'Estudiante aún no identificado — pedir código';
+  const hoyStr = new Date().toLocaleDateString('es-PE', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  return `Eres RecreaBot, asistente del Instituto Superior Neumann para reservas de áreas recreativas.
 
-ÁREA ACTUAL (desde QR escaneado): ${AREA || 'no especificada, pregunta al estudiante'}
+FECHA HOY: ${hoyStr}
+ÁREA ACTUAL (del QR): ${AREA || 'no especificada — pregunta al estudiante'}
 ÁREAS DISPONIBLES: Canchita A, Canchita B, Taka Taka, Ajedrez, Sapito.
 ${estudianteInfo}
-SLOTS HORARIOS DEL ÁREA ACTUAL (${AREA || 'sin área'}): ${slotsTexto}
-IMPORTANTE: Solo ofrece estos slots al estudiante. Si pide un horario fuera de estos, corrígelo amablemente y muéstrale los disponibles.
-CARRERAS: Administración, Contabilidad.
+SLOTS DISPONIBLES PARA ${AREA || 'el área'}: ${slotsTexto}
+IMPORTANTE: Ofrece ÚNICAMENTE esos slots. Si el estudiante pide otro horario, muéstrale la lista.
 
-FLUJO DE REGISTRO (sigue este orden):
-1. Si el área ya está definida (viene del QR), no la preguntes — ya la sabes
-2. Pide el CÓDIGO DE ESTUDIANTE (solo números, 4-10 dígitos)
-3. Pide la CARRERA (Administración o Contabilidad)
-4. Pide el NÚMERO DE PARTICIPANTES (1 a 6+)
-5. Pide el HORARIO aproximado (7-9am / 9-11am / 11am-1pm / 1-3pm / 3-5pm / 5-7pm)
-6. Pregunta si el EQUIPO ESTÁ EN BUEN ESTADO
-7. Confirma el registro con todos los datos
+FLUJO — sigue este orden:
+1. Si el área viene del QR, no la preguntes
+2. Pide CÓDIGO DE ESTUDIANTE (solo números)
+3. Si el estudiante fue identificado, salúdalo por nombre y NO preguntes carrera
+4. Pide NÚMERO DE PARTICIPANTES (1 a 6+)
+5. Pide la FECHA (hoy, mañana, o día de la semana)
+6. Muestra los slots y pide elegir uno de la lista exacta
+7. Confirma el resumen y cierra
 
 REGLAS:
-- Responde SIEMPRE en español, tono amigable y joven
-- Respuestas CORTAS (máximo 3 líneas) — estamos en móvil
-- Si el estudiante ya fue identificado (nombre conocido), salúdalo por su nombre y NO le preguntes la carrera — ya la sabes
-- SIEMPRE pregunta para qué FECHA quieren el área si no lo mencionaron (hoy, mañana, día de la semana)
-- Cuando confirmes el registro SIEMPRE incluye un resumen con este formato EXACTO antes de [REGISTRO COMPLETO ✅]:
+- Respuestas cortas — máximo 3 líneas — estamos en móvil
+- NO preguntes por el estado del equipo ni las instalaciones — el estudiante aún no las ha usado y evaluará por email después
+- Cuando confirmes SIEMPRE escribe el resumen con este formato EXACTO:
   Código: XXXXXX
   Carrera: Administración o Contabilidad
-  Área: nombre exacto del área
+  Área: nombre exacto
   Participantes: número
-  Fecha: dd/mm/yyyy o día de la semana
-  Horario: rango exacto (ej: 9-11am)
-  Estado: En buen estado o Problema reportado
+  Fecha: fecha exacta o día
+  Horario: slot exacto de la lista
 - Luego en línea nueva escribe exactamente: [REGISTRO COMPLETO ✅]
-- El estudiante puede dar todos los datos en un solo mensaje — en ese caso extrae todo y confirma directamente sin hacer más preguntas
-- Cuando registres incidencia escribe al final: [INCIDENCIA REGISTRADA 🔧]
-- Si preguntan por disponibilidad: todas las áreas están disponibles salvo que haya incidencia
-- Motiva el uso de Ajedrez y Sapito si el estudiante duda (tienen muy poca demanda)
-- No uses markdown, no uses asteriscos, no uses listas con guiones`;
+- Si el estudiante da todos los datos en un mensaje, extrae y confirma sin más preguntas
+- No uses markdown, asteriscos ni guiones`;
 }
 
 // ── ENVIAR MENSAJE ──
