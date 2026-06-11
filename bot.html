@@ -628,10 +628,10 @@ async function send() {
             document.getElementById('messages').appendChild(confirmDiv);
             document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
           }
-        }
-        // Enviar email de evaluación si tenemos datos del estudiante
-        if (estudianteActual && estudianteActual.email) {
-          enviarEmailEvaluacion(estudianteActual, { ...registro });
+          // Enviar email con datos extraídos del resumen — reg tiene área, horario, fecha correctos
+          if (estudianteActual && estudianteActual.email) {
+            enviarEmailEvaluacion(estudianteActual, reg);
+          }
         }
         estudianteActual = null;
         registro   = { area: AREA, codigo:'', carrera:'', participantes:'', fecha_reserva:'', horario:'', estado:'ok', problema:'', calificacion:'' };
