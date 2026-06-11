@@ -1195,7 +1195,7 @@ async function sendMsg() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 600,
         system: SYSTEM_PROMPT,
         messages: STATE.chatHistory,
@@ -1316,7 +1316,7 @@ async function generarCampana() {
       method: 'POST',
       headers: {'Content-Type':'application/json','x-api-key':STATE.claudeKey,'anthropic-version':'2023-06-01'},
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', max_tokens: 300,
+        model: 'claude-sonnet-4-5', max_tokens: 300,
         messages: [{role:'user', content:
           `Escribe un mensaje de campaña para el Instituto Superior Neumann.
            Área a promover: ${area}
@@ -1385,7 +1385,7 @@ async function testClaudeAPI() {
     const r = await fetch('/api/chat', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:30, messages:[{role:'user',content:'Responde solo: "RecreaBot Neumann conectado ✅"'}] })
+      body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:30, messages:[{role:'user',content:'Responde solo: "RecreaBot Neumann conectado ✅"'}] })
     });
     const d = await r.json();
     if (d.content) {
