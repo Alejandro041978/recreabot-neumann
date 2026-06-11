@@ -523,33 +523,33 @@ async function send() {
   addMsg('user', text);
   history.push({ role: 'user', content: text });
 
-  // Si estamos en paso 'codigo', verificar en la base de estudiantes
-  if (pasoActual === 'codigo') {
-    const posibleCodigo = text.trim().match(/^\d{4,10}$/);
-    if (posibleCodigo) {
-      const est = await buscarEstudiante(text.trim());
-      if (est.encontrado && est.activo) {
-        // ✅ Válido — continuar
-        estudianteActual = est;
-        registro.codigo  = est.codigo;
-        registro.carrera = est.carrera;
-        pasoActual = 'participantes';
-        history[history.length - 1].content =
-          `Mi código es ${est.codigo}. Soy ${est.nombre} ${est.apellido} de ${est.carrera}.`;
-      } else if (est.encontrado && !est.activo) {
-        // 🔒 Inactivo — bloquear
-        removeTyping();
-        addMsg('bot', `Lo siento ${est.nombre || ''}, tu código (${text.trim()}) está inactivo. Consulta con secretaría para habilitarlo. 🔒`);
-        document.getElementById('send-btn').disabled = false;
-        busy = false; return;
-      } else {
-        // ❌ No encontrado — bloquear y pedir corrección
-        removeTyping();
-        addMsg('bot', `El código ${text.trim()} no está registrado en el Instituto Superior Neumann. ❌\n\nVerifica que sea correcto o consulta con secretaría. Escríbelo de nuevo cuando lo tengas.`);
-        history.pop();
-        document.getElementById('send-btn').disabled = false;
-        busy = false; return;
-      }
+  // Verificar código siempre que el mensaje sea solo números (4-10 dígitos)
+  // independientemente del paso actual
+  const esCodigo = text.trim().match(/^\d{4,10}$/);
+  if (esCodigo && !estudianteActual) {
+    addTyping();
+    const est = await buscarEstudiante(text.trim());
+    removeTyping();
+    if (est.encontrado && est.activo) {
+      // ✅ Válido — registrar estudiante y continuar con Claude
+      estudianteActual = est;
+      registro.codigo  = est.codigo;
+      registro.carrera = est.carrera;
+      pasoActual = 'participantes';
+      history[history.length - 1].content =
+        `Mi código es ${est.codigo}. Soy ${est.nombre} ${est.apellido} de ${est.carrera}.`;
+    } else if (est.encontrado && !est.activo) {
+      // 🔒 Inactivo — bloquear
+      addMsg('bot', `Lo siento ${est.nombre || ''}, tu código (${text.trim()}) está inactivo en el sistema. Consulta con secretaría para habilitarlo. 🔒`);
+      history.pop();
+      document.getElementById('send-btn').disabled = false;
+      busy = false; return;
+    } else {
+      // ❌ No encontrado — bloquear
+      addMsg('bot', `El código ${text.trim()} no está registrado en el Instituto Superior Neumann. ❌\n\nVerifica que sea correcto o consulta con secretaría. Puedes intentarlo de nuevo.`);
+      history.pop();
+      document.getElementById('send-btn').disabled = false;
+      busy = false; return;
     }
   }
 
