@@ -473,6 +473,7 @@ function autoResize(el) {
 function buildSystem() {
   const slotsArea  = AREA ? getSlotsParaArea(AREA) : [];
   const slotsTexto = slotsArea.length ? slotsArea.join(', ') : 'sin slots configurados';
+  console.log('buildSystem — AREA:', AREA, '| slots:', slotsTexto, '| CONFIG keys:', Object.keys(SLOTS_CONFIG));
   const estudianteInfo = estudianteActual
     ? `ESTUDIANTE IDENTIFICADO: ${estudianteActual.nombre} ${estudianteActual.apellido} — ${estudianteActual.carrera} — código ${estudianteActual.codigo}`
     : 'Estudiante aún no identificado — pedir código';
@@ -512,6 +513,8 @@ REGLAS:
 
 // ── ENVIAR MENSAJE ──
 async function send() {
+  // Asegurar que la config está cargada
+  if (Object.keys(SLOTS_CONFIG).length === 0) await cargarConfig();
   const input = document.getElementById('input');
   const text  = input.value.trim();
   if (!text || busy) return;
