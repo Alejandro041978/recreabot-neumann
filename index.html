@@ -817,6 +817,24 @@ select option { background: var(--surface2); }
 // ═══════════════════════════════════════════════
 // ESTADO GLOBAL
 // ═══════════════════════════════════════════════
+
+// ── Cargar registros desde Google Sheets ──
+async function cargarRegistrosDeSheets() {
+  try {
+    const res = await fetch('/api/sheets');
+    const d   = await res.json();
+    if (d.registros && d.registros.length > 0) {
+      STATE.registros = d.registros;
+      renderDashboard();
+      renderHistorial();
+      document.getElementById('inc-badge').textContent =
+        STATE.registros.filter(r => r.estado === 'problema').length;
+    }
+  } catch(e) {
+    console.warn('No se pudo leer Sheets, usando localStorage:', e.message);
+  }
+}
+
 const STATE = {
   registros: JSON.parse(localStorage.getItem('nb_registros') || '[]'),
   claudeKey: localStorage.getItem('nb_claude_key') || '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',
@@ -1467,6 +1485,10 @@ function updateConnStatus() {
 window.addEventListener('load', () => {
   renderDashboard();
   updateConnStatus();
+  // Cargar datos reales desde Google Sheets
+  cargarRegistrosDeSheets();
+  // Refrescar cada 30 segundos automáticamente
+  setInterval(cargarRegistrosDeSheets, 30000);
   // Datos de demo si no hay nada
   if (STATE.registros.length === 0) {
     const demo = [

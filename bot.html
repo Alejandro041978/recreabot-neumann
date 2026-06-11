@@ -201,8 +201,41 @@ if (AREA) {
 }
 
 // ── ESTADO ──
-let history = [];
-let busy    = false;
+let history  = [];
+let busy     = false;
+let registro = { area: AREA, codigo:'', carrera:'', participantes:'', horario:'', estado:'ok', problema:'', calificacion:'' };
+
+// ── GUARDAR EN GOOGLE SHEETS ──
+async function guardarEnSheets(reg) {
+  try {
+    const res = await fetch('/api/sheets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registro: { ...reg, ts: new Date().toISOString() } }),
+    });
+    const d = await res.json();
+    if (d.ok) console.log('Guardado en Sheets:', d.fila);
+  } catch(e) {
+    console.warn('No se pudo guardar en Sheets:', e.message);
+  }
+}
+
+// ── EXTRAER DATOS DEL HISTORIAL ──
+function extraerDatosRegistro() {
+  const texto = history.map(m => m.content).join(' ');
+  const tl    = texto.toLowerCase();
+  const codMatch = texto.match(/\b(\d{4,10})\b/);
+  if (codMatch) registro.codigo = codMatch[1];
+  if (tl.includes('administración') || tl.includes('administracion')) registro.carrera = 'Administración';
+  else if (tl.includes('contabilidad')) registro.carrera = 'Contabilidad';
+  const partMatch = tl.match(/\bsomos (\d+)\b|\b(\d+) (persona|participante|jugador)/);
+  if (partMatch) registro.participantes = partMatch[1] || partMatch[2];
+  if (tl.includes('6 o más') || tl.includes('6+')) registro.participantes = '6+';
+  ['7-9am','9-11am','11am-1pm','1-3pm','3-5pm','5-7pm'].forEach(h => {
+    if (tl.includes(h.toLowerCase())) registro.horario = h;
+  });
+  if (tl.includes('hay un problema') || tl.includes('problema')) registro.estado = 'problema';
+}
 
 // ── MENSAJE INICIAL ──
 const bienvenida = AREA
@@ -313,6 +346,19 @@ async function send() {
       history.push({ role: 'assistant', content: reply });
       addMsg('bot', reply);
       updateChips(reply, text);
+      // Si el bot confirmó el registro, extrae datos y guarda en Sheets
+      if (reply.includes('[REGISTRO COMPLETO')) {
+        extraerDatosRegistro();
+        await guardarEnSheets(registro);
+        // Reset para el próximo registro
+        registro = { area: AREA, codigo:'', carrera:'', participantes:'', horario:'', estado:'ok', problema:'', calificacion:'' };
+      }
+      // Si es incidencia, guarda con estado=problema
+      if (reply.includes('[INCIDENCIA REGISTRADA')) {
+        extraerDatosRegistro();
+        registro.estado = 'problema';
+        await guardarEnSheets(registro);
+      }
     } else {
       addMsg('bot', '⚠️ No pude responder. Intenta de nuevo.');
     }
