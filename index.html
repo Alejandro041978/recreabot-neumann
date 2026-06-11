@@ -377,6 +377,7 @@ select option { background: var(--surface2); }
     <span class="topbar-sub" id="topbar-sub">Visión general del sistema</span>
     <div class="topbar-right">
       <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ Exportar</button>
+      <button class="btn btn-ghost btn-sm" onclick="enviarReporte()" id="btn-reporte">📧 Enviar reporte</button>
       <button class="btn btn-primary btn-sm" onclick="nav('registro', document.querySelector('.nav-item:nth-child(3)'))">+ Nuevo registro</button>
     </div>
   </div>
@@ -1332,6 +1333,31 @@ function limpiarForm() {
     document.querySelectorAll(`#${id} .radio-opt`).forEach(o => o.classList.remove('selected'));
   });
   document.getElementById('problema-field').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════
+// REPORTE POR EMAIL
+// ═══════════════════════════════════════════════
+async function enviarReporte() {
+  const btn = document.getElementById('btn-reporte');
+  btn.textContent = '⏳ Enviando...';
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/reporte', {
+      method: 'GET',
+      headers: { Authorization: 'Bearer recreabot-neumann-2026' }
+    });
+    const d = await r.json();
+    if (d.ok) {
+      toast(`✅ Reporte enviado — ${d.registros} registros de la semana ${d.semana}`);
+    } else {
+      toast('❌ Error: ' + (d.error || 'No se pudo enviar'));
+    }
+  } catch(e) {
+    toast('❌ Error de conexión al enviar reporte');
+  }
+  btn.textContent = '📧 Enviar reporte';
+  btn.disabled = false;
 }
 
 // ═══════════════════════════════════════════════
