@@ -203,7 +203,7 @@ if (AREA) {
 // ── ESTADO ──
 let history  = [];
 let busy     = false;
-let registro = { area: AREA, codigo:'', carrera:'', participantes:'', horario:'', estado:'ok', problema:'', calificacion:'' };
+let registro = { area: AREA, codigo:'', carrera:'', participantes:'', fecha_reserva:'', horario:'', estado:'ok', problema:'', calificacion:'' };
 let pasoActual = AREA ? 'codigo' : 'area'; // flujo: area → codigo → carrera → participantes → horario → estado → guardar
 
 // ── EXTRACCIÓN PRECISA — solo analiza el mensaje del estudiante en cada paso ──
@@ -282,6 +282,34 @@ function extraerDeResumen(texto) {
   const partB = t.match(/([0-9]+)\s+persona/);
   if (part) reg.participantes = part[1];
   else if (partB) reg.participantes = partB[1];
+
+  // Fecha de reserva — buscar "hoy", "mañana", día de semana o fecha específica
+  const diasSemana = ['lunes','martes','miércoles','miercoles','jueves','viernes','sábado','sabado','domingo'];
+  const hoy = new Date();
+  hoy.setHours(hoy.getHours() - 5); // GMT-5 Lima
+  if (tl.includes('hoy')) {
+    reg.fecha_reserva = hoy.toLocaleDateString('es-PE');
+  } else if (tl.includes('mañana') || tl.includes('manana')) {
+    const manana = new Date(hoy); manana.setDate(manana.getDate() + 1);
+    reg.fecha_reserva = manana.toLocaleDateString('es-PE');
+  } else {
+    // Buscar día de la semana
+    for (const dia of diasSemana) {
+      if (tl.includes(dia)) {
+        const diaIndex = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'].indexOf(dia.replace('miercoles','miércoles').replace('sabado','sábado'));
+        if (diaIndex >= 0) {
+          const fecha = new Date(hoy);
+          const diff  = (diaIndex - fecha.getDay() + 7) % 7 || 7;
+          fecha.setDate(fecha.getDate() + diff);
+          reg.fecha_reserva = fecha.toLocaleDateString('es-PE');
+        }
+        break;
+      }
+    }
+    // Buscar fecha explícita dd/mm o dd de mes
+    const fechaMatch = texto.match(/(\d{1,2})[\/\-](\d{1,2})/);
+    if (fechaMatch) reg.fecha_reserva = fechaMatch[0];
+  }
 
   // Horario — buscar patrones de hora en el resumen
   const horariosMap = [
@@ -394,11 +422,13 @@ FLUJO DE REGISTRO (sigue este orden):
 REGLAS:
 - Responde SIEMPRE en español, tono amigable y joven
 - Respuestas CORTAS (máximo 3 líneas) — estamos en móvil
+- SIEMPRE pregunta para qué FECHA quieren el área si no lo mencionaron (hoy, mañana, día de la semana)
 - Cuando confirmes el registro SIEMPRE incluye un resumen con este formato EXACTO antes de [REGISTRO COMPLETO ✅]:
   Código: XXXXXX
   Carrera: Administración o Contabilidad
   Área: nombre exacto del área
   Participantes: número
+  Fecha: dd/mm/yyyy o día de la semana
   Horario: rango exacto (ej: 9-11am)
   Estado: En buen estado o Problema reportado
 - Luego en línea nueva escribe exactamente: [REGISTRO COMPLETO ✅]
@@ -456,7 +486,7 @@ async function send() {
             document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
           }
         }
-        registro   = { area: AREA, codigo:'', carrera:'', participantes:'', horario:'', estado:'ok', problema:'', calificacion:'' };
+        registro   = { area: AREA, codigo:'', carrera:'', participantes:'', fecha_reserva:'', horario:'', estado:'ok', problema:'', calificacion:'' };
         pasoActual = AREA ? 'codigo' : 'area';
       }
     } else {
