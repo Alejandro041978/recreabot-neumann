@@ -595,6 +595,9 @@ async function send() {
     }
   }
 
+  // Actualizar registro ANTES de buildSystem — el área ya estará disponible
+  actualizarRegistro(text);
+
   addTyping();
 
   try {
