@@ -258,6 +258,55 @@ function registroCompleto() {
   return registro.codigo && registro.carrera && registro.area && registro.participantes && registro.horario;
 }
 
+// ── EXTRAE DATOS DEL RESUMEN QUE GENERA CLAUDE ──
+function extraerDeResumen(texto) {
+  const t  = texto;
+  const tl = texto.toLowerCase();
+  const reg = { area: AREA, codigo:'', carrera:'', participantes:'', horario:'', estado:'ok', problema:'', calificacion:'' };
+
+  // Código — buscar "Código: XXXXXX"
+  const cod = t.match(/[Cc][oó]digo[:\s]+([0-9]{4,10})/);
+  if (cod) reg.codigo = cod[1];
+
+  // Carrera
+  if (tl.includes('administración') || tl.includes('administracion')) reg.carrera = 'Administración';
+  else if (tl.includes('contabilidad')) reg.carrera = 'Contabilidad';
+
+  // Área — buscar "Área: Canchita A" o similar
+  for (const a of AREAS) {
+    if (tl.includes(a.toLowerCase())) { reg.area = a; break; }
+  }
+
+  // Participantes — buscar "Participantes: 5" o "5 personas"
+  const part = t.match(/[Pp]articipantes?[:\s]+([0-9]+|6\+|6 o más)/);
+  const partB = t.match(/([0-9]+)\s+persona/);
+  if (part) reg.participantes = part[1];
+  else if (partB) reg.participantes = partB[1];
+
+  // Horario — buscar patrones de hora en el resumen
+  const horariosMap = [
+    { keys: ['7-9am','7am','8am','7:00','8:00'], val: '7-9am' },
+    { keys: ['9-11am','9am','10am','9:00','10:00'], val: '9-11am' },
+    { keys: ['11am-1pm','11am','12pm','11:00','12:00'], val: '11am-1pm' },
+    { keys: ['1-3pm','1pm','2pm','13:00','14:00'], val: '1-3pm' },
+    { keys: ['3-5pm','3pm','4pm','15:00','16:00'], val: '3-5pm' },
+    { keys: ['5-7pm','5pm','6pm','17:00','18:00'], val: '5-7pm' },
+  ];
+  const limpio = tl.replace(/\s/g,'');
+  for (const entry of horariosMap) {
+    if (entry.keys.some(k => limpio.includes(k.replace(/\s/g,'')))) {
+      reg.horario = entry.val; break;
+    }
+  }
+
+  // Estado
+  if (tl.includes('problema') || tl.includes('incidencia') || tl.includes('dañado')) reg.estado = 'problema';
+
+  // Solo guardar si tenemos al menos código y área
+  if (!reg.codigo || !reg.area) return null;
+  return reg;
+}
+
 // ── GUARDAR EN GOOGLE SHEETS ──
 async function guardarEnSheets(reg) {
   try {
@@ -345,7 +394,15 @@ FLUJO DE REGISTRO (sigue este orden):
 REGLAS:
 - Responde SIEMPRE en español, tono amigable y joven
 - Respuestas CORTAS (máximo 3 líneas) — estamos en móvil
-- Cuando confirmes el registro SIEMPRE termina el mensaje con exactamente esta frase en una línea nueva: [REGISTRO COMPLETO ✅]
+- Cuando confirmes el registro SIEMPRE incluye un resumen con este formato EXACTO antes de [REGISTRO COMPLETO ✅]:
+  Código: XXXXXX
+  Carrera: Administración o Contabilidad
+  Área: nombre exacto del área
+  Participantes: número
+  Horario: rango exacto (ej: 9-11am)
+  Estado: En buen estado o Problema reportado
+- Luego en línea nueva escribe exactamente: [REGISTRO COMPLETO ✅]
+- El estudiante puede dar todos los datos en un solo mensaje — en ese caso extrae todo y confirma directamente sin hacer más preguntas
 - Cuando registres incidencia escribe al final: [INCIDENCIA REGISTRADA 🔧]
 - Si preguntan por disponibilidad: todas las áreas están disponibles salvo que haya incidencia
 - Motiva el uso de Ajedrez y Sapito si el estudiante duda (tienen muy poca demanda)
@@ -386,22 +443,21 @@ async function send() {
       history.push({ role: 'assistant', content: reply });
       addMsg('bot', reply);
       updateChips(reply, text);
-      // Actualizar registro con lo que escribió el usuario
-      actualizarRegistro(text);
-
-      // Si ya tenemos todos los datos → guardar en Sheets
-      if (pasoActual === 'guardar' && registroCompleto()) {
-        const resultado = await guardarEnSheets(registro);
-        if (resultado && resultado.ok) {
-          const confirmDiv = document.createElement('div');
-          confirmDiv.style.cssText = 'text-align:center;padding:8px;font-size:0.72rem;color:#10b981;background:rgba(16,185,129,0.1);border-radius:8px;margin:4px 14px;border-radius:8px;';
-          confirmDiv.textContent = '✅ Guardado en Google Sheets';
-          document.getElementById('messages').appendChild(confirmDiv);
-          document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+      // Extraer datos directamente del resumen que Claude generó
+      if (reply.includes('[REGISTRO COMPLETO')) {
+        const reg = extraerDeResumen(reply);
+        if (reg) {
+          const resultado = await guardarEnSheets(reg);
+          if (resultado && resultado.ok) {
+            const confirmDiv = document.createElement('div');
+            confirmDiv.style.cssText = 'text-align:center;padding:8px;font-size:0.72rem;color:#10b981;background:rgba(16,185,129,0.1);border-radius:8px;margin:4px 14px;';
+            confirmDiv.textContent = '✅ Guardado en Google Sheets';
+            document.getElementById('messages').appendChild(confirmDiv);
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+          }
         }
-        // Reset para próximo registro
-        registro    = { area: AREA, codigo:'', carrera:'', participantes:'', horario:'', estado:'ok', problema:'', calificacion:'' };
-        pasoActual  = AREA ? 'codigo' : 'area';
+        registro   = { area: AREA, codigo:'', carrera:'', participantes:'', horario:'', estado:'ok', problema:'', calificacion:'' };
+        pasoActual = AREA ? 'codigo' : 'area';
       }
     } else {
       addMsg('bot', '⚠️ No pude responder. Intenta de nuevo.');
