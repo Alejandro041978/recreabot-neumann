@@ -964,24 +964,23 @@ function getWeekStart() {
   return d;
 }
 
-// ── PARSEAR TIMESTAMP — acepta ISO y formato español de Lima ──
+// ── PARSEAR TIMESTAMP — acepta ISO y todos los formatos español de Lima ──
 function parseTS(ts) {
   if (!ts) return new Date(0);
-  // Formato ISO estándar — parsea directo
-  if (ts.includes('T') && ts.includes('Z')) return new Date(ts);
-  // Formato español: "11/06/2026, 07:42:13 a. m." o "11/06/2026, 07:42:13 a.m."
-  const m = ts.match(/(\d{1,2})\/(\d{1,2})\/(\d{4}),?\s+(\d{1,2}):(\d{2}):(\d{2})\s*(a\.?\s*m\.?|p\.?\s*m\.?)?/i);
+  // ISO estándar
+  if (ts.includes('T') && (ts.includes('Z') || ts.includes('+'))) return new Date(ts);
+  // Formato español: "11/06/2026, 07:42:13 a. m." — con o sin ceros, con o sin segundos
+  const m = ts.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[,\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(a[\s.]*m\.?|p[\s.]*m\.?)?/i);
   if (m) {
     let [,d,mo,y,h,min,sec,ampm] = m;
     h = parseInt(h); mo = parseInt(mo) - 1;
     if (ampm) {
-      const pm = ampm.replace(/\s|\./g,'').toLowerCase() === 'pm';
-      if (pm && h !== 12) h += 12;
-      if (!pm && h === 12) h = 0;
+      const ap = ampm.replace(/[\s.]/g,'').toLowerCase();
+      if (ap === 'pm' && h !== 12) h += 12;
+      if (ap === 'am' && h === 12) h = 0;
     }
-    return new Date(parseInt(y), mo, parseInt(d), h, parseInt(min), parseInt(sec));
+    return new Date(parseInt(y), mo, parseInt(d), h, parseInt(min||0), parseInt(sec||0));
   }
-  // Fallback
   return new Date(ts);
 }
 
@@ -1276,7 +1275,11 @@ async function guardarRegistro() {
   }
 
   const reg = {
-    ts: new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' }),
+    ts: new Date().toLocaleString('es-PE', {
+      timeZone: 'America/Lima',
+      day:'2-digit', month:'2-digit', year:'numeric',
+      hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: true
+    }),
     codigo, carrera, area,
     participantes: partic,
     fecha_reserva: fechaStr,
