@@ -75,13 +75,14 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const { registro } = req.body;
       if (!registro) { res.status(400).json({ error: 'Falta campo registro' }); return; }
-      // Convertir timestamp a GMT-5 (Lima, Perú)
-      const ahora = new Date(registro.ts || new Date().toISOString());
-      const offsetPeru = -5 * 60; // minutos
-      const ahoraLima  = new Date(ahora.getTime() + (offsetPeru - ahora.getTimezoneOffset()) * 60000);
-      const tsLima     = ahoraLima.toLocaleString('es-PE', { timeZone: 'America/Lima', hour12: true,
+      // Convertir timestamp a hora Lima GMT-5 usando Intl
+      const ahora  = new Date(registro.ts || new Date().toISOString());
+      const tsLima = ahora.toLocaleString('es-PE', {
+        timeZone: 'America/Lima',
         year:'numeric', month:'2-digit', day:'2-digit',
-        hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        hour:'2-digit', minute:'2-digit', second:'2-digit',
+        hour12: true
+      });
 
       const fila = [
         tsLima,
