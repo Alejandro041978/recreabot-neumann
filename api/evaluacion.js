@@ -1,4 +1,4 @@
-// api/evaluacion.js — envía email de evaluación post-uso al estudiante
+// api/evaluacion.js — Email de confirmación de reserva + link de evaluación post-uso
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
   const RESEND_KEY = process.env.RESEND_API_KEY;
   const EMAIL_FROM = process.env.EMAIL_FROM || 'RecreaBot Neumann <onboarding@resend.dev>';
-  const BASE_URL   = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://recreabot-neumann.vercel.app';
+  const BASE_URL   = 'https://recreabot-neumann.vercel.app';
 
   if (!RESEND_KEY) { res.status(500).json({ error: 'RESEND_API_KEY no configurada' }); return; }
 
@@ -18,67 +18,103 @@ export default async function handler(req, res) {
   }
 
   const nombre   = `${estudiante.nombre} ${estudiante.apellido}`.trim();
-  const area     = reserva.area     || 'área recreativa';
-  const fecha    = reserva.fecha_reserva || 'reciente';
-  const horario  = reserva.horario  || '';
+  const area     = reserva.area          || 'área recreativa';
+  const fecha    = reserva.fecha_reserva || 'la fecha acordada';
+  const horario  = reserva.horario       || '';
+  const partic   = reserva.participantes || '1';
+  const codigo   = estudiante.codigo     || '';
 
-  // Generar link de evaluación con datos pre-rellenados
-  const params = new URLSearchParams({
-    codigo:  estudiante.codigo,
-    area:    area,
-    fecha:   fecha,
-    horario: horario,
-  });
+  // Emojis por área
+  const emojis = {
+    'Canchita A': '⚽', 'Canchita B': '⚽',
+    'Taka Taka': '🏓', 'Ajedrez': '♟️', 'Sapito': '🐸'
+  };
+  const emoji = emojis[area] || '🎮';
+
+  // Link de evaluación
+  const params = new URLSearchParams({ codigo, area, fecha, horario });
   const linkEval = `${BASE_URL}/bot?eval=1&${params.toString()}`;
 
   const html = `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif">
-  <div style="max-width:520px;margin:30px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
+<div style="max-width:540px;margin:30px auto;background:white;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.09)">
 
-    <div style="background:linear-gradient(135deg,#1e3a5f,#0d2137);padding:28px 32px;text-align:center">
-      <div style="font-size:36px;margin-bottom:8px">🎮</div>
-      <h1 style="margin:0;color:#60a5fa;font-size:20px;font-weight:700">¿Cómo estuvo tu experiencia?</h1>
-      <p style="margin:8px 0 0;color:#94a3b8;font-size:14px">Instituto Superior Neumann</p>
-    </div>
-
-    <div style="padding:28px 32px">
-      <p style="font-size:15px;color:#334155;margin:0 0 8px">Hola <strong>${nombre}</strong> 👋</p>
-      <p style="font-size:14px;color:#64748b;line-height:1.6;margin:0 0 20px">
-        Usaste <strong>${area}</strong> el <strong>${fecha}</strong>${horario ? ` de <strong>${horario}</strong>` : ''}.
-        Tu opinión nos ayuda a mejorar los espacios recreativos del campus.
-      </p>
-
-      <p style="font-size:14px;color:#334155;font-weight:600;margin:0 0 12px">¿Cómo calificarías tu experiencia?</p>
-
-      <div style="display:flex;gap:8px;margin-bottom:24px">
-        ${[1,2,3,4,5].map(n => `
-          <a href="${BASE_URL}/api/calificar?codigo=${estudiante.codigo}&area=${encodeURIComponent(area)}&fecha=${encodeURIComponent(fecha)}&nota=${n}"
-             style="flex:1;text-align:center;padding:12px 6px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:8px;text-decoration:none;color:#334155;font-size:20px;display:block">
-            ${'⭐'.repeat(n)}<br>
-            <span style="font-size:11px;color:#64748b">${['Malo','Regular','Bueno','Muy bueno','Excelente'][n-1]}</span>
-          </a>`).join('')}
-      </div>
-
-      <div style="background:#f8fafc;border-radius:8px;padding:16px;margin-bottom:20px">
-        <p style="font-size:13px;color:#64748b;margin:0 0 10px;font-weight:600">O cuéntanos más en el bot:</p>
-        <a href="${linkEval}"
-           style="display:block;text-align:center;background:#3b82f6;color:white;padding:12px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600">
-          💬 Dejar comentario completo
-        </a>
-      </div>
-
-      <p style="font-size:12px;color:#94a3b8;text-align:center;margin:0">
-        Si tienes algún problema con las instalaciones escríbenos directo a<br>
-        <a href="mailto:coordinacion@neumann.edu.pe" style="color:#3b82f6">coordinacion@neumann.edu.pe</a>
-      </p>
-    </div>
-
-    <div style="background:#f8fafc;padding:14px 32px;border-top:1px solid #e2e8f0;text-align:center">
-      <p style="margin:0;font-size:11px;color:#94a3b8">RecreaBot · Instituto Superior Neumann · <a href="https://recreabot-neumann.vercel.app" style="color:#3b82f6">recreabot-neumann.vercel.app</a></p>
-    </div>
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#1e3a5f 0%,#0d2137 100%);padding:32px;text-align:center">
+    <div style="font-size:48px;margin-bottom:10px">${emoji}</div>
+    <h1 style="margin:0;color:#60a5fa;font-size:22px;font-weight:700;letter-spacing:-0.3px">¡Reserva confirmada!</h1>
+    <p style="margin:8px 0 0;color:#94a3b8;font-size:14px">Instituto Superior Neumann · Espacios Recreativos</p>
   </div>
+
+  <!-- Saludo -->
+  <div style="padding:28px 32px 0">
+    <p style="font-size:16px;color:#1e293b;margin:0 0 6px;font-weight:600">Hola, ${nombre} 👋</p>
+    <p style="font-size:14px;color:#64748b;line-height:1.7;margin:0">
+      Tu reserva en el campus ha sido registrada exitosamente. Aquí tienes el resumen para que lo tengas a mano.
+    </p>
+  </div>
+
+  <!-- Detalles de la reserva -->
+  <div style="margin:24px 32px;background:#f8fafc;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0">
+    <div style="background:#1e3a5f;padding:10px 18px">
+      <p style="margin:0;font-size:12px;font-weight:700;color:#93c5fd;text-transform:uppercase;letter-spacing:1px">Detalles de tu reserva</p>
+    </div>
+    <table style="width:100%;border-collapse:collapse">
+      <tr style="border-bottom:1px solid #e2e8f0">
+        <td style="padding:12px 18px;font-size:13px;color:#64748b;width:40%">Área</td>
+        <td style="padding:12px 18px;font-size:14px;color:#1e293b;font-weight:600">${emoji} ${area}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #e2e8f0">
+        <td style="padding:12px 18px;font-size:13px;color:#64748b">Fecha</td>
+        <td style="padding:12px 18px;font-size:14px;color:#1e293b;font-weight:600">${fecha}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #e2e8f0">
+        <td style="padding:12px 18px;font-size:13px;color:#64748b">Horario</td>
+        <td style="padding:12px 18px;font-size:14px;color:#1e293b;font-weight:600">${horario}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #e2e8f0">
+        <td style="padding:12px 18px;font-size:13px;color:#64748b">Participantes</td>
+        <td style="padding:12px 18px;font-size:14px;color:#1e293b;font-weight:600">${partic} persona${partic !== '1' ? 's' : ''}</td>
+      </tr>
+      <tr>
+        <td style="padding:12px 18px;font-size:13px;color:#64748b">Código</td>
+        <td style="padding:12px 18px;font-size:14px;color:#1e293b;font-family:monospace">${codigo}</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Recordatorio -->
+  <div style="margin:0 32px 24px;background:#eff6ff;border-left:4px solid #3b82f6;border-radius:0 8px 8px 0;padding:14px 16px">
+    <p style="margin:0;font-size:13px;color:#1e40af;font-weight:600;margin-bottom:4px">📌 Recuerda</p>
+    <p style="margin:0;font-size:13px;color:#1e40af;line-height:1.6">
+      Preséntate puntualmente en tu horario. Si no puedes asistir, cancela tu reserva con anticipación para que otro estudiante pueda usar el espacio.
+    </p>
+  </div>
+
+  <!-- Separador evaluación -->
+  <div style="margin:0 32px;border-top:1px dashed #e2e8f0;padding-top:24px">
+    <p style="margin:0 0 6px;font-size:14px;color:#1e293b;font-weight:600">⭐ Evalúa tu experiencia</p>
+    <p style="margin:0 0 16px;font-size:13px;color:#64748b;line-height:1.6">
+      Después de usar ${area}, cuéntanos cómo estuvo. Tu opinión nos ayuda a mejorar los espacios recreativos del campus.
+    </p>
+    <a href="${linkEval}"
+       style="display:inline-block;background:#3b82f6;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;letter-spacing:0.2px">
+      Evaluar mi experiencia →
+    </a>
+    <p style="margin:10px 0 0;font-size:11px;color:#94a3b8">Guarda este correo y usa el botón después de tu sesión.</p>
+  </div>
+
+  <!-- Footer -->
+  <div style="margin:24px 0 0;background:#f8fafc;padding:18px 32px;border-top:1px solid #e2e8f0;text-align:center">
+    <p style="margin:0;font-size:12px;color:#94a3b8">
+      RecreaBot · Instituto Superior Neumann<br>
+      <a href="${BASE_URL}" style="color:#3b82f6;text-decoration:none">recreabot-neumann.vercel.app</a>
+    </p>
+  </div>
+
+</div>
 </body>
 </html>`;
 
@@ -89,7 +125,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         from:    EMAIL_FROM,
         to:      [estudiante.email],
-        subject: `🎮 ¿Cómo estuvo ${area}? Cuéntanos — RecreaBot Neumann`,
+        subject: `${emoji} Reserva confirmada — ${area} · ${fecha} · RecreaBot Neumann`,
         html,
       }),
     });
