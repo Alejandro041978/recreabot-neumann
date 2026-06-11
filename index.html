@@ -441,7 +441,7 @@ select option { background: var(--surface2); }
         <div class="card-title">Últimos registros</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Hora</th><th>Estudiante</th><th>Carrera</th><th>Área</th><th>Participantes</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Carrera</th><th>Área</th><th>Participantes</th><th>Horario</th><th>Estado</th></tr></thead>
             <tbody id="tabla-recientes"></tbody>
           </table>
         </div>
@@ -970,7 +970,7 @@ function parseTS(ts) {
   // ISO estándar
   if (ts.includes('T') && (ts.includes('Z') || ts.includes('+'))) return new Date(ts);
   // Formato español: "11/06/2026, 07:42:13 a. m." — con o sin ceros, con o sin segundos
-  const m = ts.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[,\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(a[\s.]*m\.?|p[\s.]*m\.?)?/i);
+  const m = ts.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[,\s\u00a0]+(\d{1,2}):(\d{2})(?::(\d{2}))?[\s\u00a0]*(a[\s.\u00a0]*m\.?|p[\s.\u00a0]*m\.?)?/i);
   if (m) {
     let [,d,mo,y,h,min,sec,ampm] = m;
     h = parseInt(h); mo = parseInt(mo) - 1;
@@ -988,6 +988,16 @@ function formatHora(ts) {
   const d = parseTS(ts);
   if (isNaN(d)) return '—';
   return d.toLocaleTimeString('es-PE', {hour:'2-digit', minute:'2-digit'});
+}
+
+function formatFechaCorta(ts) {
+  const d = parseTS(ts);
+  if (isNaN(d)) {
+    // Intentar extraer fecha del string directamente si parseTS falló
+    const m = ts && ts.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+    return m ? m[1] : '—';
+  }
+  return d.toLocaleDateString('es-PE', { day:'2-digit', month:'2-digit', year:'numeric' });
 }
 
 function formatFecha(ts) {
@@ -1093,16 +1103,18 @@ function renderDashboard() {
   document.getElementById('tabla-recientes').innerHTML = last8.length
     ? last8.map(r => `
         <tr>
-          <td>${parseTS(r.ts).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}</td>
+          <td style="font-size:0.78rem;color:var(--text2)">${formatFechaCorta(r.ts)}</td>
+          <td style="font-size:0.78rem">${formatHora(r.ts)}</td>
           <td style="font-family:var(--mono);font-size:0.78rem">${r.codigo}</td>
           <td>${r.carrera}</td>
           <td>${areaChip(r.area)}</td>
           <td>${r.participantes}</td>
+          <td style="font-size:0.78rem;color:var(--text2)">${r.horario||'—'}</td>
           <td>${r.estado==='ok'
             ? '<span class="tag tag-green">✅ Bien</span>'
             : '<span class="tag tag-red">⚠️ Problema</span>'}</td>
         </tr>`).join('')
-    : '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Sin registros aún. Usa el botón "+ Nuevo registro" para empezar.</td></tr>';
+    : '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">Sin registros aún. Usa el botón "+ Nuevo registro" para empezar.</td></tr>';
 }
 
 // ═══════════════════════════════════════════════
@@ -1275,11 +1287,7 @@ async function guardarRegistro() {
   }
 
   const reg = {
-    ts: new Date().toLocaleString('es-PE', {
-      timeZone: 'America/Lima',
-      day:'2-digit', month:'2-digit', year:'numeric',
-      hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: true
-    }),
+    ts: new Date().toISOString(), // siempre ISO — el servidor convierte a Lima
     codigo, carrera, area,
     participantes: partic,
     fecha_reserva: fechaStr,
