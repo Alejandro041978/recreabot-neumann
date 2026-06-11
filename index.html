@@ -445,7 +445,7 @@ select option { background: var(--surface2); }
         <div class="card-title">Últimos registros</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Carrera</th><th>Área</th><th>Participantes</th><th>Horario</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Registrado</th><th>Hora</th><th>Estudiante</th><th>Carrera</th><th>Área</th><th>Partic.</th><th>Fecha Reserva</th><th>Horario</th><th>Estado</th></tr></thead>
             <tbody id="tabla-recientes"></tbody>
           </table>
         </div>
@@ -1146,13 +1146,14 @@ function renderDashboard() {
           <td style="font-family:var(--mono);font-size:0.78rem">${r.codigo}</td>
           <td>${r.carrera}</td>
           <td>${areaChip(r.area)}</td>
-          <td>${r.participantes}</td>
+          <td>${r.participantes||'—'}</td>
+          <td style="font-size:0.78rem;color:var(--accent2);font-weight:500">${r.fecha_reserva||'—'}</td>
           <td style="font-size:0.78rem;color:var(--text2)">${r.horario||'—'}</td>
           <td>${r.estado==='ok'
             ? '<span class="tag tag-green">✅ Bien</span>'
             : '<span class="tag tag-red">⚠️ Problema</span>'}</td>
         </tr>`).join('')
-    : '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">Sin registros aún. Usa el botón "+ Nuevo registro" para empezar.</td></tr>';
+    : '<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:20px">Sin registros aún. Usa el botón "+ Nuevo registro" para empezar.</td></tr>';
 }
 
 // ═══════════════════════════════════════════════
