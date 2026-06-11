@@ -204,6 +204,59 @@ if (AREA) {
 let history  = [];
 let busy     = false;
 let registro = { area: AREA, codigo:'', carrera:'', participantes:'', horario:'', estado:'ok', problema:'', calificacion:'' };
+let pasoActual = AREA ? 'codigo' : 'area'; // flujo: area → codigo → carrera → participantes → horario → estado → guardar
+
+// ── EXTRACCIÓN PRECISA — solo analiza el mensaje del estudiante en cada paso ──
+function actualizarRegistro(msgEstudiante) {
+  const t  = msgEstudiante.trim();
+  const tl = t.toLowerCase();
+
+  if (pasoActual === 'area') {
+    for (const a of AREAS) {
+      if (tl.includes(a.toLowerCase())) { registro.area = a; pasoActual = 'codigo'; break; }
+    }
+  } else if (pasoActual === 'codigo') {
+    const m = t.match(/^(\d{4,10})$/) || t.match(/\b(\d{4,10})\b/);
+    if (m) { registro.codigo = m[1]; pasoActual = 'carrera'; }
+  } else if (pasoActual === 'carrera') {
+    if (tl.includes('admin')) { registro.carrera = 'Administración'; pasoActual = 'participantes'; }
+    else if (tl.includes('contab')) { registro.carrera = 'Contabilidad'; pasoActual = 'participantes'; }
+  } else if (pasoActual === 'participantes') {
+    if (tl === '6 o más' || tl === '6+' || tl.includes('6 o más')) {
+      registro.participantes = '6+'; pasoActual = 'horario';
+    } else {
+      const solo  = t.match(/^([1-9])$/);
+      const frase = t.match(/somos\s+([1-9])/i) || t.match(/([1-9])\s+person/i);
+      const num   = solo ? solo[1] : (frase ? frase[1] : null);
+      if (num) { registro.participantes = num; pasoActual = 'horario'; }
+    }
+  } else if (pasoActual === 'horario') {
+    const mapa = [
+      { keys: ['7-9am','7am'], val: '7-9am' },
+      { keys: ['9-11am','9am'], val: '9-11am' },
+      { keys: ['11am-1pm','11am'], val: '11am-1pm' },
+      { keys: ['1-3pm','1pm'], val: '1-3pm' },
+      { keys: ['3-5pm','3pm'], val: '3-5pm' },
+      { keys: ['5-7pm','5pm'], val: '5-7pm' },
+    ];
+    const limpio = tl.replace(/\s/g,'');
+    for (const entry of mapa) {
+      if (entry.keys.some(k => limpio.includes(k))) {
+        registro.horario = entry.val; pasoActual = 'estado'; break;
+      }
+    }
+  } else if (pasoActual === 'estado') {
+    if (tl.includes('problema') || tl.includes('dañado') || tl.includes('roto') || tl.includes('falta')) {
+      registro.estado = 'problema'; pasoActual = 'guardar';
+    } else {
+      registro.estado = 'ok'; pasoActual = 'guardar';
+    }
+  }
+}
+
+function registroCompleto() {
+  return registro.codigo && registro.carrera && registro.area && registro.participantes && registro.horario;
+}
 
 // ── GUARDAR EN GOOGLE SHEETS ──
 async function guardarEnSheets(reg) {
@@ -222,22 +275,7 @@ async function guardarEnSheets(reg) {
   }
 }
 
-// ── EXTRAER DATOS DEL HISTORIAL ──
-function extraerDatosRegistro() {
-  const texto = history.map(m => m.content).join(' ');
-  const tl    = texto.toLowerCase();
-  const codMatch = texto.match(/\b(\d{4,10})\b/);
-  if (codMatch) registro.codigo = codMatch[1];
-  if (tl.includes('administración') || tl.includes('administracion')) registro.carrera = 'Administración';
-  else if (tl.includes('contabilidad')) registro.carrera = 'Contabilidad';
-  const partMatch = tl.match(/\bsomos (\d+)\b|\b(\d+) (persona|participante|jugador)/);
-  if (partMatch) registro.participantes = partMatch[1] || partMatch[2];
-  if (tl.includes('6 o más') || tl.includes('6+')) registro.participantes = '6+';
-  ['7-9am','9-11am','11am-1pm','1-3pm','3-5pm','5-7pm'].forEach(h => {
-    if (tl.includes(h.toLowerCase())) registro.horario = h;
-  });
-  if (tl.includes('hay un problema') || tl.includes('problema')) registro.estado = 'problema';
-}
+
 
 // ── MENSAJE INICIAL ──
 const bienvenida = AREA
@@ -348,23 +386,22 @@ async function send() {
       history.push({ role: 'assistant', content: reply });
       addMsg('bot', reply);
       updateChips(reply, text);
-      // Detectar confirmación de registro con múltiples patrones
-      const esRegistro   = reply.includes('[REGISTRO COMPLETO') || reply.includes('REGISTRO COMPLETO') || reply.includes('registro completado') || reply.includes('¡Registro confirmado') || reply.includes('Registro confirmado') || reply.includes('registrado correctamente') || reply.includes('uso registrado');
-      const esIncidencia = reply.includes('[INCIDENCIA REGISTRADA') || reply.includes('incidencia registrada') || reply.includes('problema registrado');
+      // Actualizar registro con lo que escribió el usuario
+      actualizarRegistro(text);
 
-      if (esRegistro || esIncidencia) {
-        extraerDatosRegistro();
-        if (esIncidencia) registro.estado = 'problema';
+      // Si ya tenemos todos los datos → guardar en Sheets
+      if (pasoActual === 'guardar' && registroCompleto()) {
         const resultado = await guardarEnSheets(registro);
         if (resultado && resultado.ok) {
-          // Confirmación visual de que se guardó en Sheets
           const confirmDiv = document.createElement('div');
-          confirmDiv.style.cssText = 'text-align:center;padding:8px;font-size:0.72rem;color:#10b981;background:rgba(16,185,129,0.1);border-radius:8px;margin:4px 14px;';
+          confirmDiv.style.cssText = 'text-align:center;padding:8px;font-size:0.72rem;color:#10b981;background:rgba(16,185,129,0.1);border-radius:8px;margin:4px 14px;border-radius:8px;';
           confirmDiv.textContent = '✅ Guardado en Google Sheets';
           document.getElementById('messages').appendChild(confirmDiv);
           document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
         }
-        registro = { area: AREA, codigo:'', carrera:'', participantes:'', horario:'', estado:'ok', problema:'', calificacion:'' };
+        // Reset para próximo registro
+        registro    = { area: AREA, codigo:'', carrera:'', participantes:'', horario:'', estado:'ok', problema:'', calificacion:'' };
+        pasoActual  = AREA ? 'codigo' : 'area';
       }
     } else {
       addMsg('bot', '⚠️ No pude responder. Intenta de nuevo.');
