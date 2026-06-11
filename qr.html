@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>RecreaBot — Instituto Superior Neumann</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f0f4f8;
+    padding: 30px;
+  }
+  h1 {
+    text-align: center;
+    color: #1e3a5f;
+    margin-bottom: 6px;
+    font-size: 1.5rem;
+  }
+  .subtitle {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+  }
+
+  .instruction-box {
+    background: #fff8e1;
+    border: 2px dashed #f59e0b;
+    border-radius: 12px;
+    padding: 16px 24px;
+    margin-bottom: 30px;
+    max-width: 860px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .instruction-box h3 { color: #b45309; margin-bottom: 8px; font-size: 1rem; }
+  .instruction-box ol { padding-left: 20px; color: #78350f; font-size: 0.88rem; line-height: 1.8; }
+  .instruction-box a { color: #1d4ed8; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 28px 20px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border-top: 6px solid;
+    page-break-inside: avoid;
+  }
+
+  .area-name {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+    margin-top: 16px;
+  }
+  .area-emoji {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .area-desc {
+    color: #64748b;
+    font-size: 0.82rem;
+    margin-bottom: 16px;
+  }
+  .qr-container {
+    display: flex;
+    justify-content: center;
+    margin: 16px 0;
+  }
+  .qr-container canvas, .qr-container img {
+    border: 3px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px;
+  }
+  .cta-text {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+  .cta-text strong { color: #1e3a5f; }
+
+  .url-input {
+    width: 100%;
+    margin-top: 8px;
+    padding: 6px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    color: #334155;
+    background: #f8fafc;
+  }
+
+  @media print {
+    body { background: white; padding: 10px; }
+    .instruction-box { display: none; }
+    .no-print { display: none; }
+    .card { box-shadow: none; border: 2px solid #e2e8f0; margin-bottom: 20px; }
+  }
+
+  .btn-print {
+    display: block;
+    margin: 24px auto 0;
+    padding: 12px 32px;
+    background: #1e3a5f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    max-width: 860px;
+  }
+  .btn-print:hover { background: #2563eb; }
+</style>
+</head>
+<body>
+
+<h1>🎮 RecreaBot — Carteles QR para Áreas Recreativas</h1>
+<p class="subtitle">Carteles listos para imprimir. Pega uno en cada área recreativa del campus.</p>
+
+<div class="instruction-box no-print">
+  <h3>⚙️ Instrucciones antes de imprimir</h3>
+  <ol>
+    <li>Primero crea tu Google Form siguiendo la guía del siguiente documento.</li>
+    <li>Copia el enlace de cada formulario (uno por área o uno con campo de selección).</li>
+    <li>Pega el enlace en el campo de texto debajo de cada QR y presiona <strong>Enter</strong> — el QR se actualizará automáticamente.</li>
+    <li>Una vez actualizados los 5 QR, haz clic en <strong>"Imprimir QR"</strong>.</li>
+    <li>Imprime en papel de al menos 150g o plastifica para mayor durabilidad.</li>
+  </ol>
+</div>
+
+<div class="grid" id="qr-grid">
+  <!-- Se genera dinámicamente -->
+</div>
+
+<button class="btn-print no-print" onclick="window.print()">🖨️ Imprimir QR (Ctrl+P)</button>
+
+<script>
+const areas = [
+  {
+    id: 'canchita-a',
+    emoji: '⚽',
+    name: 'Canchita A',
+    color: '#16a34a',
+    desc: 'Fútbol de salón · Hasta 10 jugadores',
+    defaultUrl: 'https://recreabot-neumann.vercel.app/bot?area=Canchita+A'
+  },
+  {
+    id: 'canchita-b',
+    emoji: '⚽',
+    name: 'Canchita B',
+    color: '#2563eb',
+    desc: 'Fútbol de salón · Hasta 10 jugadores',
+    defaultUrl: 'https://recreabot-neumann.vercel.app/bot?area=Canchita+B'
+  },
+  {
+    id: 'taka-taka',
+    emoji: '🏓',
+    name: 'Taka Taka',
+    color: '#d97706',
+    desc: 'Futbolín · Hasta 4 jugadores',
+    defaultUrl: 'https://recreabot-neumann.vercel.app/bot?area=Taka+Taka'
+  },
+  {
+    id: 'ajedrez',
+    emoji: '♟️',
+    name: 'Ajedrez',
+    color: '#7c3aed',
+    desc: 'Ajedrez · 2 jugadores',
+    defaultUrl: 'https://recreabot-neumann.vercel.app/bot?area=Ajedrez'
+  },
+  {
+    id: 'sapito',
+    emoji: '🐸',
+    name: 'Sapito',
+    color: '#0891b2',
+    desc: 'Sapo · Hasta 4 jugadores',
+    defaultUrl: 'https://recreabot-neumann.vercel.app/bot?area=Sapito'
+  }
+];
+
+const qrInstances = {};
+
+function createCard(area) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.borderColor = area.color;
+
+  card.innerHTML = `
+    <span class="area-emoji">${area.emoji}</span>
+    <div class="area-name" style="color:${area.color}">${area.name}</div>
+    <div class="area-desc">${area.desc}</div>
+    <div class="qr-container" id="qr-${area.id}"></div>
+    <p class="cta-text">
+      <strong>📲 Escanea para registrar tu uso</strong><br>
+      Instituto Superior Neumann · Solo 30 segundos
+    </p>
+    <input
+      class="url-input no-print"
+      type="text"
+      
+      value="${area.defaultUrl}"
+      onkeydown="if(event.key==='Enter') updateQR('${area.id}', this.value)"
+      onblur="updateQR('${area.id}', this.value)"
+    />
+  `;
+  return card;
+}
+
+function generateQR(containerId, url) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  try {
+    const qr = new QRCode(container, {
+      text: url,
+      width: 180,
+      height: 180,
+      colorDark: '#1e293b',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    qrInstances[containerId] = qr;
+  } catch(e) {
+    container.innerHTML = '<p style="color:red;font-size:0.8rem">URL inválida</p>';
+  }
+}
+
+function updateQR(areaId, url) {
+  if (!url || url.trim() === '') return;
+  const containerId = `qr-${areaId}`;
+  generateQR(containerId, url.trim());
+}
+
+// Init
+const grid = document.getElementById('qr-grid');
+areas.forEach(area => {
+  const card = createCard(area);
+  grid.appendChild(card);
+  setTimeout(() => generateQR(`qr-${area.id}`, area.defaultUrl), 100);
+});
+</script>
+</body>
+</html>

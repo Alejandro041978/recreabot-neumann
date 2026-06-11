@@ -346,6 +346,22 @@ select option { background: var(--surface2); }
     </div>
   </div>
 
+  <div class="sidebar-section">
+    <div class="sidebar-label">Accesos rápidos</div>
+    <div class="nav-item" onclick="window.open('/config','_blank')">
+      <span class="icon">🕐</span> Horarios
+      <span style="margin-left:auto;font-size:0.65rem;color:var(--text3)">↗</span>
+    </div>
+    <div class="nav-item" onclick="window.open('/qr','_blank')">
+      <span class="icon">🔲</span> Imprimir QR
+      <span style="margin-left:auto;font-size:0.65rem;color:var(--text3)">↗</span>
+    </div>
+    <div class="nav-item" onclick="window.open('/bot','_blank')">
+      <span class="icon">📱</span> Ver Bot
+      <span style="margin-left:auto;font-size:0.65rem;color:var(--text3)">↗</span>
+    </div>
+  </div>
+
   <div class="sidebar-footer">
     <div style="font-size:0.75rem; color:var(--text3); display:flex; align-items:center; gap:6px;">
       <span class="status-dot"></span> Sistema activo
