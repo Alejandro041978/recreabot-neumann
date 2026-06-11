@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RecreaBot — Instituto Superior Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg:        #080c14;
+  --surface:   #0e1520;
+  --surface2:  #151f2e;
+  --surface3:  #1c2a3e;
+  --border:    #1e3048;
+  --border2:   #253a55;
+  --accent:    #3b82f6;
+  --accent2:   #60a5fa;
+  --accent-glow: rgba(59,130,246,0.15);
+  --green:     #10b981;
+  --green-dim: #064e3b;
+  --yellow:    #f59e0b;
+  --yellow-dim:#451a03;
+  --red:       #ef4444;
+  --red-dim:   #450a0a;
+  --purple:    #8b5cf6;
+  --cyan:      #06b6d4;
+  --text:      #e2e8f0;
+  --text2:     #94a3b8;
+  --text3:     #64748b;
+  --font:      'Inter', sans-serif;
+  --mono:      'JetBrains Mono', monospace;
+  --radius:    10px;
+  --sidebar-w: 240px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); display: flex; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w); min-width: var(--sidebar-w);
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; height: 100vh; overflow-y: auto;
+}
+.sidebar-brand {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.brand-logo {
+  width: 36px; height: 36px; background: var(--accent);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; margin-bottom: 10px;
+}
+.brand-name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+.brand-sub  { font-size: 0.72rem; color: var(--text3); margin-top: 2px; line-height: 1.4; }
+
+.sidebar-section { padding: 14px 10px 6px; }
+.sidebar-label { font-size: 0.68rem; font-weight: 600; color: var(--text3); letter-spacing: 1.2px; text-transform: uppercase; padding: 0 8px; margin-bottom: 4px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 8px; cursor: pointer;
+  font-size: 0.83rem; color: var(--text2); transition: all 0.15s;
+  border: 1px solid transparent;
+}
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: var(--accent-glow); color: var(--accent2); border-color: var(--accent); }
+.nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+.nav-badge { margin-left: auto; background: var(--red); color: white; font-size: 0.65rem; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
+
+.sidebar-footer {
+  margin-top: auto; padding: 14px 10px;
+  border-top: 1px solid var(--border);
+}
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── MAIN ── */
+.main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+.topbar {
+  height: 52px; min-height: 52px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 24px; gap: 16px;
+}
+.topbar-title { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+.topbar-sub   { font-size: 0.78rem; color: var(--text3); margin-left: 8px; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+.btn {
+  padding: 7px 16px; border-radius: 7px; font-size: 0.82rem; font-weight: 500;
+  cursor: pointer; border: none; transition: all 0.15s; font-family: var(--font);
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: #2563eb; }
+.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+.btn-ghost:hover { background: var(--surface2); color: var(--text); }
+.btn-sm { padding: 5px 12px; font-size: 0.78rem; }
+.btn-green { background: var(--green); color: white; }
+.btn-red   { background: var(--red); color: white; }
+
+.content { flex: 1; overflow-y: auto; padding: 24px; }
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── CARDS & GRID ── */
+.grid { display: grid; gap: 16px; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: 1fr 1fr 1fr; }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.g13 { grid-template-columns: 1fr 3fr; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px;
+}
+.card-title { font-size: 0.78rem; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+.card-value { font-size: 1.9rem; font-weight: 800; color: var(--text); line-height: 1; }
+.card-sub   { font-size: 0.78rem; color: var(--text3); margin-top: 5px; }
+.card-delta-up   { color: var(--green); font-size: 0.78rem; margin-top: 4px; }
+.card-delta-down { color: var(--red);   font-size: 0.78rem; margin-top: 4px; }
+
+/* ── BAR CHART ── */
+.bar-chart { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-label { font-size: 0.78rem; color: var(--text2); width: 90px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-track { flex: 1; height: 8px; background: var(--surface3); border-radius: 4px; overflow: hidden; }
+.bar-fill  { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(.4,0,.2,1); }
+.bar-count { font-size: 0.75rem; color: var(--text3); width: 28px; text-align: right; font-family: var(--mono); }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th { background: var(--surface2); color: var(--text3); padding: 10px 12px; text-align: left; font-weight: 600; font-size: 0.73rem; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; }
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text2); }
+tr:hover td { background: var(--surface2); }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.73rem; font-weight: 600; }
+.tag-green  { background: var(--green-dim);  color: var(--green); }
+.tag-yellow { background: var(--yellow-dim); color: var(--yellow); }
+.tag-red    { background: var(--red-dim);    color: var(--red); }
+.tag-blue   { background: rgba(59,130,246,.15); color: var(--accent2); }
+.tag-purple { background: rgba(139,92,246,.15); color: var(--purple); }
+
+/* ── BOT CHAT ── */
+.chat-layout { display: grid; grid-template-columns: 1fr 320px; gap: 16px; height: calc(100vh - 100px); }
+.chat-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden; }
+.chat-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.chat-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+.chat-name { font-size: 0.88rem; font-weight: 600; }
+.chat-status { font-size: 0.72rem; color: var(--green); }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.msg { max-width: 78%; display: flex; flex-direction: column; gap: 3px; }
+.msg.user { align-self: flex-end; align-items: flex-end; }
+.msg.bot  { align-self: flex-start; align-items: flex-start; }
+.msg-bubble {
+  padding: 10px 14px; border-radius: 14px; font-size: 0.84rem; line-height: 1.55;
+}
+.msg.user .msg-bubble { background: var(--accent); color: white; border-bottom-right-radius: 4px; }
+.msg.bot  .msg-bubble { background: var(--surface2); color: var(--text); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+.msg-time { font-size: 0.68rem; color: var(--text3); }
+.msg-bubble.typing { display: flex; gap: 5px; align-items: center; padding: 12px 16px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); animation: bounce 1.2s infinite; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+
+.chat-input-area { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+.chat-input {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 9px 14px; color: var(--text);
+  font-size: 0.84rem; font-family: var(--font); outline: none; resize: none; min-height: 38px; max-height: 100px;
+}
+.chat-input:focus { border-color: var(--accent); }
+.send-btn { background: var(--accent); border: none; border-radius: 8px; padding: 0 14px; cursor: pointer; color: white; font-size: 1rem; }
+.send-btn:hover { background: #2563eb; }
+.send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.chat-sidebar { display: flex; flex-direction: column; gap: 14px; }
+.quick-actions { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.qa-title { font-size: 0.78rem; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+.qa-btn {
+  width: 100%; text-align: left; padding: 9px 12px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 7px; color: var(--text2); font-size: 0.8rem;
+  cursor: pointer; margin-bottom: 6px; transition: all 0.15s; font-family: var(--font);
+}
+.qa-btn:hover { background: var(--surface3); color: var(--text); border-color: var(--accent); }
+
+/* ── REGISTRO FORM ── */
+.registro-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; max-width: 680px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full { grid-column: 1 / -1; }
+label { font-size: 0.78rem; color: var(--text3); font-weight: 500; }
+select, input[type=text], input[type=number], textarea {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 7px; padding: 9px 12px; color: var(--text);
+  font-size: 0.84rem; font-family: var(--font); outline: none;
+}
+select:focus, input:focus, textarea:focus { border-color: var(--accent); }
+select option { background: var(--surface2); }
+.radio-group { display: flex; gap: 10px; flex-wrap: wrap; }
+.radio-opt {
+  flex: 1; min-width: 80px; padding: 9px 10px; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 7px; cursor: pointer;
+  text-align: center; font-size: 0.8rem; color: var(--text2); transition: all 0.15s; user-select: none;
+}
+.radio-opt:hover { border-color: var(--accent); color: var(--text); }
+.radio-opt.selected { background: var(--accent-glow); border-color: var(--accent); color: var(--accent2); font-weight: 600; }
+.form-divider { grid-column: 1/-1; border-top: 1px solid var(--border); margin: 4px 0; }
+
+/* ── CONFIG ── */
+.config-section { margin-bottom: 24px; }
+.config-title { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.config-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.config-label { font-size: 0.82rem; color: var(--text2); width: 200px; flex-shrink: 0; }
+.config-input { flex: 1; }
+.credential-field { position: relative; }
+.credential-field input { padding-right: 80px; width: 100%; }
+.cred-status { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.72rem; font-weight: 600; }
+.cred-ok  { color: var(--green); }
+.cred-bad { color: var(--red); }
+
+/* ── INCIDENCIAS ── */
+.inc-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 10px;
+  border-left: 4px solid;
+}
+.inc-card.alta   { border-left-color: var(--red); }
+.inc-card.media  { border-left-color: var(--yellow); }
+.inc-card.baja   { border-left-color: var(--green); }
+.inc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.inc-area { font-weight: 600; font-size: 0.88rem; }
+.inc-desc { font-size: 0.82rem; color: var(--text2); margin-bottom: 8px; }
+.inc-meta { font-size: 0.73rem; color: var(--text3); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 12px 18px;
+  font-size: 0.84rem; color: var(--text);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  transform: translateY(80px); opacity: 0;
+  transition: all 0.3s; z-index: 9999;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+  display: none;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 14px; padding: 28px; max-width: 480px; width: 90%;
+}
+.modal h3 { color: var(--text); margin-bottom: 10px; }
+.modal p  { color: var(--text2); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ── HEADER section titles ── */
+.section-header { margin-bottom: 20px; }
+.section-header h2 { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+.section-header p  { font-size: 0.82rem; color: var(--text3); margin-top: 4px; }
+
+/* ── HORA REAL ── */
+.live-clock { font-family: var(--mono); font-size: 0.78rem; color: var(--text3); }
+
+/* ── AREA CHIPS ── */
+.area-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+}
+.chip-a      { background: rgba(16,185,129,.15); color: var(--green); }
+.chip-b      { background: rgba(59,130,246,.15);  color: var(--accent2); }
+.chip-taka   { background: rgba(245,158,11,.15);  color: var(--yellow); }
+.chip-ajedrez{ background: rgba(139,92,246,.15);  color: var(--purple); }
+.chip-sapito { background: rgba(6,182,212,.15);   color: var(--cyan); }
+
+/* responsive */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .g4, .g3 { grid-template-columns: 1fr 1fr; }
+  .chat-layout { grid-template-columns: 1fr; }
+  .chat-sidebar { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════ SIDEBAR ══════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">🎮</div>
+    <div class="brand-name">RecreaBot</div>
+    <div class="brand-sub">Instituto Superior<br>Neumann</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Principal</div>
+    <div class="nav-item active" onclick="nav('dashboard', this)">
+      <span class="icon">📊</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="nav('bot', this)">
+      <span class="icon">🤖</span> Bot RecreaBot
+    </div>
+    <div class="nav-item" onclick="nav('registro', this)">
+      <span class="icon">📝</span> Nuevo Registro
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Gestión</div>
+    <div class="nav-item" onclick="nav('historial', this)">
+      <span class="icon">📋</span> Historial de Uso
+    </div>
+    <div class="nav-item" onclick="nav('incidencias', this)" id="nav-inc">
+      <span class="icon">🔧</span> Incidencias
+      <span class="nav-badge" id="inc-badge">0</span>
+    </div>
+    <div class="nav-item" onclick="nav('campanas', this)">
+      <span class="icon">📣</span> Campañas
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Sistema</div>
+    <div class="nav-item" onclick="nav('config', this)">
+      <span class="icon">⚙️</span> Configuración
+    </div>
+    <div class="nav-item" onclick="nav('conectar', this)">
+      <span class="icon">🔌</span> Conectar APIs
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div style="font-size:0.75rem; color:var(--text3); display:flex; align-items:center; gap:6px;">
+      <span class="status-dot"></span> Sistema activo
+    </div>
+    <div class="live-clock" id="clock" style="margin-top:6px;"></div>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════ MAIN ══════════════════════════════════ -->
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title" id="topbar-title">Dashboard</span>
+    <span class="topbar-sub" id="topbar-sub">Visión general del sistema</span>
+    <div class="topbar-right">
+      <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ Exportar</button>
+      <button class="btn btn-primary btn-sm" onclick="nav('registro', document.querySelector('.nav-item:nth-child(3)'))">+ Nuevo registro</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══════════ DASHBOARD ═══════════ -->
+    <div id="view-dashboard" class="view active">
+      <div class="section-header">
+        <h2>Resumen del sistema</h2>
+        <p id="dash-fecha">Cargando...</p>
+      </div>
+
+      <!-- KPIs -->
+      <div class="grid g4" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Usos hoy</div>
+          <div class="card-value" id="kpi-hoy">0</div>
+          <div class="card-sub">registros del día</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Esta semana</div>
+          <div class="card-value" id="kpi-semana">0</div>
+          <div class="card-sub">total de usos</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Área más usada</div>
+          <div class="card-value" style="font-size:1.2rem" id="kpi-top">—</div>
+          <div class="card-sub" id="kpi-top-pct">esta semana</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Incidencias</div>
+          <div class="card-value" id="kpi-inc" style="color:var(--yellow)">0</div>
+          <div class="card-sub">pendientes</div>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div class="grid g2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Uso por área — esta semana</div>
+          <div class="bar-chart" id="chart-areas"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Uso por carrera</div>
+          <div class="bar-chart" id="chart-carreras"></div>
+          <div style="margin-top:16px">
+            <div class="card-title" style="margin-top:0">Uso por horario</div>
+            <div class="bar-chart" id="chart-horarios"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alertas -->
+      <div class="card" style="margin-bottom:16px" id="alertas-card">
+        <div class="card-title">⚡ Alertas automáticas</div>
+        <div id="alertas-list" style="font-size:0.83rem; color:var(--text2)">Sin alertas activas.</div>
+      </div>
+
+      <!-- Últimos registros -->
+      <div class="card">
+        <div class="card-title">Últimos registros</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Hora</th><th>Estudiante</th><th>Carrera</th><th>Área</th><th>Participantes</th><th>Estado</th></tr></thead>
+            <tbody id="tabla-recientes"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ BOT ═══════════ -->
+    <div id="view-bot" class="view">
+      <div class="section-header">
+        <h2>Bot RecreaBot con IA</h2>
+        <p>Simula exactamente lo que verán los estudiantes en WhatsApp. Usa la Claude API configurada.</p>
+      </div>
+      <div class="chat-layout">
+        <div class="chat-panel">
+          <div class="chat-header">
+            <div class="chat-avatar">🤖</div>
+            <div>
+              <div class="chat-name">RecreaBot · Neumann</div>
+              <div class="chat-status">● En línea</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="clearChat()">Limpiar</button>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="msg bot">
+              <div class="msg-bubble">👋 Hola, soy <strong>RecreaBot</strong> del Instituto Superior Neumann.<br><br>Puedo ayudarte a registrar el uso de las áreas recreativas, consultar disponibilidad, reportar incidencias o ver el ranking de participación.<br><br>¿Qué deseas hacer?</div>
+              <div class="msg-time">Ahora</div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <textarea class="chat-input" id="chat-input" placeholder="Escribe un mensaje..." rows="1"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
+              oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+            <button class="send-btn" id="send-btn" onclick="sendMsg()">➤</button>
+          </div>
+        </div>
+
+        <div class="chat-sidebar">
+          <div class="quick-actions">
+            <div class="qa-title">Mensajes rápidos</div>
+            <button class="qa-btn" onclick="quickSend('Quiero registrar el uso de Canchita A')">⚽ Usar Canchita A</button>
+            <button class="qa-btn" onclick="quickSend('Quiero registrar el uso de Taka Taka')">🏓 Usar Taka Taka</button>
+            <button class="qa-btn" onclick="quickSend('Quiero jugar Ajedrez')">♟️ Usar Ajedrez</button>
+            <button class="qa-btn" onclick="quickSend('Quiero usar el Sapito')">🐸 Usar Sapito</button>
+            <button class="qa-btn" onclick="quickSend('¿Cuál área está libre ahora?')">✅ Ver disponibilidad</button>
+            <button class="qa-btn" onclick="quickSend('Quiero reportar un problema en Taka Taka')">🔧 Reportar problema</button>
+            <button class="qa-btn" onclick="quickSend('¿Cuál es el área más popular esta semana?')">📊 Ver estadísticas</button>
+            <button class="qa-btn" onclick="quickSend('¿Qué actividades tienen menos uso?')">📣 Baja demanda</button>
+          </div>
+          <div class="quick-actions">
+            <div class="qa-title">Estado del bot</div>
+            <div id="bot-status" style="font-size:0.8rem; color:var(--text3)">
+              <div style="margin-bottom:6px">API: <span id="api-status" style="color:var(--yellow)">⚠ Sin configurar</span></div>
+              <div>Registros en memoria: <span id="mem-count" style="color:var(--accent2)">0</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ REGISTRO ═══════════ -->
+    <div id="view-registro" class="view">
+      <div class="section-header">
+        <h2>Nuevo registro de uso</h2>
+        <p>Registra manualmente o desde el QR del área. Este formulario replica exactamente el Google Form.</p>
+      </div>
+      <div class="registro-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Código de estudiante *</label>
+            <input type="text" id="r-codigo" placeholder="Ej: 202401" maxlength="10">
+          </div>
+          <div class="form-group">
+            <label>Carrera *</label>
+            <select id="r-carrera">
+              <option value="">Selecciona...</option>
+              <option>Administración</option>
+              <option>Contabilidad</option>
+              <option>Docente / Personal</option>
+              <option>Otro</option>
+            </select>
+          </div>
+
+          <div class="form-group full">
+            <label>Área recreativa *</label>
+            <div class="radio-group" id="r-area">
+              <div class="radio-opt" onclick="selectOpt('r-area',this)" data-val="Canchita A">⚽ Canchita A</div>
+              <div class="radio-opt" onclick="selectOpt('r-area',this)" data-val="Canchita B">⚽ Canchita B</div>
+              <div class="radio-opt" onclick="selectOpt('r-area',this)" data-val="Taka Taka">🏓 Taka Taka</div>
+              <div class="radio-opt" onclick="selectOpt('r-area',this)" data-val="Ajedrez">♟️ Ajedrez</div>
+              <div class="radio-opt" onclick="selectOpt('r-area',this)" data-val="Sapito">🐸 Sapito</div>
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <label>Número de participantes *</label>
+            <div class="radio-group" id="r-participantes">
+              <div class="radio-opt" onclick="selectOpt('r-participantes',this)" data-val="1">1</div>
+              <div class="radio-opt" onclick="selectOpt('r-participantes',this)" data-val="2">2</div>
+              <div class="radio-opt" onclick="selectOpt('r-participantes',this)" data-val="3">3</div>
+              <div class="radio-opt" onclick="selectOpt('r-participantes',this)" data-val="4">4</div>
+              <div class="radio-opt" onclick="selectOpt('r-participantes',this)" data-val="5">5</div>
+              <div class="radio-opt" onclick="selectOpt('r-participantes',this)" data-val="6+">6+</div>
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <label>Horario *</label>
+            <div class="radio-group" id="r-horario">
+              <div class="radio-opt" onclick="selectOpt('r-horario',this)" data-val="7-9am">7–9am</div>
+              <div class="radio-opt" onclick="selectOpt('r-horario',this)" data-val="9-11am">9–11am</div>
+              <div class="radio-opt" onclick="selectOpt('r-horario',this)" data-val="11am-1pm">11am–1pm</div>
+              <div class="radio-opt" onclick="selectOpt('r-horario',this)" data-val="1-3pm">1–3pm</div>
+              <div class="radio-opt" onclick="selectOpt('r-horario',this)" data-val="3-5pm">3–5pm</div>
+              <div class="radio-opt" onclick="selectOpt('r-horario',this)" data-val="5-7pm">5–7pm</div>
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <label>Estado del equipo *</label>
+            <div class="radio-group" id="r-estado">
+              <div class="radio-opt" onclick="selectOpt('r-estado',this);toggleProblema(false)" data-val="ok">✅ Todo bien</div>
+              <div class="radio-opt" onclick="selectOpt('r-estado',this);toggleProblema(true)" data-val="problema">⚠️ Hay un problema</div>
+            </div>
+          </div>
+
+          <div class="form-group full" id="problema-field" style="display:none">
+            <label>Describe el problema</label>
+            <textarea id="r-problema" placeholder="Ej: falta la pelota, red caída, tablero roto..." rows="2" style="resize:none"></textarea>
+          </div>
+
+          <div class="form-group full">
+            <label>Calificación (opcional)</label>
+            <div class="radio-group" id="r-calificacion">
+              <div class="radio-opt" onclick="selectOpt('r-calificacion',this)" data-val="1">1 ⭐</div>
+              <div class="radio-opt" onclick="selectOpt('r-calificacion',this)" data-val="2">2 ⭐</div>
+              <div class="radio-opt" onclick="selectOpt('r-calificacion',this)" data-val="3">3 ⭐</div>
+              <div class="radio-opt" onclick="selectOpt('r-calificacion',this)" data-val="4">4 ⭐</div>
+              <div class="radio-opt" onclick="selectOpt('r-calificacion',this)" data-val="5">5 ⭐</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:20px; display:flex; gap:10px;">
+          <button class="btn btn-primary" onclick="guardarRegistro()">Guardar registro</button>
+          <button class="btn btn-ghost" onclick="limpiarForm()">Limpiar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ HISTORIAL ═══════════ -->
+    <div id="view-historial" class="view">
+      <div class="section-header">
+        <h2>Historial de uso</h2>
+        <p>Todos los registros del sistema.</p>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <select id="filtro-area" onchange="renderHistorial()" style="background:var(--surface2); border:1px solid var(--border2); border-radius:7px; padding:7px 12px; color:var(--text); font-size:0.82rem;">
+            <option value="">Todas las áreas</option>
+            <option>Canchita A</option><option>Canchita B</option>
+            <option>Taka Taka</option><option>Ajedrez</option><option>Sapito</option>
+          </select>
+          <select id="filtro-carrera" onchange="renderHistorial()" style="background:var(--surface2); border:1px solid var(--border2); border-radius:7px; padding:7px 12px; color:var(--text); font-size:0.82rem;">
+            <option value="">Todas las carreras</option>
+            <option>Administración</option><option>Contabilidad</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filtro-area').value='';document.getElementById('filtro-carrera').value='';renderHistorial()">✕ Limpiar filtros</button>
+          <span style="margin-left:auto; font-size:0.8rem; color:var(--text3); align-self:center" id="hist-count">0 registros</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Hora</th><th>Código</th><th>Carrera</th><th>Área</th><th>Participantes</th><th>Horario</th><th>Estado</th><th>Calif.</th></tr></thead>
+            <tbody id="tabla-historial"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ INCIDENCIAS ═══════════ -->
+    <div id="view-incidencias" class="view">
+      <div class="section-header">
+        <h2>Incidencias reportadas</h2>
+        <p>Problemas reportados por estudiantes al registrar su uso.</p>
+      </div>
+      <div id="lista-incidencias">
+        <p style="color:var(--text3); font-size:0.85rem">No hay incidencias registradas.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════ CAMPAÑAS ═══════════ -->
+    <div id="view-campanas" class="view">
+      <div class="section-header">
+        <h2>Campañas de participación</h2>
+        <p>Genera mensajes automáticos para promover áreas con baja demanda.</p>
+      </div>
+      <div class="grid g2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-title">Generar campaña con IA</div>
+          <div class="form-group" style="margin-bottom:12px">
+            <label>Área a promover</label>
+            <select id="camp-area">
+              <option>Ajedrez</option><option>Sapito</option>
+              <option>Taka Taka</option><option>Canchita B</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <label>Destinatario</label>
+            <select id="camp-dest">
+              <option>Estudiantes de Administración</option>
+              <option>Estudiantes de Contabilidad</option>
+              <option>Tutores y delegados</option>
+              <option>Todos</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label>Tono del mensaje</label>
+            <select id="camp-tono">
+              <option>Motivador y divertido</option>
+              <option>Informativo</option>
+              <option>Competitivo (reto entre carreras)</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="generarCampana()">✨ Generar con IA</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Mensaje generado</div>
+          <div id="campana-resultado" style="font-size:0.84rem; color:var(--text2); line-height:1.7; min-height:120px; white-space:pre-wrap">
+            Completa el formulario y haz clic en "Generar con IA" para crear un mensaje personalizado.
+          </div>
+          <div style="margin-top:12px; display:flex; gap:8px;" id="campana-actions" style="display:none">
+            <button class="btn btn-ghost btn-sm" onclick="copiarCampana()">Copiar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ CONFIG ═══════════ -->
+    <div id="view-config" class="view">
+      <div class="section-header">
+        <h2>Configuración del sistema</h2>
+        <p>Ajusta los parámetros de RecreaBot para el Instituto Superior Neumann.</p>
+      </div>
+      <div class="card" style="max-width:680px; margin-bottom:16px">
+        <div class="config-section">
+          <div class="config-title">🏫 Institución</div>
+          <div class="config-row">
+            <span class="config-label">Nombre</span>
+            <input type="text" class="config-input" id="cfg-nombre" value="Instituto Superior Neumann">
+          </div>
+          <div class="config-row">
+            <span class="config-label">Carreras</span>
+            <input type="text" class="config-input" id="cfg-carreras" value="Administración, Contabilidad">
+          </div>
+        </div>
+        <div class="config-section">
+          <div class="config-title">⚽ Áreas recreativas</div>
+          <div id="areas-config">
+            <div class="config-row" style="font-size:0.8rem; color:var(--text2)">Canchita A · Canchita B · Taka Taka · Ajedrez · Sapito</div>
+          </div>
+        </div>
+        <div class="config-section">
+          <div class="config-title">⚠️ Reglas automáticas</div>
+          <div class="config-row">
+            <span class="config-label">Alerta concentración (%)</span>
+            <input type="number" class="config-input" id="cfg-concentracion" value="60" min="10" max="100">
+          </div>
+          <div class="config-row">
+            <span class="config-label">Días sin uso para alerta</span>
+            <input type="number" class="config-input" id="cfg-diassinuso" value="3" min="1">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="guardarConfig()">Guardar configuración</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ CONECTAR APIs ═══════════ -->
+    <div id="view-conectar" class="view">
+      <div class="section-header">
+        <h2>Conectar APIs externas</h2>
+        <p>Configura las credenciales para conectar el sistema a WhatsApp y Google Sheets reales.</p>
+      </div>
+
+      <div class="grid g2" style="max-width:900px">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">🤖 Anthropic Claude API</div>
+          <p style="font-size:0.8rem; color:var(--text3); margin-bottom:14px; line-height:1.6">Necesaria para que el bot tenga inteligencia artificial. Obtén tu API key en <strong style="color:var(--accent2)">console.anthropic.com</strong></p>
+          <div class="form-group" style="margin-bottom:12px">
+            <label>API Key</label>
+            <div class="credential-field">
+              <input type="password" id="cfg-claude-key" placeholder="sk-ant-api03-..." oninput="validateKey('claude')">
+              <span class="cred-status" id="claude-status">—</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="testClaudeAPI()">Probar conexión</button>
+            <button class="btn btn-ghost btn-sm" onclick="saveKey('claude')">Guardar</button>
+          </div>
+          <div id="claude-test-result" style="margin-top:10px; font-size:0.78rem; color:var(--text3)"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">💬 Twilio WhatsApp API</div>
+          <p style="font-size:0.8rem; color:var(--text3); margin-bottom:14px; line-height:1.6">Permite enviar y recibir mensajes de WhatsApp. Regístrate en <strong style="color:var(--accent2)">twilio.com</strong> · Plan gratuito disponible para inicio.</p>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Account SID</label>
+            <input type="text" id="cfg-twilio-sid" placeholder="ACxxxxxxxxxxxxxxxxxxxx">
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Auth Token</label>
+            <input type="password" id="cfg-twilio-token" placeholder="Tu auth token">
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <label>Número WhatsApp (formato +51...)</label>
+            <input type="text" id="cfg-twilio-number" placeholder="+14155238886">
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="saveTwilio()">Guardar Twilio</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">📊 Google Sheets</div>
+          <p style="font-size:0.8rem; color:var(--text3); margin-bottom:14px; line-height:1.6">Sincroniza los registros con tu Google Sheets automáticamente. Necesitas crear una Service Account en Google Cloud.</p>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>ID del Spreadsheet</label>
+            <input type="text" id="cfg-sheets-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms">
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Nombre de la hoja</label>
+            <input type="text" id="cfg-sheets-hoja" value="Respuestas de formulario 1">
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <label>Service Account JSON (pega el contenido)</label>
+            <textarea id="cfg-sheets-json" placeholder='{"type":"service_account",...}' rows="3" style="resize:none; font-family:var(--mono); font-size:0.75rem;"></textarea>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveSheets()">Guardar Sheets</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">📧 Notificaciones por Email</div>
+          <p style="font-size:0.8rem; color:var(--text3); margin-bottom:14px; line-height:1.6">Configura a quién se envían los reportes semanales y alertas de incidencias.</p>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Email Coordinación</label>
+            <input type="text" id="cfg-email-coord" placeholder="coordinacion@neumann.edu.pe">
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Email Mantenimiento</label>
+            <input type="text" id="cfg-email-mant" placeholder="mantenimiento@neumann.edu.pe">
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <label>Email Tutores</label>
+            <input type="text" id="cfg-email-tutores" placeholder="tutores@neumann.edu.pe">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveEmails()">Guardar emails</button>
+        </div>
+      </div>
+
+      <div class="card" style="max-width:900px; margin-top:16px; border-color:var(--border2)">
+        <div class="card-title">📋 Estado de conexiones</div>
+        <div style="display:flex; gap:20px; flex-wrap:wrap; margin-top:4px;">
+          <div style="font-size:0.82rem"><span id="conn-claude" style="color:var(--yellow)">⚠</span> Claude API</div>
+          <div style="font-size:0.82rem"><span id="conn-twilio" style="color:var(--yellow)">⚠</span> Twilio WhatsApp</div>
+          <div style="font-size:0.82rem"><span id="conn-sheets" style="color:var(--yellow)">⚠</span> Google Sheets</div>
+          <div style="font-size:0.82rem"><span id="conn-email"  style="color:var(--yellow)">⚠</span> Emails</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .content -->
+</div><!-- end .main -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">Confirmar</h3>
+    <p id="modal-body"></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="modal-ok" onclick="closeModal()">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// ESTADO GLOBAL
+// ═══════════════════════════════════════════════
+const STATE = {
+  registros: JSON.parse(localStorage.getItem('nb_registros') || '[]'),
+  claudeKey: localStorage.getItem('nb_claude_key') || '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',
+  twilioSid: localStorage.getItem('nb_twilio_sid') || '',
+  twilioToken: localStorage.getItem('nb_twilio_token') || '',
+  sheetsId: localStorage.getItem('nb_sheets_id') || '',
+  emails: JSON.parse(localStorage.getItem('nb_emails') || '{}'),
+  chatHistory: [],
+};
+
+const AREAS = ['Canchita A','Canchita B','Taka Taka','Ajedrez','Sapito'];
+const COLORS = {
+  'Canchita A': '#10b981',
+  'Canchita B': '#3b82f6',
+  'Taka Taka':  '#f59e0b',
+  'Ajedrez':    '#8b5cf6',
+  'Sapito':     '#06b6d4',
+};
+const CHIP_CLASS = {
+  'Canchita A':'chip-a','Canchita B':'chip-b','Taka Taka':'chip-taka',
+  'Ajedrez':'chip-ajedrez','Sapito':'chip-sapito'
+};
+const HORARIOS = ['7-9am','9-11am','11am-1pm','1-3pm','3-5pm','5-7pm'];
+
+// ═══════════════════════════════════════════════
+// NAVEGACIÓN
+// ═══════════════════════════════════════════════
+const TITLES = {
+  dashboard:   ['Dashboard','Visión general del sistema'],
+  bot:         ['Bot RecreaBot con IA','Simulador de conversación WhatsApp'],
+  registro:    ['Nuevo Registro','Registrar uso de área recreativa'],
+  historial:   ['Historial de Uso','Todos los registros del sistema'],
+  incidencias: ['Incidencias','Problemas reportados por estudiantes'],
+  campanas:    ['Campañas','Mensajes de promoción con IA'],
+  config:      ['Configuración','Parámetros del sistema'],
+  conectar:    ['Conectar APIs','WhatsApp · Google Sheets · Email'],
+};
+
+function nav(id, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  const [title, sub] = TITLES[id] || [id, ''];
+  document.getElementById('topbar-title').textContent = title;
+  document.getElementById('topbar-sub').textContent   = sub;
+  if (id === 'dashboard')   renderDashboard();
+  if (id === 'historial')   renderHistorial();
+  if (id === 'incidencias') renderIncidencias();
+  if (id === 'conectar')    loadConfig();
+}
+
+// ═══════════════════════════════════════════════
+// RELOJ
+// ═══════════════════════════════════════════════
+function tick() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(tick, 1000); tick();
+
+// ═══════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════
+function toast(msg, dur=3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ═══════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════
+function openModal(title, body, cb) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').textContent = body;
+  document.getElementById('modal-ok').onclick = () => { closeModal(); if(cb) cb(); };
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+// ═══════════════════════════════════════════════
+// UTILIDADES
+// ═══════════════════════════════════════════════
+function saveState() {
+  localStorage.setItem('nb_registros', JSON.stringify(STATE.registros));
+}
+
+function getToday() {
+  return new Date().toLocaleDateString('es-PE', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+function getWeekStart() {
+  const d = new Date(); d.setHours(0,0,0,0);
+  const day = d.getDay(); const diff = (day + 6) % 7;
+  d.setDate(d.getDate() - diff);
+  return d;
+}
+
+function areaChip(area) {
+  return `<span class="area-chip ${CHIP_CLASS[area]||''}">${area}</span>`;
+}
+
+function getSelected(groupId) {
+  const sel = document.querySelector(`#${groupId} .radio-opt.selected`);
+  return sel ? sel.dataset.val : '';
+}
+
+function selectOpt(groupId, el) {
+  document.querySelectorAll(`#${groupId} .radio-opt`).forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function toggleProblema(show) {
+  document.getElementById('problema-field').style.display = show ? 'block' : 'none';
+}
+
+// ═══════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════
+function renderDashboard() {
+  document.getElementById('dash-fecha').textContent = getToday();
+
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const semStart = getWeekStart();
+  const regs = STATE.registros;
+
+  const hoyRegs    = regs.filter(r => new Date(r.ts) >= hoy);
+  const semRegs    = regs.filter(r => new Date(r.ts) >= semStart);
+  const incRegs    = regs.filter(r => r.estado === 'problema');
+
+  document.getElementById('kpi-hoy').textContent    = hoyRegs.length;
+  document.getElementById('kpi-semana').textContent = semRegs.length;
+  document.getElementById('kpi-inc').textContent    = incRegs.length;
+  document.getElementById('inc-badge').textContent  = incRegs.length;
+
+  // uso por área
+  const areaCounts = {};
+  AREAS.forEach(a => areaCounts[a] = semRegs.filter(r => r.area === a).length);
+  const maxArea = Math.max(...Object.values(areaCounts), 1);
+  const topArea = AREAS.reduce((a,b) => areaCounts[a]>=areaCounts[b]?a:b);
+  const topPct  = semRegs.length > 0 ? Math.round((areaCounts[topArea]/semRegs.length)*100) : 0;
+  document.getElementById('kpi-top').textContent     = topArea;
+  document.getElementById('kpi-top-pct').textContent = `${topPct}% del uso`;
+
+  const chartAreas = document.getElementById('chart-areas');
+  chartAreas.innerHTML = AREAS.map(a => `
+    <div class="bar-row">
+      <span class="bar-label">${a}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${areaCounts[a]/maxArea*100}%;background:${COLORS[a]}"></div></div>
+      <span class="bar-count">${areaCounts[a]}</span>
+    </div>`).join('');
+
+  // por carrera
+  const carreraRegs = {};
+  semRegs.forEach(r => { carreraRegs[r.carrera] = (carreraRegs[r.carrera]||0)+1; });
+  const maxCar = Math.max(...Object.values(carreraRegs), 1);
+  document.getElementById('chart-carreras').innerHTML =
+    Object.entries(carreraRegs).length
+      ? Object.entries(carreraRegs).map(([c,n]) => `
+          <div class="bar-row">
+            <span class="bar-label">${c}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${n/maxCar*100}%;background:var(--accent)"></div></div>
+            <span class="bar-count">${n}</span>
+          </div>`).join('')
+      : '<p style="font-size:0.8rem;color:var(--text3)">Sin datos</p>';
+
+  // por horario
+  const horRegs = {};
+  HORARIOS.forEach(h => horRegs[h] = semRegs.filter(r => r.horario === h).length);
+  const maxHor = Math.max(...Object.values(horRegs), 1);
+  document.getElementById('chart-horarios').innerHTML = HORARIOS.map(h => `
+    <div class="bar-row">
+      <span class="bar-label">${h}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${horRegs[h]/maxHor*100}%;background:var(--purple)"></div></div>
+      <span class="bar-count">${horRegs[h]}</span>
+    </div>`).join('');
+
+  // alertas
+  const alertas = [];
+  const sinUso = AREAS.filter(a => areaCounts[a]===0);
+  if (sinUso.length) alertas.push(`⚠️ Áreas sin uso esta semana: <strong>${sinUso.join(', ')}</strong> — Activar campaña con tutores.`);
+  if (semRegs.length > 0 && areaCounts[topArea]/semRegs.length > 0.6)
+    alertas.push(`🔴 <strong>${topArea}</strong> concentra el ${topPct}% del uso — Promover alternativas.`);
+  if (incRegs.length)
+    alertas.push(`🔧 <strong>${incRegs.length} incidencia(s)</strong> pendiente(s) de revisión.`);
+
+  document.getElementById('alertas-list').innerHTML = alertas.length
+    ? alertas.map(a => `<div style="padding:8px 0;border-bottom:1px solid var(--border);color:var(--text2)">${a}</div>`).join('')
+    : '<div style="color:var(--text3);font-size:0.82rem">✅ Sin alertas activas esta semana.</div>';
+
+  // últimos registros
+  const last8 = [...regs].reverse().slice(0,8);
+  document.getElementById('tabla-recientes').innerHTML = last8.length
+    ? last8.map(r => `
+        <tr>
+          <td>${new Date(r.ts).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}</td>
+          <td style="font-family:var(--mono);font-size:0.78rem">${r.codigo}</td>
+          <td>${r.carrera}</td>
+          <td>${areaChip(r.area)}</td>
+          <td>${r.participantes}</td>
+          <td>${r.estado==='ok'
+            ? '<span class="tag tag-green">✅ Bien</span>'
+            : '<span class="tag tag-red">⚠️ Problema</span>'}</td>
+        </tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Sin registros aún. Usa el botón "+ Nuevo registro" para empezar.</td></tr>';
+}
+
+// ═══════════════════════════════════════════════
+// HISTORIAL
+// ═══════════════════════════════════════════════
+function renderHistorial() {
+  const fa = document.getElementById('filtro-area').value;
+  const fc = document.getElementById('filtro-carrera').value;
+  let regs = [...STATE.registros].reverse();
+  if (fa) regs = regs.filter(r => r.area === fa);
+  if (fc) regs = regs.filter(r => r.carrera === fc);
+  document.getElementById('hist-count').textContent = `${regs.length} registros`;
+  document.getElementById('tabla-historial').innerHTML = regs.length
+    ? regs.map(r => `
+        <tr>
+          <td>${new Date(r.ts).toLocaleDateString('es-PE')}</td>
+          <td>${new Date(r.ts).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}</td>
+          <td style="font-family:var(--mono);font-size:0.78rem">${r.codigo}</td>
+          <td>${r.carrera}</td>
+          <td>${areaChip(r.area)}</td>
+          <td>${r.participantes}</td>
+          <td>${r.horario}</td>
+          <td>${r.estado==='ok'
+            ? '<span class="tag tag-green">Bien</span>'
+            : '<span class="tag tag-red">Problema</span>'}</td>
+          <td>${r.calificacion ? '⭐'.repeat(+r.calificacion) : '—'}</td>
+        </tr>`).join('')
+    : '<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:20px">Sin registros que coincidan con el filtro.</td></tr>';
+}
+
+// ═══════════════════════════════════════════════
+// INCIDENCIAS
+// ═══════════════════════════════════════════════
+function renderIncidencias() {
+  const incs = STATE.registros.filter(r => r.estado==='problema').reverse();
+  document.getElementById('lista-incidencias').innerHTML = incs.length
+    ? incs.map(r => `
+        <div class="inc-card alta">
+          <div class="inc-header">
+            <span class="inc-area">${r.area}</span>
+            <span class="tag tag-red">Pendiente</span>
+          </div>
+          <div class="inc-desc">${r.problema || 'Sin descripción'}</div>
+          <div class="inc-meta">
+            Reportado por: ${r.codigo} (${r.carrera}) · ${new Date(r.ts).toLocaleString('es-PE')}
+          </div>
+        </div>`).join('')
+    : '<p style="color:var(--text3);font-size:0.85rem">✅ No hay incidencias registradas.</p>';
+}
+
+// ═══════════════════════════════════════════════
+// REGISTRO
+// ═══════════════════════════════════════════════
+function guardarRegistro() {
+  const codigo  = document.getElementById('r-codigo').value.trim();
+  const carrera = document.getElementById('r-carrera').value;
+  const area    = getSelected('r-area');
+  const partic  = getSelected('r-participantes');
+  const horario = getSelected('r-horario');
+  const estado  = getSelected('r-estado');
+
+  if (!codigo || !carrera || !area || !partic || !horario || !estado) {
+    toast('⚠️ Completa todos los campos obligatorios'); return;
+  }
+
+  const reg = {
+    ts: new Date().toISOString(),
+    codigo, carrera, area,
+    participantes: partic,
+    horario, estado,
+    problema: document.getElementById('r-problema').value,
+    calificacion: getSelected('r-calificacion'),
+  };
+
+  STATE.registros.push(reg);
+  saveState();
+  limpiarForm();
+  toast('✅ Registro guardado correctamente');
+  document.getElementById('inc-badge').textContent =
+    STATE.registros.filter(r => r.estado==='problema').length;
+}
+
+function limpiarForm() {
+  document.getElementById('r-codigo').value = '';
+  document.getElementById('r-carrera').value = '';
+  document.getElementById('r-problema').value = '';
+  ['r-area','r-participantes','r-horario','r-estado','r-calificacion'].forEach(id => {
+    document.querySelectorAll(`#${id} .radio-opt`).forEach(o => o.classList.remove('selected'));
+  });
+  document.getElementById('problema-field').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════
+function exportData() {
+  const headers = ['Fecha','Hora','Código','Carrera','Área','Participantes','Horario','Estado','Problema','Calificación'];
+  const rows = STATE.registros.map(r => [
+    new Date(r.ts).toLocaleDateString('es-PE'),
+    new Date(r.ts).toLocaleTimeString('es-PE'),
+    r.codigo, r.carrera, r.area, r.participantes, r.horario, r.estado, r.problema||'', r.calificacion||''
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `RecreaBot_Neumann_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('⬇ Exportando datos...');
+}
+
+// ═══════════════════════════════════════════════
+// BOT IA
+// ═══════════════════════════════════════════════
+const SYSTEM_PROMPT = `Eres RecreaBot, el asistente de IA del Instituto Superior Neumann para gestión de áreas recreativas estudiantiles.
+
+ÁREAS DISPONIBLES: Canchita A, Canchita B, Taka Taka, Ajedrez, Sapito.
+CARRERAS: Administración, Contabilidad.
+
+Tu rol es:
+1. Registrar el uso de áreas recreativas (pide: código estudiante, carrera, área, participantes, horario)
+2. Dar información sobre disponibilidad y uso
+3. Registrar incidencias (problemas con equipos)
+4. Motivar el uso de áreas con baja demanda (especialmente Ajedrez y Sapito)
+5. Dar estadísticas de uso cuando te las pidan
+
+Estadísticas actuales (datos de memoria del sistema):
+${JSON.stringify(getStatsForBot())}
+
+Reglas de comportamiento:
+- Responde siempre en español, de forma amigable y concisa
+- Cuando confirmes un registro, termina con: [REGISTRO: área=X, participantes=Y]
+- Cuando detectes una incidencia, termina con: [INCIDENCIA: área=X, descripción=Y]
+- Máximo 3 párrafos por respuesta
+- Usa emojis con moderación`;
+
+function getStatsForBot() {
+  const w = getWeekStart();
+  const semRegs = STATE.registros.filter(r => new Date(r.ts) >= w);
+  const counts = {};
+  AREAS.forEach(a => counts[a] = semRegs.filter(r => r.area===a).length);
+  return { totalSemana: semRegs.length, porArea: counts, sinUso: AREAS.filter(a=>counts[a]===0) };
+}
+
+async function sendMsg() {
+  const input = document.getElementById('chat-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  input.value = ''; input.style.height = 'auto';
+
+  appendMsg('user', text);
+  STATE.chatHistory.push({ role:'user', content: text });
+  document.getElementById('send-btn').disabled = true;
+
+  const typingId = appendTyping();
+
+  if (!STATE.claudeKey) {
+    removeTyping(typingId);
+    const respuesta = fallbackBot(text);
+    appendMsg('bot', respuesta);
+    STATE.chatHistory.push({ role:'assistant', content: respuesta });
+    document.getElementById('send-btn').disabled = false;
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        system: SYSTEM_PROMPT,
+        messages: STATE.chatHistory,
+      })
+    });
+    const data = await res.json();
+    removeTyping(typingId);
+    if (data.content && data.content[0]) {
+      const reply = data.content[0].text;
+      STATE.chatHistory.push({ role:'assistant', content: reply });
+      appendMsg('bot', reply);
+      processIntent(reply, text);
+    } else {
+      appendMsg('bot', '⚠️ Error al obtener respuesta. Verifica tu API key en "Conectar APIs".');
+    }
+  } catch(e) {
+    removeTyping(typingId);
+    appendMsg('bot', '⚠️ No se pudo conectar con la API. Verifica tu conexión y API key.');
+  }
+  document.getElementById('send-btn').disabled = false;
+}
+
+function fallbackBot(text) {
+  const t = text.toLowerCase();
+  if (t.includes('canchita a') || t.includes('cancha a'))
+    return '⚽ ¡Buena elección! Para usar Canchita A necesito tu código de estudiante, tu carrera (Administración o Contabilidad), cuántos participantes son y en qué horario aproximado.';
+  if (t.includes('taka'))
+    return '🏓 ¡Taka Taka disponible! Dime tu código, carrera, cuántos jugarán y el horario.';
+  if (t.includes('ajedrez'))
+    return '♟️ ¡Excelente! El Ajedrez mejora la concentración. Dime tu código de estudiante y carrera para registrarte.';
+  if (t.includes('sapito') || t.includes('sapo'))
+    return '🐸 ¡El Sapito es muy divertido! Esta semana tiene poca participación, anímate. Dime tu código y carrera.';
+  if (t.includes('disponib') || t.includes('libre') || t.includes('qué hay'))
+    return `✅ Áreas disponibles ahora:\n⚽ Canchita A y B\n🏓 Taka Taka\n♟️ Ajedrez\n🐸 Sapito\n\n¿Cuál te gustaría usar?`;
+  if (t.includes('problema') || t.includes('roto') || t.includes('falta'))
+    return '🔧 Voy a registrar esa incidencia. ¿En qué área es el problema y qué está pasando?';
+  if (t.includes('estadística') || t.includes('más usad') || t.includes('popular')) {
+    const s = getStatsForBot();
+    return `📊 Esta semana:\n${AREAS.map(a=>`  ${a}: ${s.porArea[a]} usos`).join('\n')}\n\nTotal: ${s.totalSemana} usos${s.sinUso.length ? `\n⚠️ Sin uso: ${s.sinUso.join(', ')}` : ''}`;
+  }
+  if (t.includes('baja demanda') || t.includes('menos uso') || t.includes('poco uso')) {
+    const s = getStatsForBot();
+    const menos = AREAS.sort((a,b)=>s.porArea[a]-s.porArea[b]).slice(0,2);
+    return `📣 Las áreas con menor participación esta semana son:\n• ${menos[0]}: ${s.porArea[menos[0]]} usos\n• ${menos[1]}: ${s.porArea[menos[1]]} usos\n\n¿Quieres que genere una campaña para promoverlas?`;
+  }
+  return '👋 Puedo ayudarte a registrar el uso de un área, consultar disponibilidad, reportar un problema o ver estadísticas. ¿Qué necesitas?';
+}
+
+function processIntent(reply, original) {
+  const regMatch = reply.match(/\[REGISTRO:\s*área=([^,]+),\s*participantes=([^\]]+)\]/i);
+  if (regMatch) {
+    toast(`✅ Registro automático: ${regMatch[1].trim()}`);
+  }
+  const incMatch = reply.match(/\[INCIDENCIA:\s*área=([^,]+),\s*descripción=([^\]]+)\]/i);
+  if (incMatch) {
+    toast(`🔧 Incidencia registrada: ${incMatch[1].trim()}`);
+  }
+}
+
+function appendMsg(role, text) {
+  const wrap = document.getElementById('chat-messages');
+  const time  = new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+  const div   = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `<div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div><div class="msg-time">${time}</div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return div;
+}
+
+function appendTyping() {
+  const wrap = document.getElementById('chat-messages');
+  const div  = document.createElement('div');
+  div.className = 'msg bot'; div.id = 'typing-' + Date.now();
+  div.innerHTML = `<div class="msg-bubble typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return div.id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function clearChat() {
+  STATE.chatHistory = [];
+  document.getElementById('chat-messages').innerHTML = `
+    <div class="msg bot">
+      <div class="msg-bubble">👋 Hola, soy <strong>RecreaBot</strong> del Instituto Superior Neumann.<br><br>Puedo ayudarte a registrar el uso de las áreas recreativas, consultar disponibilidad, reportar incidencias o ver el ranking.<br><br>¿Qué deseas hacer?</div>
+      <div class="msg-time">Ahora</div>
+    </div>`;
+}
+
+function quickSend(text) {
+  document.getElementById('chat-input').value = text;
+  sendMsg();
+}
+
+// ═══════════════════════════════════════════════
+// CAMPAÑAS
+// ═══════════════════════════════════════════════
+async function generarCampana() {
+  const area  = document.getElementById('camp-area').value;
+  const dest  = document.getElementById('camp-dest').value;
+  const tono  = document.getElementById('camp-tono').value;
+  const res   = document.getElementById('campana-resultado');
+  res.innerHTML = '<span style="color:var(--text3)">Generando con IA...</span>';
+
+  if (!STATE.claudeKey) {
+    res.textContent = generarMensajeFallback(area, dest, tono);
+    document.getElementById('campana-actions').style.display = 'flex';
+    return;
+  }
+
+  try {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-api-key':STATE.claudeKey,'anthropic-version':'2023-06-01'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 300,
+        messages: [{role:'user', content:
+          `Escribe un mensaje de campaña para el Instituto Superior Neumann.
+           Área a promover: ${area}
+           Destinatario: ${dest}
+           Tono: ${tono}
+           El mensaje debe motivar a usar ${area} en los espacios recreativos del campus.
+           Máximo 4 líneas. En español. Sin hashtags. Incluye 1-2 emojis apropiados.`
+        }]
+      })
+    });
+    const d = await r.json();
+    res.textContent = d.content[0].text;
+    document.getElementById('campana-actions').style.display = 'flex';
+  } catch(e) {
+    res.textContent = generarMensajeFallback(area, dest, tono);
+    document.getElementById('campana-actions').style.display = 'flex';
+  }
+}
+
+function generarMensajeFallback(area, dest, tono) {
+  const msgs = {
+    'Ajedrez':     `♟️ ¡Esta semana, pon a prueba tu estrategia! El tablero de Ajedrez te espera en el campus. ${dest.includes('carrera') ? dest.split(' de ')[1] : 'Todos'} están invitados a participar. ¡Demuestra que Neumann piensa diferente!`,
+    'Sapito':      `🐸 ¡El Sapito tiene poca acción esta semana! Únete al reto, lleva a tu grupo y mide puntería. Es rápido, divertido y te desconecta del estrés. ¡Neumann juega unido!`,
+    'Taka Taka':   `🏓 ¡El Taka Taka necesita jugadores! Forma tu dupla y reta a tus compañeros de ${dest}. Solo 15 minutos para despejar la mente. ¡El campeón de Neumann eres tú!`,
+    'Canchita B':  `⚽ ¡Canchita B está libre! Organiza tu equipo de ${dest} y reserva tu turno ahora. El deporte une a Neumann.`,
+  };
+  return msgs[area] || `📣 El área de ${area} te espera en el campus del Instituto Superior Neumann. ¡Úsala esta semana!`;
+}
+
+function copiarCampana() {
+  const txt = document.getElementById('campana-resultado').textContent;
+  navigator.clipboard.writeText(txt);
+  toast('✅ Mensaje copiado al portapapeles');
+}
+
+// ═══════════════════════════════════════════════
+// CONFIG & CREDENCIALES
+// ═══════════════════════════════════════════════
+function loadConfig() {
+  document.getElementById('cfg-claude-key').value   = STATE.claudeKey ? '••••••••••••••••' : '';
+  document.getElementById('cfg-twilio-sid').value   = STATE.twilioSid;
+  document.getElementById('cfg-twilio-token').value = STATE.twilioToken ? '••••••••' : '';
+  document.getElementById('cfg-sheets-id').value    = STATE.sheetsId;
+  const em = STATE.emails;
+  if (em.coord)   document.getElementById('cfg-email-coord').value   = em.coord;
+  if (em.mant)    document.getElementById('cfg-email-mant').value    = em.mant;
+  if (em.tutores) document.getElementById('cfg-email-tutores').value = em.tutores;
+  updateConnStatus();
+}
+
+function validateKey(type) {
+  const key = document.getElementById(`cfg-${type}-key`).value;
+  const el  = document.getElementById(`${type}-status`);
+  if (type==='claude') {
+    el.textContent = key.startsWith('sk-ant') ? '✓ Formato OK' : key.length > 5 ? '⚠ Verifica' : '';
+    el.className   = `cred-status ${key.startsWith('sk-ant') ? 'cred-ok' : 'cred-bad'}`;
+  }
+}
+
+async function testClaudeAPI() {
+  const key = document.getElementById('cfg-claude-key').value;
+  const el  = document.getElementById('claude-test-result');
+  if (!key || key.includes('•')) { el.textContent = '⚠️ Ingresa tu API key primero.'; return; }
+  el.textContent = 'Probando conexión...';
+  try {
+    const r = await fetch('/api/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:30, messages:[{role:'user',content:'Responde solo: "RecreaBot Neumann conectado ✅"'}] })
+    });
+    const d = await r.json();
+    if (d.content) {
+      el.textContent = '✅ Conexión exitosa: ' + d.content[0].text;
+      el.style.color = 'var(--green)';
+      STATE.claudeKey = key;
+      localStorage.setItem('nb_claude_key', key);
+      document.getElementById('api-status').textContent = '✅ Conectado';
+      document.getElementById('api-status').style.color = 'var(--green)';
+      updateConnStatus();
+    } else {
+      el.textContent = '❌ Error: ' + (d.error?.message || 'respuesta inesperada');
+      el.style.color = 'var(--red)';
+    }
+  } catch(e) {
+    el.textContent = '❌ No se pudo conectar. Verifica CORS o la key.';
+    el.style.color = 'var(--red)';
+  }
+}
+
+function saveKey(type) {
+  const key = document.getElementById(`cfg-${type}-key`).value;
+  if (key.includes('•')) return;
+  if (type==='claude') { STATE.claudeKey = key; localStorage.setItem('nb_claude_key', key); }
+  toast('✅ API key guardada'); updateConnStatus();
+}
+
+function saveTwilio() {
+  STATE.twilioSid   = document.getElementById('cfg-twilio-sid').value;
+  STATE.twilioToken = document.getElementById('cfg-twilio-token').value;
+  localStorage.setItem('nb_twilio_sid',   STATE.twilioSid);
+  localStorage.setItem('nb_twilio_token', STATE.twilioToken);
+  toast('✅ Credenciales Twilio guardadas'); updateConnStatus();
+}
+
+function saveSheets() {
+  STATE.sheetsId = document.getElementById('cfg-sheets-id').value;
+  localStorage.setItem('nb_sheets_id', STATE.sheetsId);
+  toast('✅ Configuración Google Sheets guardada'); updateConnStatus();
+}
+
+function saveEmails() {
+  STATE.emails = {
+    coord:   document.getElementById('cfg-email-coord').value,
+    mant:    document.getElementById('cfg-email-mant').value,
+    tutores: document.getElementById('cfg-email-tutores').value,
+  };
+  localStorage.setItem('nb_emails', JSON.stringify(STATE.emails));
+  toast('✅ Emails guardados'); updateConnStatus();
+}
+
+function guardarConfig() {
+  toast('✅ Configuración guardada');
+}
+
+function updateConnStatus() {
+  const set = (id, ok) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = ok ? '✅' : '⚠';
+    el.style.color  = ok ? 'var(--green)' : 'var(--yellow)';
+  };
+  set('conn-claude',  !!STATE.claudeKey);
+  set('conn-twilio',  !!(STATE.twilioSid && STATE.twilioToken));
+  set('conn-sheets',  !!STATE.sheetsId);
+  set('conn-email',   !!(STATE.emails && STATE.emails.coord));
+  const apiEl = document.getElementById('api-status');
+  if (apiEl) {
+    apiEl.textContent = STATE.claudeKey ? '✅ Configurado' : '⚠ Sin configurar';
+    apiEl.style.color  = STATE.claudeKey ? 'var(--green)' : 'var(--yellow)';
+  }
+  if (document.getElementById('mem-count'))
+    document.getElementById('mem-count').textContent = STATE.registros.length;
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+window.addEventListener('load', () => {
+  renderDashboard();
+  updateConnStatus();
+  // Datos de demo si no hay nada
+  if (STATE.registros.length === 0) {
+    const demo = [
+      { area:'Canchita A', carrera:'Administración', participantes:'4', horario:'11am-1pm', estado:'ok', calificacion:'5' },
+      { area:'Canchita A', carrera:'Contabilidad',   participantes:'6+',horario:'3-5pm',    estado:'ok', calificacion:'4' },
+      { area:'Taka Taka',  carrera:'Administración', participantes:'2', horario:'1-3pm',    estado:'ok', calificacion:'5' },
+      { area:'Canchita A', carrera:'Administración', participantes:'4', horario:'9-11am',   estado:'ok', calificacion:'5' },
+      { area:'Canchita B', carrera:'Contabilidad',   participantes:'3', horario:'3-5pm',    estado:'ok', calificacion:'3' },
+      { area:'Taka Taka',  carrera:'Contabilidad',   participantes:'2', horario:'11am-1pm', estado:'problema', calificacion:'2', problema:'Falta un jugador del taka taka' },
+      { area:'Canchita A', carrera:'Administración', participantes:'5', horario:'5-7pm',    estado:'ok', calificacion:'5' },
+    ];
+    const base = Date.now() - 86400000 * 2;
+    demo.forEach((d, i) => {
+      STATE.registros.push({ ...d, ts: new Date(base + i * 7200000).toISOString(), codigo: `20240${i+1}` });
+    });
+    saveState();
+    renderDashboard();
+    document.getElementById('inc-badge').textContent = 1;
+  }
+});
+</script>
+</body>
+</html>
