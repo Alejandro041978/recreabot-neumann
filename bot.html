@@ -346,27 +346,63 @@ function extraerDeResumen(texto) {
     if (fm && !reg.fecha_reserva) reg.fecha_reserva = fm[0];
   }
 
-  // Horario — buscar el slot exacto del sistema en el texto del resumen
+  // Horario — buscar slot exacto o normalizar desde formato del bot
   const TODOS_SLOTS = [
-    // Slots 2h (canchitas)
     '8-10am','10am-12pm','12-2pm','2-4pm','4-6pm','6-8pm','8-10pm',
-    // Slots 1h (taka taka, ajedrez, sapito)
     '8-9am','9-10am','10-11am','11am-12pm','12-1pm','1-2pm',
     '2-3pm','3-4pm','4-5pm','5-6pm','6-7pm','7-8pm','8-9pm','9-10pm',
-    // Slots genéricos anteriores (compatibilidad)
     '7-9am','9-11am','11am-1pm','1-3pm','3-5pm','5-7pm',
   ];
+
+  // 1. Buscar slot exacto en el texto
   for (const slot of TODOS_SLOTS) {
     if (tl.includes(slot.toLowerCase())) { reg.horario = slot; break; }
   }
-  // Si no encontró slot exacto, intentar detectar por hora mencionada
+
+  // 2. Si no encontró, buscar línea "Horario: X" y normalizar
   if (!reg.horario) {
-    const hm = tl.match(/horario:\s*([^\n]+)/i);
-    if (hm) {
-      const h = hm[1].trim();
-      // Buscar coincidencia parcial con algún slot
-      const match = TODOS_SLOTS.find(s => h.toLowerCase().includes(s.toLowerCase()));
-      if (match) reg.horario = match;
+    const lineaHorario = texto.match(/[Hh]orario[:\s]+([^\n]+)/);
+    if (lineaHorario) {
+      const h = lineaHorario[1].trim();
+      // Extraer horas de inicio del formato "8:00 AM - 9:00 AM" o "8 AM" etc.
+      const match = h.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm|AM|PM|a\.m\.|p\.m\.)/i);
+      if (match) {
+        let hora = parseInt(match[1]);
+        const ampm = match[3].toLowerCase().replace(/\./g,'');
+        if ((ampm === 'pm' || ampm === 'pm') && hora !== 12) hora += 12;
+        if ((ampm === 'am' || ampm === 'am') && hora === 12) hora = 0;
+        // Mapear hora de inicio al slot de 1h o 2h según el área
+        const es2h = ['Canchita A','Canchita B'].includes(reg.area || AREA || '');
+        if (es2h) {
+          if      (hora === 8)  reg.horario = '8-10am';
+          else if (hora === 10) reg.horario = '10am-12pm';
+          else if (hora === 12) reg.horario = '12-2pm';
+          else if (hora === 14) reg.horario = '2-4pm';
+          else if (hora === 16) reg.horario = '4-6pm';
+          else if (hora === 18) reg.horario = '6-8pm';
+          else if (hora === 20) reg.horario = '8-10pm';
+        } else {
+          // Slots de 1 hora
+          const slots1h = ['8-9am','9-10am','10-11am','11am-12pm','12-1pm','1-2pm',
+                           '2-3pm','3-4pm','4-5pm','5-6pm','6-7pm','7-8pm','8-9pm','9-10pm'];
+          const horaBase = hora >= 12 ? hora : hora;
+          if (hora <= 7)  reg.horario = '8-9am';    // redondear a primer slot
+          else if (hora === 8)  reg.horario = '8-9am';
+          else if (hora === 9)  reg.horario = '9-10am';
+          else if (hora === 10) reg.horario = '10-11am';
+          else if (hora === 11) reg.horario = '11am-12pm';
+          else if (hora === 12) reg.horario = '12-1pm';
+          else if (hora === 13) reg.horario = '1-2pm';
+          else if (hora === 14) reg.horario = '2-3pm';
+          else if (hora === 15) reg.horario = '3-4pm';
+          else if (hora === 16) reg.horario = '4-5pm';
+          else if (hora === 17) reg.horario = '5-6pm';
+          else if (hora === 18) reg.horario = '6-7pm';
+          else if (hora === 19) reg.horario = '7-8pm';
+          else if (hora === 20) reg.horario = '8-9pm';
+          else if (hora === 21) reg.horario = '9-10pm';
+        }
+      }
     }
   }
 
@@ -507,7 +543,7 @@ REGLAS:
   Área: nombre exacto
   Participantes: número
   Fecha: fecha exacta o día
-  Horario: slot exacto de la lista
+  Horario: escribe el slot EXACTAMENTE como está en la lista (ej: 8-9am NO "8:00 AM - 9:00 AM")
 - Luego en línea nueva escribe exactamente: [REGISTRO COMPLETO ✅]
 - Si el estudiante da todos los datos en un mensaje, extrae y confirma sin más preguntas
 - No uses markdown, asteriscos ni guiones`;
