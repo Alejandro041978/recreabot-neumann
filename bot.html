@@ -206,8 +206,14 @@ async function cargarConfig() {
 
 function getSlotsParaArea(area) {
   const cfg = SLOTS_CONFIG[area];
-  if (!cfg || !cfg.activa) return [];
-  return cfg.slots || [];
+  if (!cfg) return [];
+  // activa puede ser booleano o string "TRUE"/"FALSE" desde Sheets
+  const activa = cfg.activa === true || String(cfg.activa).toUpperCase() === 'TRUE';
+  if (!activa) return [];
+  // slots puede ser array o string separado por comas
+  if (Array.isArray(cfg.slots)) return cfg.slots;
+  if (typeof cfg.slots === 'string') return cfg.slots.split(',').map(s => s.trim()).filter(Boolean);
+  return [];
 }
 
 // ── DETECTAR ÁREA DESDE URL ──

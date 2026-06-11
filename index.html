@@ -1259,7 +1259,8 @@ async function actualizarSlotsDisponibles() {
   // Cargar slots del área desde config
   const cfg = await cargarSlotsConfig();
   const areaCfg = cfg[area];
-  if (!areaCfg || !areaCfg.activa) {
+  const activaFlag = areaCfg && (areaCfg.activa === true || String(areaCfg.activa).toUpperCase() === 'TRUE');
+  if (!areaCfg || !activaFlag) {
     wrap.innerHTML = '<div style="font-size:0.82rem;color:var(--red);padding:8px 0">⚠️ Esta área no está disponible actualmente.</div>';
     loading.style.display = 'none';
     return;
