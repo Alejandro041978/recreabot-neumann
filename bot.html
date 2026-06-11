@@ -230,7 +230,8 @@ if (AREA) {
 let history  = [];
 let busy     = false;
 let registro = { area: AREA, codigo:'', carrera:'', participantes:'', fecha_reserva:'', horario:'', estado:'ok', problema:'', calificacion:'' };
-let pasoActual = AREA ? 'codigo' : 'area'; // flujo: area → codigo → carrera → participantes → horario → estado → guardar
+let pasoActual = AREA ? 'codigo' : 'area';
+let estudianteActual = null; // datos del estudiante identificado // flujo: area → codigo → carrera → participantes → horario → estado → guardar
 
 // ── EXTRACCIÓN PRECISA — solo analiza el mensaje del estudiante en cada paso ──
 function actualizarRegistro(msgEstudiante) {
@@ -370,6 +371,31 @@ function extraerDeResumen(texto) {
   return reg;
 }
 
+// ── BUSCAR ESTUDIANTE POR CÓDIGO ──
+async function buscarEstudiante(codigo) {
+  try {
+    const r = await fetch(`/api/estudiantes?codigo=${codigo.trim()}`);
+    return await r.json();
+  } catch(e) {
+    return { encontrado: false };
+  }
+}
+
+// ── ENVIAR EMAIL DE EVALUACIÓN ──
+async function enviarEmailEvaluacion(estudiante, reserva) {
+  if (!estudiante || !estudiante.email) return;
+  try {
+    await fetch('/api/evaluacion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ estudiante, reserva }),
+    });
+    console.log('Email de evaluación enviado a', estudiante.email);
+  } catch(e) {
+    console.warn('No se pudo enviar email de evaluación:', e.message);
+  }
+}
+
 // ── GUARDAR EN GOOGLE SHEETS ──
 async function guardarEnSheets(reg) {
   try {
@@ -441,10 +467,14 @@ function autoResize(el) {
 function buildSystem() {
   const slotsArea = AREA ? getSlotsParaArea(AREA) : [];
   const slotsTexto = slotsArea.length ? slotsArea.join(', ') : 'no disponible';
+  const estudianteInfo = estudianteActual
+    ? `ESTUDIANTE IDENTIFICADO: ${estudianteActual.nombre} ${estudianteActual.apellido} — ${estudianteActual.carrera} — código ${estudianteActual.codigo}`
+    : 'Estudiante aún no identificado';
   return `Eres RecreaBot, el asistente de IA del Instituto Superior Neumann para áreas recreativas.
 
 ÁREA ACTUAL (desde QR escaneado): ${AREA || 'no especificada, pregunta al estudiante'}
 ÁREAS DISPONIBLES: Canchita A, Canchita B, Taka Taka, Ajedrez, Sapito.
+${estudianteInfo}
 SLOTS HORARIOS DEL ÁREA ACTUAL (${AREA || 'sin área'}): ${slotsTexto}
 IMPORTANTE: Solo ofrece estos slots al estudiante. Si pide un horario fuera de estos, corrígelo amablemente y muéstrale los disponibles.
 CARRERAS: Administración, Contabilidad.
@@ -461,6 +491,7 @@ FLUJO DE REGISTRO (sigue este orden):
 REGLAS:
 - Responde SIEMPRE en español, tono amigable y joven
 - Respuestas CORTAS (máximo 3 líneas) — estamos en móvil
+- Si el estudiante ya fue identificado (nombre conocido), salúdalo por su nombre y NO le preguntes la carrera — ya la sabes
 - SIEMPRE pregunta para qué FECHA quieren el área si no lo mencionaron (hoy, mañana, día de la semana)
 - Cuando confirmes el registro SIEMPRE incluye un resumen con este formato EXACTO antes de [REGISTRO COMPLETO ✅]:
   Código: XXXXXX
@@ -491,6 +522,30 @@ async function send() {
 
   addMsg('user', text);
   history.push({ role: 'user', content: text });
+
+  // Si estamos en paso 'codigo', verificar en la base de estudiantes
+  if (pasoActual === 'codigo') {
+    const posibleCodigo = text.trim().match(/^\d{4,10}$/);
+    if (posibleCodigo) {
+      const est = await buscarEstudiante(text.trim());
+      if (est.encontrado && est.activo) {
+        estudianteActual = est;
+        registro.codigo  = est.codigo;
+        registro.carrera = est.carrera;
+        pasoActual = 'participantes'; // saltar carrera — ya la sabemos
+        // Inyectar contexto en el historial para que Claude sepa
+        history[history.length - 1].content =
+          `Mi código es ${est.codigo}. Soy ${est.nombre} ${est.apellido} de ${est.carrera}.`;
+      } else if (est.encontrado && !est.activo) {
+        removeTyping();
+        addMsg('bot', `Lo siento ${est.nombre || ''}, tu código está inactivo en el sistema. Consulta con secretaría para habilitarlo. 🔒`);
+        document.getElementById('send-btn').disabled = false;
+        busy = false; return;
+      }
+      // Si no encontrado, dejar que Claude maneje normalmente
+    }
+  }
+
   addTyping();
 
   try {
@@ -525,6 +580,11 @@ async function send() {
             document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
           }
         }
+        // Enviar email de evaluación si tenemos datos del estudiante
+        if (estudianteActual && estudianteActual.email) {
+          enviarEmailEvaluacion(estudianteActual, { ...registro });
+        }
+        estudianteActual = null;
         registro   = { area: AREA, codigo:'', carrera:'', participantes:'', fecha_reserva:'', horario:'', estado:'ok', problema:'', calificacion:'' };
         pasoActual = AREA ? 'codigo' : 'area';
       }

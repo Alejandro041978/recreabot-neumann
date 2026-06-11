@@ -334,6 +334,9 @@ select option { background: var(--surface2); }
     <div class="nav-item" onclick="nav('campanas', this)">
       <span class="icon">📣</span> Campañas
     </div>
+    <div class="nav-item" onclick="nav('estudiantes', this)">
+      <span class="icon">🎓</span> Estudiantes
+    </div>
   </div>
 
   <div class="sidebar-section">
@@ -819,6 +822,38 @@ select option { background: var(--surface2); }
       </div>
     </div>
 
+    <!-- ═══════════ ESTUDIANTES ═══════════ -->
+    <div id="view-estudiantes" class="view">
+      <div class="section-header">
+        <h2>Base de estudiantes</h2>
+        <p>Estudiantes registrados en Google Sheets — hoja "Estudiantes"</p>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <input type="text" id="filtro-est" placeholder="Buscar por código, nombre o carrera..."
+            oninput="filtrarEstudiantes()"
+            style="flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;padding:8px 12px;color:var(--text);font-size:0.84rem;outline:none">
+          <button class="btn btn-ghost btn-sm" onclick="cargarEstudiantes()">↺ Recargar</button>
+          <span id="est-count" style="font-size:0.8rem;color:var(--text3)">Cargando...</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Código</th><th>Nombre</th><th>Carrera</th>
+                <th>Email</th><th>WhatsApp</th><th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-estudiantes">
+              <tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div><!-- end .content -->
 </div><!-- end .main -->
 
@@ -909,6 +944,7 @@ function nav(id, el) {
   if (id === 'historial')   renderHistorial();
   if (id === 'incidencias') renderIncidencias();
   if (id === 'conectar')    loadConfig();
+  if (id === 'estudiantes') cargarEstudiantes();
   if (id === 'registro') {
     // Setear fecha de hoy por defecto
     const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
@@ -1536,6 +1572,54 @@ function clearChat() {
 function quickSend(text) {
   document.getElementById('chat-input').value = text;
   sendMsg();
+}
+
+// ═══════════════════════════════════════════════
+// ESTUDIANTES
+// ═══════════════════════════════════════════════
+let todosEstudiantes = [];
+
+async function cargarEstudiantes() {
+  document.getElementById('tabla-estudiantes').innerHTML =
+    '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Cargando desde Google Sheets...</td></tr>';
+  try {
+    const r = await fetch('/api/estudiantes');
+    const d = await r.json();
+    todosEstudiantes = d.estudiantes || [];
+    renderEstudiantes(todosEstudiantes);
+  } catch(e) {
+    document.getElementById('tabla-estudiantes').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;color:var(--red);padding:20px">Error al cargar. Verifica la conexión.</td></tr>';
+  }
+}
+
+function renderEstudiantes(lista) {
+  document.getElementById('est-count').textContent = `${lista.length} estudiantes`;
+  document.getElementById('tabla-estudiantes').innerHTML = lista.length
+    ? lista.map(e => `
+        <tr>
+          <td style="font-family:var(--mono);font-size:0.78rem">${e.codigo}</td>
+          <td>${e.nombre} ${e.apellido}</td>
+          <td>${e.carrera}</td>
+          <td style="font-size:0.78rem;color:var(--text2)">${e.email||'—'}</td>
+          <td style="font-family:var(--mono);font-size:0.78rem">${e.whatsapp||'—'}</td>
+          <td>${e.activo
+            ? '<span class="tag tag-green">✅ Activo</span>'
+            : '<span class="tag tag-red">🔒 Inactivo</span>'}</td>
+        </tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Sin estudiantes registrados</td></tr>';
+}
+
+function filtrarEstudiantes() {
+  const q = document.getElementById('filtro-est').value.toLowerCase();
+  if (!q) { renderEstudiantes(todosEstudiantes); return; }
+  const filtrados = todosEstudiantes.filter(e =>
+    e.codigo.includes(q) ||
+    `${e.nombre} ${e.apellido}`.toLowerCase().includes(q) ||
+    e.carrera.toLowerCase().includes(q) ||
+    (e.email||'').toLowerCase().includes(q)
+  );
+  renderEstudiantes(filtrados);
 }
 
 // ═══════════════════════════════════════════════
