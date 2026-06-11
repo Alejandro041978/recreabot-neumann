@@ -184,6 +184,32 @@ html, body {
 </div>
 
 <script>
+// ── CARGAR CONFIGURACIÓN DE HORARIOS ──
+let SLOTS_CONFIG = {};
+async function cargarConfig() {
+  try {
+    const r = await fetch('/api/config');
+    SLOTS_CONFIG = await r.json();
+  } catch(e) {
+    // Config por defecto si falla
+    const s2h = ['8-10am','10am-12pm','12-2pm','2-4pm','4-6pm','6-8pm','8-10pm'];
+    const s1h = ['8-9am','9-10am','10-11am','11am-12pm','12-1pm','1-2pm','2-3pm','3-4pm','4-5pm','5-6pm','6-7pm','7-8pm','8-9pm','9-10pm'];
+    SLOTS_CONFIG = {
+      'Canchita A':{ slots:s2h, activa:true },
+      'Canchita B':{ slots:s2h, activa:true },
+      'Taka Taka': { slots:s1h, activa:true },
+      'Ajedrez':   { slots:s1h, activa:true },
+      'Sapito':    { slots:s1h, activa:true },
+    };
+  }
+}
+
+function getSlotsParaArea(area) {
+  const cfg = SLOTS_CONFIG[area];
+  if (!cfg || !cfg.activa) return [];
+  return cfg.slots || [];
+}
+
 // ── DETECTAR ÁREA DESDE URL ──
 const params  = new URLSearchParams(window.location.search);
 const AREA    = params.get('area') || '';
@@ -283,47 +309,56 @@ function extraerDeResumen(texto) {
   if (part) reg.participantes = part[1];
   else if (partB) reg.participantes = partB[1];
 
-  // Fecha de reserva — buscar "hoy", "mañana", día de semana o fecha específica
-  const diasSemana = ['lunes','martes','miércoles','miercoles','jueves','viernes','sábado','sabado','domingo'];
-  const hoy = new Date();
-  hoy.setHours(hoy.getHours() - 5); // GMT-5 Lima
+  // Fecha de reserva — usar fecha del navegador del estudiante (siempre correcta)
+  const hoyCliente = new Date();
+  const DIAS_ES  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const DIAS_SIN = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
   if (tl.includes('hoy')) {
-    reg.fecha_reserva = hoy.toLocaleDateString('es-PE');
+    reg.fecha_reserva = hoyCliente.toLocaleDateString('es-PE');
   } else if (tl.includes('mañana') || tl.includes('manana')) {
-    const manana = new Date(hoy); manana.setDate(manana.getDate() + 1);
-    reg.fecha_reserva = manana.toLocaleDateString('es-PE');
+    const m = new Date(hoyCliente); m.setDate(m.getDate() + 1);
+    reg.fecha_reserva = m.toLocaleDateString('es-PE');
   } else {
-    // Buscar día de la semana
-    for (const dia of diasSemana) {
-      if (tl.includes(dia)) {
-        const diaIndex = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'].indexOf(dia.replace('miercoles','miércoles').replace('sabado','sábado'));
-        if (diaIndex >= 0) {
-          const fecha = new Date(hoy);
-          const diff  = (diaIndex - fecha.getDay() + 7) % 7 || 7;
-          fecha.setDate(fecha.getDate() + diff);
-          reg.fecha_reserva = fecha.toLocaleDateString('es-PE');
-        }
+    for (let i = 0; i < DIAS_ES.length; i++) {
+      if (tl.includes(DIAS_ES[i]) || tl.includes(DIAS_SIN[i])) {
+        const f = new Date(hoyCliente);
+        const diff = (i - f.getDay() + 7) % 7 || 7;
+        f.setDate(f.getDate() + diff);
+        reg.fecha_reserva = f.toLocaleDateString('es-PE');
         break;
       }
     }
-    // Buscar fecha explícita dd/mm o dd de mes
-    const fechaMatch = texto.match(/(\d{1,2})[\/\-](\d{1,2})/);
-    if (fechaMatch) reg.fecha_reserva = fechaMatch[0];
+    const fm = texto.match(/(\d{1,2})[\/\-](\d{1,2})/);
+    if (fm && !reg.fecha_reserva) reg.fecha_reserva = fm[0];
   }
 
-  // Horario — buscar patrones de hora en el resumen
-  const horariosMap = [
-    { keys: ['7-9am','7am','8am','7:00','8:00'], val: '7-9am' },
-    { keys: ['9-11am','9am','10am','9:00','10:00'], val: '9-11am' },
-    { keys: ['11am-1pm','11am','12pm','11:00','12:00'], val: '11am-1pm' },
-    { keys: ['1-3pm','1pm','2pm','13:00','14:00'], val: '1-3pm' },
-    { keys: ['3-5pm','3pm','4pm','15:00','16:00'], val: '3-5pm' },
-    { keys: ['5-7pm','5pm','6pm','17:00','18:00'], val: '5-7pm' },
+  // Horario — rangos exactos primero, luego por hora de inicio
+  const RANGOS = [
+    { p: '7-9am',    v: '7-9am'    },
+    { p: '9-11am',   v: '9-11am'   },
+    { p: '11am-1pm', v: '11am-1pm' },
+    { p: '1-3pm',    v: '1-3pm'    },
+    { p: '3-5pm',    v: '3-5pm'    },
+    { p: '5-7pm',    v: '5-7pm'    },
   ];
-  const limpio = tl.replace(/\s/g,'');
-  for (const entry of horariosMap) {
-    if (entry.keys.some(k => limpio.includes(k.replace(/\s/g,'')))) {
-      reg.horario = entry.val; break;
+  for (const r of RANGOS) {
+    if (tl.includes(r.p)) { reg.horario = r.v; break; }
+  }
+  if (!reg.horario) {
+    const hm = tl.match(/(\d{1,2})(?::\d{2})?\s*(?:a\.?m\.?|am)/);
+    if (hm) {
+      const h = parseInt(hm[1]);
+      if      (h <= 8)  reg.horario = '7-9am';
+      else if (h <= 10) reg.horario = '9-11am';
+      else              reg.horario = '11am-1pm';
+    }
+    const hp = tl.match(/(\d{1,2})(?::\d{2})?\s*(?:p\.?m\.?|pm)/);
+    if (hp && !reg.horario) {
+      const h = parseInt(hp[1]);
+      if      (h === 12 || h <= 1) reg.horario = '11am-1pm';
+      else if (h <= 3)  reg.horario = '1-3pm';
+      else if (h <= 5)  reg.horario = '3-5pm';
+      else              reg.horario = '5-7pm';
     }
   }
 
@@ -404,10 +439,14 @@ function autoResize(el) {
 
 // ── SYSTEM PROMPT ──
 function buildSystem() {
+  const slotsArea = AREA ? getSlotsParaArea(AREA) : [];
+  const slotsTexto = slotsArea.length ? slotsArea.join(', ') : 'no disponible';
   return `Eres RecreaBot, el asistente de IA del Instituto Superior Neumann para áreas recreativas.
 
 ÁREA ACTUAL (desde QR escaneado): ${AREA || 'no especificada, pregunta al estudiante'}
 ÁREAS DISPONIBLES: Canchita A, Canchita B, Taka Taka, Ajedrez, Sapito.
+SLOTS HORARIOS DEL ÁREA ACTUAL (${AREA || 'sin área'}): ${slotsTexto}
+IMPORTANTE: Solo ofrece estos slots al estudiante. Si pide un horario fuera de estos, corrígelo amablemente y muéstrale los disponibles.
 CARRERAS: Administración, Contabilidad.
 
 FLUJO DE REGISTRO (sigue este orden):
@@ -527,7 +566,8 @@ function updateChips(reply, userMsg) {
 }
 
 // ── INIT ──
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+  await cargarConfig();
   // Mensaje de bienvenida con pequeño delay para sensación natural
   setTimeout(() => {
     addTyping();

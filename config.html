@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RecreaBot — Configuración de Horarios</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;--b2:#334d6b;--acc:#3b82f6;--acc2:#60a5fa;--green:#10b981;--yellow:#f59e0b;--red:#ef4444;--text:#e2e8f0;--t2:#94a3b8;--t3:#64748b}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{background:linear-gradient(135deg,#1e3a5f,#0d2137);padding:20px 32px;border-bottom:2px solid var(--acc);display:flex;align-items:center;gap:14px}
+header h1{font-size:1.2rem;color:var(--acc2)}
+header p{font-size:0.78rem;color:var(--t3);margin-top:3px}
+.main{max-width:900px;margin:0 auto;padding:28px 24px}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:10px}
+.top-bar h2{font-size:1rem;font-weight:700}
+.btn{padding:9px 20px;border-radius:8px;font-size:0.84rem;font-weight:600;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-primary{background:var(--acc);color:white}.btn-primary:hover{background:#2563eb}
+.btn-ghost{background:transparent;color:var(--t2);border:1px solid var(--b2)}.btn-ghost:hover{background:var(--s2);color:var(--text)}
+.area-card{background:var(--s);border:1px solid var(--b);border-radius:12px;margin-bottom:16px;overflow:hidden}
+.area-header{padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;border-bottom:1px solid var(--b)}
+.area-header:hover{background:var(--s2)}
+.area-emoji{font-size:1.4rem;width:32px;text-align:center}
+.area-name{font-weight:700;font-size:0.95rem;flex:1}
+.area-tipo{font-size:0.73rem;color:var(--t3);background:var(--s2);padding:3px 10px;border-radius:12px}
+.toggle{width:40px;height:22px;border-radius:11px;border:none;cursor:pointer;transition:background .2s;position:relative;flex-shrink:0}
+.toggle.on{background:var(--green)}.toggle.off{background:var(--b2)}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:white;top:3px;transition:left .2s}
+.toggle.on::after{left:21px}.toggle.off::after{left:3px}
+.area-body{padding:18px}
+.slots-title{font-size:0.75rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+.slots-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.slot-chip{padding:6px 13px;border-radius:20px;font-size:0.78rem;font-weight:500;cursor:pointer;border:1px solid;transition:all .15s;user-select:none}
+.slot-chip.on{background:rgba(59,130,246,.15);border-color:var(--acc);color:var(--acc2)}
+.slot-chip.off{background:var(--s2);border-color:var(--b);color:var(--t3)}
+.slot-chip:hover{border-color:var(--acc2)}
+.dias-row{display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap}
+.dias-label{font-size:0.75rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.8px}
+.dia-chip{padding:5px 11px;border-radius:8px;font-size:0.75rem;font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;user-select:none}
+.dia-chip.on{background:rgba(16,185,129,.15);border-color:var(--green);color:var(--green)}
+.dia-chip.off{background:var(--s2);border-color:var(--b);color:var(--t3)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:12px 18px;font-size:.84rem;transform:translateY(80px);opacity:0;transition:all .3s;z-index:999}
+.toast.show{transform:translateY(0);opacity:1}
+.loading{text-align:center;padding:60px;color:var(--t3);font-size:.9rem}
+.info-box{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:12px 16px;font-size:.8rem;color:var(--t2);margin-bottom:20px;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <div style="font-size:1.8rem">⚙️</div>
+  <div>
+    <h1>Configuración de Horarios — RecreaBot Neumann</h1>
+    <p>Define los slots disponibles por área recreativa · Los cambios se guardan en Google Sheets</p>
+  </div>
+</header>
+<div class="main">
+  <div class="info-box">
+    💡 Los horarios que actives aquí son los únicos que el bot ofrecerá a los estudiantes. Si un área está desactivada, el bot informará que no está disponible temporalmente.
+  </div>
+  <div class="top-bar">
+    <h2>Áreas recreativas</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="recargar()">↺ Recargar</button>
+      <button class="btn btn-primary" onclick="guardar()">💾 Guardar cambios</button>
+    </div>
+  </div>
+  <div id="areas-container"><div class="loading">Cargando configuración desde Google Sheets...</div></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const EMOJIS = {'Canchita A':'⚽','Canchita B':'⚽','Taka Taka':'🏓','Ajedrez':'♟️','Sapito':'🐸'};
+const DIAS_NOMBRES = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+let CONFIG = {};
+
+async function cargar() {
+  document.getElementById('areas-container').innerHTML = '<div class="loading">Cargando...</div>';
+  try {
+    const r = await fetch('/api/config');
+    CONFIG   = await r.json();
+    render();
+  } catch(e) {
+    document.getElementById('areas-container').innerHTML = '<div class="loading" style="color:var(--red)">Error al cargar. Verifica la conexión.</div>';
+  }
+}
+
+function render() {
+  const wrap = document.getElementById('areas-container');
+  wrap.innerHTML = '';
+  for (const [area, cfg] of Object.entries(CONFIG)) {
+    wrap.appendChild(makeCard(area, cfg));
+  }
+}
+
+function makeCard(area, cfg) {
+  const div  = document.createElement('div');
+  div.className = 'area-card';
+  div.id = `card-${area.replace(/\s/g,'-')}`;
+
+  const isOn = cfg.activa !== false;
+  const tipo = cfg.tipo_slot === '2h' ? 'Turnos de 2 horas' : 'Turnos de 1 hora';
+
+  // Días activos — parsear desde string o usar todos por defecto
+  const diasActivos = cfg.dias_activos || [0,1,2,3,4,5,6];
+
+  div.innerHTML = `
+    <div class="area-header" onclick="toggleBody('${area}')">
+      <span class="area-emoji">${EMOJIS[area]||'🎮'}</span>
+      <span class="area-name">${area}</span>
+      <span class="area-tipo">${tipo}</span>
+      <button class="toggle ${isOn?'on':'off'}" id="toggle-${area.replace(/\s/g,'-')}"
+        onclick="event.stopPropagation();toggleArea('${area}')"></button>
+    </div>
+    <div class="area-body" id="body-${area.replace(/\s/g,'-')}">
+      <div class="slots-title">Slots disponibles — activa o desactiva cada uno</div>
+      <div class="slots-grid" id="slots-${area.replace(/\s/g,'-')}">
+        ${cfg.slots.map(s => `
+          <span class="slot-chip on" data-slot="${s}" onclick="toggleSlot('${area}','${s}',this)">${s}</span>
+        `).join('')}
+      </div>
+      <div class="dias-row">
+        <span class="dias-label">Días:</span>
+        ${DIAS_NOMBRES.map((d,i) => `
+          <span class="dia-chip ${diasActivos.includes(i)?'on':'off'}"
+            data-dia="${i}" onclick="toggleDia('${area}',${i},this)">${d}</span>
+        `).join('')}
+      </div>
+    </div>`;
+  return div;
+}
+
+function toggleBody(area) {
+  const id  = area.replace(/\s/g,'-');
+  const body = document.getElementById(`body-${id}`);
+  body.style.display = body.style.display === 'none' ? '' : 'none';
+}
+
+function toggleArea(area) {
+  CONFIG[area].activa = !CONFIG[area].activa;
+  const id  = area.replace(/\s/g,'-');
+  const btn = document.getElementById(`toggle-${id}`);
+  btn.className = `toggle ${CONFIG[area].activa ? 'on' : 'off'}`;
+}
+
+function toggleSlot(area, slot, el) {
+  const idx = CONFIG[area].slots.indexOf(slot);
+  if (el.classList.contains('on')) {
+    el.classList.replace('on','off');
+    CONFIG[area].slots = CONFIG[area].slots.filter(s => s !== slot);
+  } else {
+    el.classList.replace('off','on');
+    if (idx === -1) CONFIG[area].slots.push(slot);
+  }
+}
+
+function toggleDia(area, diaIdx, el) {
+  if (!CONFIG[area].dias_activos) CONFIG[area].dias_activos = [0,1,2,3,4,5,6];
+  const arr = CONFIG[area].dias_activos;
+  const pos = arr.indexOf(diaIdx);
+  if (pos >= 0) { arr.splice(pos,1); el.classList.replace('on','off'); }
+  else          { arr.push(diaIdx); el.classList.replace('off','on'); }
+}
+
+async function guardar() {
+  try {
+    const r = await fetch('/api/config', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(CONFIG)
+    });
+    const d = await r.json();
+    if (d.ok) toast('✅ Configuración guardada en Google Sheets');
+    else      toast('❌ Error al guardar: ' + (d.error||''));
+  } catch(e) {
+    toast('❌ Error de conexión');
+  }
+}
+
+function recargar() { cargar(); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+cargar();
+</script>
+</body>
+</html>
