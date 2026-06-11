@@ -952,6 +952,39 @@ function getWeekStart() {
   return d;
 }
 
+// ── PARSEAR TIMESTAMP — acepta ISO y formato español de Lima ──
+function parseTS(ts) {
+  if (!ts) return new Date(0);
+  // Formato ISO estándar — parsea directo
+  if (ts.includes('T') && ts.includes('Z')) return new Date(ts);
+  // Formato español: "11/06/2026, 07:42:13 a. m." o "11/06/2026, 07:42:13 a.m."
+  const m = ts.match(/(\d{1,2})\/(\d{1,2})\/(\d{4}),?\s+(\d{1,2}):(\d{2}):(\d{2})\s*(a\.?\s*m\.?|p\.?\s*m\.?)?/i);
+  if (m) {
+    let [,d,mo,y,h,min,sec,ampm] = m;
+    h = parseInt(h); mo = parseInt(mo) - 1;
+    if (ampm) {
+      const pm = ampm.replace(/\s|\./g,'').toLowerCase() === 'pm';
+      if (pm && h !== 12) h += 12;
+      if (!pm && h === 12) h = 0;
+    }
+    return new Date(parseInt(y), mo, parseInt(d), h, parseInt(min), parseInt(sec));
+  }
+  // Fallback
+  return new Date(ts);
+}
+
+function formatHora(ts) {
+  const d = parseTS(ts);
+  if (isNaN(d)) return '—';
+  return d.toLocaleTimeString('es-PE', {hour:'2-digit', minute:'2-digit'});
+}
+
+function formatFecha(ts) {
+  const d = parseTS(ts);
+  if (isNaN(d)) return '—';
+  return d.toLocaleDateString('es-PE');
+}
+
 function areaChip(area) {
   return `<span class="area-chip ${CHIP_CLASS[area]||''}">${area}</span>`;
 }
@@ -980,8 +1013,8 @@ function renderDashboard() {
   const semStart = getWeekStart();
   const regs = STATE.registros;
 
-  const hoyRegs    = regs.filter(r => new Date(r.ts) >= hoy);
-  const semRegs    = regs.filter(r => new Date(r.ts) >= semStart);
+  const hoyRegs    = regs.filter(r => parseTS(r.ts) >= hoy);
+  const semRegs    = regs.filter(r => parseTS(r.ts) >= semStart);
   const incRegs    = regs.filter(r => r.estado === 'problema');
 
   document.getElementById('kpi-hoy').textContent    = hoyRegs.length;
@@ -1049,7 +1082,7 @@ function renderDashboard() {
   document.getElementById('tabla-recientes').innerHTML = last8.length
     ? last8.map(r => `
         <tr>
-          <td>${new Date(r.ts).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}</td>
+          <td>${parseTS(r.ts).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}</td>
           <td style="font-family:var(--mono);font-size:0.78rem">${r.codigo}</td>
           <td>${r.carrera}</td>
           <td>${areaChip(r.area)}</td>
@@ -1074,8 +1107,8 @@ function renderHistorial() {
   document.getElementById('tabla-historial').innerHTML = regs.length
     ? regs.map(r => `
         <tr>
-          <td>${new Date(r.ts).toLocaleDateString('es-PE')}</td>
-          <td>${new Date(r.ts).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}</td>
+          <td>${parseTS(r.ts).toLocaleDateString('es-PE')}</td>
+          <td>${parseTS(r.ts).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}</td>
           <td style="font-family:var(--mono);font-size:0.78rem">${r.codigo}</td>
           <td>${r.carrera}</td>
           <td>${areaChip(r.area)}</td>
@@ -1103,7 +1136,7 @@ function renderIncidencias() {
           </div>
           <div class="inc-desc">${r.problema || 'Sin descripción'}</div>
           <div class="inc-meta">
-            Reportado por: ${r.codigo} (${r.carrera}) · ${new Date(r.ts).toLocaleString('es-PE')}
+            Reportado por: ${r.codigo} (${r.carrera}) · ${parseTS(r.ts).toLocaleString('es-PE')}
           </div>
         </div>`).join('')
     : '<p style="color:var(--text3);font-size:0.85rem">✅ No hay incidencias registradas.</p>';
@@ -1157,8 +1190,8 @@ function limpiarForm() {
 function exportData() {
   const headers = ['Fecha','Hora','Código','Carrera','Área','Participantes','Horario','Estado','Problema','Calificación'];
   const rows = STATE.registros.map(r => [
-    new Date(r.ts).toLocaleDateString('es-PE'),
-    new Date(r.ts).toLocaleTimeString('es-PE'),
+    parseTS(r.ts).toLocaleDateString('es-PE'),
+    parseTS(r.ts).toLocaleTimeString('es-PE'),
     r.codigo, r.carrera, r.area, r.participantes, r.horario, r.estado, r.problema||'', r.calificacion||''
   ]);
   const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
@@ -1197,7 +1230,7 @@ Reglas de comportamiento:
 
 function getStatsForBot() {
   const w = getWeekStart();
-  const semRegs = STATE.registros.filter(r => new Date(r.ts) >= w);
+  const semRegs = STATE.registros.filter(r => parseTS(r.ts) >= w);
   const counts = {};
   AREAS.forEach(a => counts[a] = semRegs.filter(r => r.area===a).length);
   return { totalSemana: semRegs.length, porArea: counts, sinUso: AREAS.filter(a=>counts[a]===0) };
