@@ -244,11 +244,18 @@ function actualizarRegistro(msgEstudiante) {
   const t  = msgEstudiante.trim();
   const tl = t.toLowerCase();
 
-  if (pasoActual === 'area') {
+  // Detectar área siempre — no solo cuando pasoActual === 'area'
+  if (!registro.area || pasoActual === 'area') {
     for (const a of AREAS) {
-      if (tl.includes(a.toLowerCase())) { registro.area = a; pasoActual = 'codigo'; break; }
+      if (tl.includes(a.toLowerCase())) {
+        registro.area = a;
+        if (pasoActual === 'area') pasoActual = 'codigo';
+        break;
+      }
     }
-  } else if (pasoActual === 'codigo') {
+  }
+
+  if (pasoActual === 'codigo') {
     const m = t.match(/^(\d{4,10})$/) || t.match(/\b(\d{4,10})\b/);
     if (m) { registro.codigo = m[1]; pasoActual = 'carrera'; }
   } else if (pasoActual === 'carrera') {
@@ -471,9 +478,10 @@ function autoResize(el) {
 
 // ── SYSTEM PROMPT ──
 function buildSystem() {
-  const slotsArea  = AREA ? getSlotsParaArea(AREA) : [];
-  const slotsTexto = slotsArea.length ? slotsArea.join(', ') : 'sin slots configurados';
-  console.log('buildSystem — AREA:', AREA, '| slots:', slotsTexto, '| CONFIG keys:', Object.keys(SLOTS_CONFIG));
+  // Usar área del QR, o la que el estudiante eligió en la conversación
+  const areaActual = AREA || registro.area || '';
+  const slotsArea  = areaActual ? getSlotsParaArea(areaActual) : [];
+  const slotsTexto = slotsArea.length ? slotsArea.join(', ') : 'sin slots aún — pregunta primero qué área quiere el estudiante';
   const estudianteInfo = estudianteActual
     ? `ESTUDIANTE IDENTIFICADO: ${estudianteActual.nombre} ${estudianteActual.apellido} — ${estudianteActual.carrera} — código ${estudianteActual.codigo}`
     : 'Estudiante aún no identificado — pedir código';
@@ -481,10 +489,10 @@ function buildSystem() {
   return `Eres RecreaBot, asistente del Instituto Superior Neumann para reservas de áreas recreativas.
 
 FECHA HOY: ${hoyStr}
-ÁREA ACTUAL (del QR): ${AREA || 'no especificada — pregunta al estudiante'}
+ÁREA ACTUAL: ${areaActual || 'no especificada — pregunta al estudiante'}
 ÁREAS DISPONIBLES: Canchita A, Canchita B, Taka Taka, Ajedrez, Sapito.
 ${estudianteInfo}
-SLOTS DISPONIBLES PARA ${AREA || 'el área'}: ${slotsTexto}
+SLOTS DISPONIBLES PARA ${areaActual || 'el área elegida'}: ${slotsTexto}
 IMPORTANTE: Ofrece ÚNICAMENTE esos slots. Si el estudiante pide otro horario, muéstrale la lista.
 
 FLUJO — sigue este orden:
