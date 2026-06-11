@@ -505,10 +505,11 @@ select option { background: var(--surface2); }
     <div id="view-registro" class="view">
       <div class="section-header">
         <h2>Nuevo registro de uso</h2>
-        <p>Registra manualmente o desde el QR del área. Este formulario replica exactamente el Google Form.</p>
+        <p>Los slots disponibles cambian según el área y fecha. Los slots ocupados se marcan en rojo.</p>
       </div>
-      <div class="registro-form">
+      <div class="registro-form" style="max-width:760px">
         <div class="form-grid">
+
           <div class="form-group">
             <label>Código de estudiante *</label>
             <input type="text" id="r-codigo" placeholder="Ej: 202401" maxlength="10">
@@ -527,11 +528,29 @@ select option { background: var(--surface2); }
           <div class="form-group full">
             <label>Área recreativa *</label>
             <div class="radio-group" id="r-area">
-              <div class="radio-opt" onclick="selectOpt('r-area',this)" data-val="Canchita A">⚽ Canchita A</div>
-              <div class="radio-opt" onclick="selectOpt('r-area',this)" data-val="Canchita B">⚽ Canchita B</div>
-              <div class="radio-opt" onclick="selectOpt('r-area',this)" data-val="Taka Taka">🏓 Taka Taka</div>
-              <div class="radio-opt" onclick="selectOpt('r-area',this)" data-val="Ajedrez">♟️ Ajedrez</div>
-              <div class="radio-opt" onclick="selectOpt('r-area',this)" data-val="Sapito">🐸 Sapito</div>
+              <div class="radio-opt" onclick="selectAreaRegistro(this)" data-val="Canchita A">⚽ Canchita A</div>
+              <div class="radio-opt" onclick="selectAreaRegistro(this)" data-val="Canchita B">⚽ Canchita B</div>
+              <div class="radio-opt" onclick="selectAreaRegistro(this)" data-val="Taka Taka">🏓 Taka Taka</div>
+              <div class="radio-opt" onclick="selectAreaRegistro(this)" data-val="Ajedrez">♟️ Ajedrez</div>
+              <div class="radio-opt" onclick="selectAreaRegistro(this)" data-val="Sapito">🐸 Sapito</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Fecha de reserva *</label>
+            <input type="date" id="r-fecha" onchange="actualizarSlotsDisponibles()"
+              style="background:var(--surface2);border:1px solid var(--border2);border-radius:7px;padding:9px 12px;color:var(--text);font-size:0.84rem;width:100%;outline:none;">
+          </div>
+          <div class="form-group" style="align-self:end">
+            <div id="r-disponibilidad-info" style="font-size:0.78rem;color:var(--text3);padding:9px 0;">
+              Selecciona área y fecha para ver disponibilidad
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <label>Horario disponible * <span id="r-horario-loading" style="font-size:0.72rem;color:var(--text3);display:none">Verificando...</span></label>
+            <div class="radio-group" id="r-horario" style="flex-wrap:wrap;">
+              <div style="font-size:0.82rem;color:var(--text3);padding:8px 0">Selecciona un área y fecha primero</div>
             </div>
           </div>
 
@@ -544,18 +563,6 @@ select option { background: var(--surface2); }
               <div class="radio-opt" onclick="selectOpt('r-participantes',this)" data-val="4">4</div>
               <div class="radio-opt" onclick="selectOpt('r-participantes',this)" data-val="5">5</div>
               <div class="radio-opt" onclick="selectOpt('r-participantes',this)" data-val="6+">6+</div>
-            </div>
-          </div>
-
-          <div class="form-group full">
-            <label>Horario *</label>
-            <div class="radio-group" id="r-horario">
-              <div class="radio-opt" onclick="selectOpt('r-horario',this)" data-val="7-9am">7–9am</div>
-              <div class="radio-opt" onclick="selectOpt('r-horario',this)" data-val="9-11am">9–11am</div>
-              <div class="radio-opt" onclick="selectOpt('r-horario',this)" data-val="11am-1pm">11am–1pm</div>
-              <div class="radio-opt" onclick="selectOpt('r-horario',this)" data-val="1-3pm">1–3pm</div>
-              <div class="radio-opt" onclick="selectOpt('r-horario',this)" data-val="3-5pm">3–5pm</div>
-              <div class="radio-opt" onclick="selectOpt('r-horario',this)" data-val="5-7pm">5–7pm</div>
             </div>
           </div>
 
@@ -583,7 +590,7 @@ select option { background: var(--surface2); }
             </div>
           </div>
         </div>
-        <div style="margin-top:20px; display:flex; gap:10px;">
+        <div style="margin-top:20px;display:flex;gap:10px;">
           <button class="btn btn-primary" onclick="guardarRegistro()">Guardar registro</button>
           <button class="btn btn-ghost" onclick="limpiarForm()">Limpiar</button>
         </div>
@@ -901,6 +908,11 @@ function nav(id, el) {
   if (id === 'historial')   renderHistorial();
   if (id === 'incidencias') renderIncidencias();
   if (id === 'conectar')    loadConfig();
+  if (id === 'registro') {
+    // Setear fecha de hoy por defecto
+    const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
+    document.getElementById('r-fecha').value = hoy;
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -1145,40 +1157,167 @@ function renderIncidencias() {
 // ═══════════════════════════════════════════════
 // REGISTRO
 // ═══════════════════════════════════════════════
-function guardarRegistro() {
+// ═══════════════════════════════════════════════
+// REGISTRO — SLOTS DINÁMICOS Y DISPONIBILIDAD
+// ═══════════════════════════════════════════════
+
+// Config de horarios cargada desde /api/config
+let SLOTS_CONFIG_INDEX = null;
+
+async function cargarSlotsConfig() {
+  if (SLOTS_CONFIG_INDEX) return SLOTS_CONFIG_INDEX;
+  try {
+    const r = await fetch('/api/config');
+    SLOTS_CONFIG_INDEX = await r.json();
+  } catch(e) {
+    const s2h = ['8-10am','10am-12pm','12-2pm','2-4pm','4-6pm','6-8pm','8-10pm'];
+    const s1h = ['8-9am','9-10am','10-11am','11am-12pm','12-1pm','1-2pm','2-3pm','3-4pm','4-5pm','5-6pm','6-7pm','7-8pm','8-9pm','9-10pm'];
+    SLOTS_CONFIG_INDEX = {
+      'Canchita A':{ slots:s2h, activa:true },
+      'Canchita B':{ slots:s2h, activa:true },
+      'Taka Taka': { slots:s1h, activa:true },
+      'Ajedrez':   { slots:s1h, activa:true },
+      'Sapito':    { slots:s1h, activa:true },
+    };
+  }
+  return SLOTS_CONFIG_INDEX;
+}
+
+function selectAreaRegistro(el) {
+  selectOpt('r-area', el);
+  actualizarSlotsDisponibles();
+}
+
+async function actualizarSlotsDisponibles() {
+  const area  = getSelected('r-area');
+  const fecha = document.getElementById('r-fecha').value;
+  const wrap  = document.getElementById('r-horario');
+  const info  = document.getElementById('r-disponibilidad-info');
+  const loading = document.getElementById('r-horario-loading');
+
+  if (!area) {
+    wrap.innerHTML = '<div style="font-size:0.82rem;color:var(--text3);padding:8px 0">Selecciona un área primero</div>';
+    return;
+  }
+  if (!fecha) {
+    wrap.innerHTML = '<div style="font-size:0.82rem;color:var(--text3);padding:8px 0">Selecciona una fecha para ver disponibilidad</div>';
+    return;
+  }
+
+  loading.style.display = 'inline';
+  wrap.innerHTML = '';
+
+  // Cargar slots del área desde config
+  const cfg = await cargarSlotsConfig();
+  const areaCfg = cfg[area];
+  if (!areaCfg || !areaCfg.activa) {
+    wrap.innerHTML = '<div style="font-size:0.82rem;color:var(--red);padding:8px 0">⚠️ Esta área no está disponible actualmente.</div>';
+    loading.style.display = 'none';
+    return;
+  }
+
+  const slots = areaCfg.slots || [];
+
+  // Buscar slots ocupados ese día en los registros
+  const fechaSeleccionada = new Date(fecha + 'T12:00:00').toLocaleDateString('es-PE');
+  const ocupados = STATE.registros
+    .filter(r => {
+      const fReg = r.fecha_reserva || '';
+      return r.area === area && (fReg === fechaSeleccionada || fReg.includes(fecha));
+    })
+    .map(r => r.horario);
+
+  const totalSlots   = slots.length;
+  const slotsOcupados = ocupados.length;
+  const slotsLibres  = totalSlots - slotsOcupados;
+
+  info.innerHTML = `<span style="color:var(--green)">${slotsLibres} slots libres</span> · <span style="color:var(--red)">${slotsOcupados} ocupados</span> · ${new Date(fecha + 'T12:00:00').toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long'})}`;
+
+  // Renderizar chips de slots
+  slots.forEach(slot => {
+    const ocupado = ocupados.includes(slot);
+    const chip = document.createElement('div');
+    chip.className = 'radio-opt' + (ocupado ? '' : '');
+    chip.dataset.val = slot;
+    chip.style.cssText = ocupado
+      ? 'background:var(--red-dim);border-color:var(--red);color:var(--red);cursor:not-allowed;opacity:0.6;'
+      : '';
+    chip.innerHTML = ocupado ? `${slot} <span style="font-size:0.65rem">Ocupado</span>` : slot;
+    if (!ocupado) {
+      chip.onclick = () => selectOpt('r-horario', chip);
+    }
+    wrap.appendChild(chip);
+  });
+
+  loading.style.display = 'none';
+}
+
+async function guardarRegistro() {
   const codigo  = document.getElementById('r-codigo').value.trim();
   const carrera = document.getElementById('r-carrera').value;
   const area    = getSelected('r-area');
   const partic  = getSelected('r-participantes');
   const horario = getSelected('r-horario');
   const estado  = getSelected('r-estado');
+  const fecha   = document.getElementById('r-fecha').value;
 
-  if (!codigo || !carrera || !area || !partic || !horario || !estado) {
-    toast('⚠️ Completa todos los campos obligatorios'); return;
+  if (!codigo || !carrera || !area || !partic || !horario || !estado || !fecha) {
+    toast('⚠️ Completa todos los campos obligatorios incluyendo la fecha'); return;
+  }
+
+  // Verificar que el slot no esté ocupado
+  const fechaStr = new Date(fecha + 'T12:00:00').toLocaleDateString('es-PE');
+  const yaOcupado = STATE.registros.some(r =>
+    r.area === area && r.horario === horario &&
+    (r.fecha_reserva === fechaStr || (r.fecha_reserva||'').includes(fecha))
+  );
+  if (yaOcupado) {
+    toast('⚠️ Ese slot ya está ocupado. Elige otro horario.'); return;
   }
 
   const reg = {
-    ts: new Date().toISOString(),
+    ts: new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' }),
     codigo, carrera, area,
     participantes: partic,
+    fecha_reserva: fechaStr,
     horario, estado,
     problema: document.getElementById('r-problema').value,
     calificacion: getSelected('r-calificacion'),
   };
 
+  // Guardar localmente
   STATE.registros.push(reg);
   saveState();
+
+  // Guardar en Google Sheets
+  try {
+    const r = await fetch('/api/sheets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registro: reg }),
+    });
+    const d = await r.json();
+    if (d.ok) toast('✅ Registro guardado en Google Sheets');
+    else      toast('✅ Guardado localmente (Sheets no disponible)');
+  } catch(e) {
+    toast('✅ Guardado localmente');
+  }
+
   limpiarForm();
-  toast('✅ Registro guardado correctamente');
   document.getElementById('inc-badge').textContent =
     STATE.registros.filter(r => r.estado==='problema').length;
+  // Refrescar slots para mostrar el nuevo ocupado
+  actualizarSlotsDisponibles();
 }
 
 function limpiarForm() {
   document.getElementById('r-codigo').value = '';
   document.getElementById('r-carrera').value = '';
   document.getElementById('r-problema').value = '';
-  ['r-area','r-participantes','r-horario','r-estado','r-calificacion'].forEach(id => {
+  document.getElementById('r-fecha').value = '';
+  document.getElementById('r-disponibilidad-info').textContent = 'Selecciona área y fecha para ver disponibilidad';
+  document.getElementById('r-horario').innerHTML = '<div style="font-size:0.82rem;color:var(--text3);padding:8px 0">Selecciona un área y fecha primero</div>';
+  ['r-area','r-participantes','r-estado','r-calificacion'].forEach(id => {
     document.querySelectorAll(`#${id} .radio-opt`).forEach(o => o.classList.remove('selected'));
   });
   document.getElementById('problema-field').style.display = 'none';
