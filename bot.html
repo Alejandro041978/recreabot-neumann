@@ -632,8 +632,9 @@ async function send() {
             document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
           }
           // Enviar email con datos extraídos del resumen — reg tiene área, horario, fecha correctos
+          console.log("EMAIL — estudiante:", estudianteActual?.email, "reg:", JSON.stringify(reg));
           if (estudianteActual && estudianteActual.email) {
-            enviarEmailEvaluacion(estudianteActual, reg);
+            await enviarEmailEvaluacion(estudianteActual, reg);
           }
         }
         estudianteActual = null;
