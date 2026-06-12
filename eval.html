@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Evalúa tu experiencia — RecreaBot Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#3b82f6;--acc2:#60a5fa;--green:#10b981;--text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column;align-items:center;padding:24px 16px 48px}
+
+.logo{font-size:2.5rem;margin-bottom:8px;text-align:center}
+.titulo{font-size:1.3rem;font-weight:800;color:var(--acc2);text-align:center;margin-bottom:4px}
+.subtitulo{font-size:0.82rem;color:var(--t3);text-align:center;margin-bottom:24px}
+
+.card{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px;width:100%;max-width:440px;margin-bottom:16px}
+.reserva-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.info-item{background:var(--s2);border-radius:8px;padding:10px 12px}
+.info-label{font-size:0.68rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+.info-value{font-size:0.88rem;color:var(--text);font-weight:600}
+
+.pregunta{font-size:0.9rem;font-weight:600;color:var(--text);margin-bottom:12px}
+
+/* Estrellas */
+.estrellas{display:flex;justify-content:center;gap:8px;margin-bottom:6px}
+.estrella{font-size:2.2rem;cursor:pointer;transition:transform .15s;filter:grayscale(1);opacity:.4;user-select:none}
+.estrella:hover,.estrella.on{filter:none;opacity:1;transform:scale(1.15)}
+.estrella-label{text-align:center;font-size:0.78rem;color:var(--t3);height:18px;margin-bottom:12px}
+
+/* Opciones */
+.opciones{display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
+.opcion{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;cursor:pointer;transition:all .15s;user-select:none}
+.opcion:hover{border-color:var(--acc);background:var(--s2)}
+.opcion.selected{border-color:var(--acc);background:rgba(59,130,246,.12)}
+.opcion-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--b);flex-shrink:0;transition:all .15s}
+.opcion.selected .opcion-dot{border-color:var(--acc);background:var(--acc)}
+.opcion-txt{font-size:0.85rem;color:var(--t2)}
+.opcion.selected .opcion-txt{color:var(--text);font-weight:500}
+
+/* Textarea */
+textarea{width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;padding:10px 12px;color:var(--text);font-size:0.85rem;font-family:'Inter',sans-serif;outline:none;resize:none;min-height:80px}
+textarea:focus{border-color:var(--acc)}
+textarea::placeholder{color:var(--t3)}
+
+/* Botón */
+.btn-enviar{width:100%;max-width:440px;padding:14px;background:var(--acc);border:none;border-radius:10px;color:white;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s;margin-top:4px}
+.btn-enviar:hover{background:#2563eb}
+.btn-enviar:disabled{opacity:.5;cursor:not-allowed}
+
+/* Success */
+.success{display:none;text-align:center;max-width:440px}
+.success-icon{font-size:4rem;margin-bottom:12px}
+.success-title{font-size:1.3rem;font-weight:800;color:var(--green);margin-bottom:8px}
+.success-text{font-size:0.88rem;color:var(--t2);line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="logo">🎮</div>
+<div class="titulo">¿Cómo estuvo tu experiencia?</div>
+<div class="subtitulo">Instituto Superior Neumann · Espacios Recreativos</div>
+
+<!-- Datos de la reserva -->
+<div class="card" id="card-reserva">
+  <div class="reserva-info" id="reserva-info"></div>
+</div>
+
+<!-- Pregunta 1: Calificación general -->
+<div class="card">
+  <div class="pregunta">1. ¿Cómo calificarías tu experiencia general?</div>
+  <div class="estrellas" id="estrellas">
+    <span class="estrella" data-n="1" onclick="selEstrella(1)">⭐</span>
+    <span class="estrella" data-n="2" onclick="selEstrella(2)">⭐</span>
+    <span class="estrella" data-n="3" onclick="selEstrella(3)">⭐</span>
+    <span class="estrella" data-n="4" onclick="selEstrella(4)">⭐</span>
+    <span class="estrella" data-n="5" onclick="selEstrella(5)">⭐</span>
+  </div>
+  <div class="estrella-label" id="estrella-label">Toca para calificar</div>
+</div>
+
+<!-- Pregunta 2: Estado del equipo -->
+<div class="card">
+  <div class="pregunta">2. ¿El equipo e instalaciones estaban en buen estado?</div>
+  <div class="opciones" id="q2">
+    <div class="opcion" onclick="selOpcion('q2',this,'Sí, todo en orden')">
+      <div class="opcion-dot"></div><span class="opcion-txt">✅ Sí, todo en orden</span>
+    </div>
+    <div class="opcion" onclick="selOpcion('q2',this,'Algunas cosas por mejorar')">
+      <div class="opcion-dot"></div><span class="opcion-txt">⚠️ Algunas cosas por mejorar</span>
+    </div>
+    <div class="opcion" onclick="selOpcion('q2',this,'No, había problemas')">
+      <div class="opcion-dot"></div><span class="opcion-txt">❌ No, había problemas</span>
+    </div>
+  </div>
+</div>
+
+<!-- Pregunta 3: Volvería -->
+<div class="card">
+  <div class="pregunta">3. ¿Volverías a usar este espacio recreativo?</div>
+  <div class="opciones" id="q3">
+    <div class="opcion" onclick="selOpcion('q3',this,'Definitivamente sí')">
+      <div class="opcion-dot"></div><span class="opcion-txt">😄 Definitivamente sí</span>
+    </div>
+    <div class="opcion" onclick="selOpcion('q3',this,'Probablemente sí')">
+      <div class="opcion-dot"></div><span class="opcion-txt">🙂 Probablemente sí</span>
+    </div>
+    <div class="opcion" onclick="selOpcion('q3',this,'No estoy seguro')">
+      <div class="opcion-dot"></div><span class="opcion-txt">😐 No estoy seguro</span>
+    </div>
+    <div class="opcion" onclick="selOpcion('q3',this,'No volvería')">
+      <div class="opcion-dot"></div><span class="opcion-txt">😞 No volvería</span>
+    </div>
+  </div>
+</div>
+
+<!-- Pregunta 4: Comentario libre -->
+<div class="card">
+  <div class="pregunta">4. ¿Tienes algún comentario o sugerencia? (opcional)</div>
+  <textarea id="comentario" placeholder="Cuéntanos qué podemos mejorar..."></textarea>
+</div>
+
+<button class="btn-enviar" id="btn-enviar" onclick="enviarEvaluacion()">Enviar evaluación</button>
+
+<!-- Pantalla de éxito -->
+<div class="success" id="success">
+  <div class="success-icon">🎉</div>
+  <div class="success-title">¡Gracias por tu evaluación!</div>
+  <div class="success-text">Tu opinión nos ayuda a mejorar los espacios recreativos del campus.<br><br>¡Hasta la próxima en el Instituto Superior Neumann! 🎮</div>
+</div>
+
+<script>
+// Leer parámetros del URL
+const params  = new URLSearchParams(window.location.search);
+const CODIGO  = params.get('codigo')  || '';
+const AREA    = params.get('area')    || 'Área recreativa';
+const FECHA   = params.get('fecha')   || '';
+const HORARIO = params.get('horario') || '';
+
+// Mostrar datos de la reserva
+const emojis = {'Canchita A':'⚽','Canchita B':'⚽','Taka Taka':'🏓','Ajedrez':'♟️','Sapito':'🐸'};
+const emoji  = emojis[AREA] || '🎮';
+const infoEl = document.getElementById('reserva-info');
+const items  = [
+  { label:'Área', value: emoji + ' ' + AREA },
+  { label:'Fecha', value: FECHA || '—' },
+  { label:'Horario', value: HORARIO || '—' },
+  { label:'Código', value: CODIGO || '—' },
+];
+items.forEach(i => {
+  infoEl.innerHTML += `<div class="info-item"><div class="info-label">${i.label}</div><div class="info-value">${i.value}</div></div>`;
+});
+
+// Estrellas
+let calificacion = 0;
+const labels = ['','Muy malo','Regular','Bueno','Muy bueno','Excelente'];
+function selEstrella(n) {
+  calificacion = n;
+  document.querySelectorAll('.estrella').forEach((el, i) => {
+    el.classList.toggle('on', i < n);
+  });
+  document.getElementById('estrella-label').textContent = labels[n];
+}
+
+// Opciones
+const respuestas = {};
+function selOpcion(grupo, el, valor) {
+  document.querySelectorAll(`#${grupo} .opcion`).forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  respuestas[grupo] = valor;
+}
+
+// Enviar evaluación
+async function enviarEvaluacion() {
+  if (!calificacion) { alert('Por favor califica tu experiencia con estrellas'); return; }
+
+  const btn = document.getElementById('btn-enviar');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const payload = {
+    codigo:        CODIGO,
+    area:          AREA,
+    fecha:         FECHA,
+    horario:       HORARIO,
+    calificacion,
+    estado_equipo: respuestas['q2'] || '',
+    volveria:      respuestas['q3'] || '',
+    comentario:    document.getElementById('comentario').value.trim(),
+    ts:            new Date().toISOString(),
+  };
+
+  try {
+    // Guardar evaluación en Sheets
+    await fetch('/api/sheets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        registro: {
+          ts:            payload.ts,
+          codigo:        payload.codigo,
+          carrera:       '',
+          area:          payload.area,
+          participantes: '',
+          fecha_reserva: payload.fecha,
+          horario:       payload.horario,
+          estado:        payload.estado_equipo,
+          problema:      payload.comentario,
+          calificacion:  String(payload.calificacion),
+        }
+      })
+    });
+
+    // Guardar en hoja Evaluaciones
+    await fetch('/api/evaluaciones', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(() => {}); // silencioso si no existe aún
+
+  } catch(e) {
+    console.warn('Error guardando:', e);
+  }
+
+  // Mostrar pantalla de éxito
+  document.querySelectorAll('.card, .btn-enviar').forEach(el => el.style.display = 'none');
+  document.getElementById('card-reserva').style.display = 'none';
+  document.getElementById('success').style.display = 'block';
+}
+</script>
+</body>
+</html>

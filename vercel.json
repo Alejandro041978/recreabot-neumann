@@ -22,6 +22,7 @@
     { "src": "/bot",             "dest": "/bot.html"           },
     { "src": "/config",          "dest": "/config.html"        },
     { "src": "/qr",              "dest": "/qr.html"            },
+    { "src": "/eval",            "dest": "/eval.html"          },
     { "src": "/bot.html",        "dest": "/bot.html"           },
     { "src": "/(.*)",            "dest": "/index.html"         }
   ]
