@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
   // Link de evaluación
   const params = new URLSearchParams({ codigo, area, fecha, horario });
-  const linkEval = `${BASE_URL}/bot?eval=1&${params.toString()}`;
+  const linkEval = `${BASE_URL}/eval?${params.toString()}`;
 
   const html = `<!DOCTYPE html>
 <html lang="es">
