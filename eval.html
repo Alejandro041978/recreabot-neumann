@@ -196,35 +196,16 @@ async function enviarEvaluacion() {
   };
 
   try {
-    // Guardar evaluación en Sheets
-    await fetch('/api/sheets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        registro: {
-          ts:            payload.ts,
-          codigo:        payload.codigo,
-          carrera:       '',
-          area:          payload.area,
-          participantes: '',
-          fecha_reserva: payload.fecha,
-          horario:       payload.horario,
-          estado:        payload.estado_equipo,
-          problema:      payload.comentario,
-          calificacion:  String(payload.calificacion),
-        }
-      })
-    });
-
-    // Guardar en hoja Evaluaciones
-    await fetch('/api/evaluaciones', {
+    // Guardar en hoja Evaluaciones (separada de reservas)
+    const r = await fetch('/api/evaluaciones', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
-    }).catch(() => {}); // silencioso si no existe aún
-
+    });
+    const d = await r.json();
+    console.log('Evaluación guardada:', d);
   } catch(e) {
-    console.warn('Error guardando:', e);
+    console.warn('Error guardando evaluación:', e);
   }
 
   // Mostrar pantalla de éxito

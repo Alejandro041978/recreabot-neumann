@@ -7,6 +7,8 @@
     { "src": "api/reporte.js",     "use": "@vercel/node" },
     { "src": "api/estudiantes.js", "use": "@vercel/node" },
     { "src": "api/evaluacion.js",  "use": "@vercel/node" },
+    { "src": "api/evaluaciones.js", "use": "@vercel/node" },
+    { "src": "api/evaluaciones.js", "use": "@vercel/node" },
     { "src": "*.html",             "use": "@vercel/static" }
   ],
   "crons": [
@@ -18,7 +20,9 @@
     { "src": "/api/config",      "dest": "/api/config.js"      },
     { "src": "/api/reporte",     "dest": "/api/reporte.js"     },
     { "src": "/api/estudiantes", "dest": "/api/estudiantes.js" },
-    { "src": "/api/evaluacion",  "dest": "/api/evaluacion.js"  },
+    { "src": "/api/evaluacion",   "dest": "/api/evaluacion.js"  },
+    { "src": "/api/evaluaciones", "dest": "/api/evaluaciones.js" },
+    { "src": "/api/evaluaciones", "dest": "/api/evaluaciones.js" },
     { "src": "/bot",             "dest": "/bot.html"           },
     { "src": "/config",          "dest": "/config.html"        },
     { "src": "/qr",              "dest": "/qr.html"            },
