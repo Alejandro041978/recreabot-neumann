@@ -627,7 +627,7 @@ async function send() {
           if (resultado && resultado.ok) {
             const confirmDiv = document.createElement('div');
             confirmDiv.style.cssText = 'text-align:center;padding:8px;font-size:0.72rem;color:#10b981;background:rgba(16,185,129,0.1);border-radius:8px;margin:4px 14px;';
-            confirmDiv.textContent = '✅ Guardado en Google Sheets';
+            confirmDiv.textContent = '✅ Reserva registrada correctamente';
             document.getElementById('messages').appendChild(confirmDiv);
             document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
           }
