@@ -309,7 +309,8 @@ function extraerDeResumen(texto) {
   if (cod) reg.codigo = cod[1];
 
   // Carrera
-  if (tl.includes('administración') || tl.includes('administracion')) reg.carrera = 'Administración';
+  if (tl.includes('administración de negocios') || tl.includes('administracion de negocios')) reg.carrera = 'Administración de Negocios Internacionales';
+  else if (tl.includes('administración') || tl.includes('administracion')) reg.carrera = 'Administración de Negocios Internacionales';
   else if (tl.includes('contabilidad')) reg.carrera = 'Contabilidad';
 
   // Área — buscar "Área: Canchita A" o similar
@@ -528,7 +529,7 @@ IMPORTANTE: Ofrece ÚNICAMENTE esos slots. Si el estudiante pide otro horario, m
 FLUJO — sigue este orden:
 1. Si el área viene del QR, no la preguntes
 2. Pide CÓDIGO DE ESTUDIANTE (solo números)
-3. Si el estudiante fue identificado, salúdalo por nombre y NO preguntes carrera
+3. Si el estudiante fue identificado, salúdalo por nombre y NO preguntes carrera — la carrera ya está en el sistema
 4. Pide NÚMERO DE PARTICIPANTES (1 a 6+)
 5. Pide la FECHA (hoy, mañana, o día de la semana)
 6. Muestra los slots y pide elegir uno de la lista exacta
@@ -539,7 +540,7 @@ REGLAS:
 - NO preguntes por el estado del equipo ni las instalaciones — el estudiante aún no las ha usado y evaluará por email después
 - Cuando confirmes SIEMPRE escribe el resumen con este formato EXACTO:
   Código: XXXXXX
-  Carrera: Administración o Contabilidad
+  Carrera: Administración de Negocios Internacionales o Contabilidad
   Área: nombre exacto
   Participantes: número
   Fecha: fecha exacta o día
