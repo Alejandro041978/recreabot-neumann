@@ -514,7 +514,12 @@ function buildSystem() {
   const slotsArea  = areaActual ? getSlotsParaArea(areaActual) : [];
   const slotsTexto = slotsArea.length ? slotsArea.join(', ') : 'sin slots aún — pregunta primero qué área quiere el estudiante';
   const estudianteInfo = estudianteActual
-    ? `ESTUDIANTE IDENTIFICADO: ${estudianteActual.nombre} ${estudianteActual.apellido} — ${estudianteActual.carrera} — código ${estudianteActual.codigo}`
+    ? `ESTUDIANTE IDENTIFICADO Y VERIFICADO:
+  Nombre EXACTO: ${estudianteActual.nombre} ${estudianteActual.apellido}
+  Carrera: ${estudianteActual.carrera}
+  Código: ${estudianteActual.codigo}
+  Email: ${estudianteActual.email}
+  REGLA CRÍTICA: Usa EXACTAMENTE este nombre. NUNCA inventes ni cambies el nombre del estudiante.`
     : 'Estudiante aún no identificado — pedir código';
   const hoyStr = new Date().toLocaleDateString('es-PE', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   return `Eres RecreaBot, asistente del Instituto Superior Neumann para reservas de áreas recreativas.
