@@ -1137,7 +1137,7 @@ function renderDashboard() {
     : '<div style="color:var(--text3);font-size:0.82rem">✅ Sin alertas activas esta semana.</div>';
 
   // últimos registros
-  const last8 = [...regs].reverse().slice(0,8);
+  const last8 = [...regs].slice(0,8);
   document.getElementById('tabla-recientes').innerHTML = last8.length
     ? last8.map(r => `
         <tr>
