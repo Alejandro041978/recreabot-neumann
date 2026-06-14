@@ -125,6 +125,26 @@ tbody tr:last-child td{border-bottom:none}
   <div class="kpi"><div class="kpi-val">…</div><div class="kpi-label">Cargando</div></div>
 </div>
 
+<!-- Sección general: últimas atenciones + charlas -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="seccionGeneral">
+  <div class="seccion">
+    <div class="seccion-titulo"><span>📋 Últimas atenciones</span></div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Estudiante</th><th>Fecha</th><th>Resultado</th></tr></thead>
+        <tbody id="tbodyRecientes">
+          <tr><td colspan="3" style="text-align:center;color:var(--t3);padding:20px">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-titulo"><span>🎤 Evaluaciones de charlas</span></div>
+    <div id="charlasPanel"><div style="text-align:center;color:var(--t3);padding:20px;font-size:0.85rem">Cargando...</div></div>
+  </div>
+</div>
+
 <!-- Búsqueda de estudiante -->
 <div class="busqueda-wrap">
   <div class="busqueda-titulo">🔍 Buscar estudiante</div>
@@ -251,25 +271,6 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- Historial reciente general + charlas -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="seccionGeneral">
-  <div class="seccion">
-    <div class="seccion-titulo"><span>📋 Últimas atenciones</span></div>
-    <div style="overflow-x:auto">
-      <table>
-        <thead><tr><th>Estudiante</th><th>Fecha</th><th>Resultado</th></tr></thead>
-        <tbody id="tbodyRecientes">
-          <tr><td colspan="3" style="text-align:center;color:var(--t3);padding:20px">Cargando...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="seccion">
-    <div class="seccion-titulo"><span>🎤 Evaluaciones de charlas</span></div>
-    <div id="charlasPanel"><div style="text-align:center;color:var(--t3);padding:20px;font-size:0.85rem">Cargando...</div></div>
-  </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
