@@ -77,7 +77,7 @@ export default async function handler(req, res) {
               body: JSON.stringify({
                 from: EMAIL_FROM,
                 to: [email],
-                subject: '🏥 Evalúa tu atención en enfermería — Instituto Neumann',
+                subject: '🏥 Evalúa tu atención en tópico — Instituto Neumann',
                 html: `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif">
 <div style="max-width:520px;margin:30px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
