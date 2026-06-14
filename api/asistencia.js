@@ -31,54 +31,28 @@ export default async function handler(req, res) {
 
     // ── KPIs: ingresos por día última semana + promedios 3 y 10 semanas ──
     if (accion === 'kpis') {
-      const hace70 = new Date();
-      hace70.setDate(hace70.getDate() - 70);
-      const r70 = await fetch(
-        `${process.env.SUPABASE_URL}/rest/v1/asistencia?fecha=gte.${hace70.toISOString()}&order=fecha.desc`,
-        { headers: {
+      const rpc = await fetch(
+        `${process.env.SUPABASE_URL}/rest/v1/rpc/get_asistencia_kpis`,
+        { method: 'POST', headers: {
           'apikey': process.env.SUPABASE_SECRET_KEY,
           'Authorization': `Bearer ${process.env.SUPABASE_SECRET_KEY}`,
-          'Range': '0-99999',
-          'Range-Unit': 'items',
-          'Prefer': 'count=none',
-        }}
+          'Content-Type': 'application/json',
+        }, body: '{}' }
       );
-      const data = await r70.json();
-      const registros = (data || []).filter(r => r.tipo === true || r.tipo === 'true');
+      const kpis = await rpc.json();
 
-      // Agrupar ingresos únicos por persona por día
-      const porDia = {};
-      registros.forEach(r => {
-        const dia = r.fecha.substring(0, 10);
-        if (!porDia[dia]) porDia[dia] = new Set();
-        porDia[dia].add(r.idpersonanew);
-      });
-
-      // Últimos 7 días
+      // Rellenar días faltantes en la semana
+      const semanaMap = {};
+      (kpis.semana || []).forEach(d => { semanaMap[d.dia] = Number(d.total); });
       const semana = [];
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
-        d.setDate(d.getDate() - i);
+        d.setUTCHours(12); d.setUTCDate(d.getUTCDate() - i);
         const dia = d.toISOString().substring(0, 10);
-        semana.push({ dia, total: porDia[dia]?.size || 0 });
+        semana.push({ dia, total: semanaMap[dia] || 0 });
       }
 
-      // Promedio diario últimas 3 semanas (solo días con actividad)
-      const hace21 = new Date(); hace21.setDate(hace21.getDate() - 21);
-      const dias3sem = Object.entries(porDia)
-        .filter(([d]) => new Date(d) >= hace21)
-        .map(([, set]) => set.size);
-      const prom3sem = dias3sem.length
-        ? Math.round(dias3sem.reduce((a, b) => a + b, 0) / dias3sem.length)
-        : 0;
-
-      // Promedio diario últimas 10 semanas (solo días con actividad)
-      const dias10sem = Object.entries(porDia).map(([, set]) => set.size);
-      const prom10sem = dias10sem.length
-        ? Math.round(dias10sem.reduce((a, b) => a + b, 0) / dias10sem.length)
-        : 0;
-
-      res.json({ semana, prom3sem, prom10sem }); return;
+      res.json({ semana, prom3sem: kpis.prom3sem || 0, prom10sem: kpis.prom10sem || 0 }); return;
     }
 
     res.status(400).json({ error: 'Acción no válida' });
