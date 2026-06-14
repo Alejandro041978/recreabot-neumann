@@ -1,7 +1,6 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/_supabase.js",         "use": "@vercel/node" },
     { "src": "api/chat.js",              "use": "@vercel/node" },
     { "src": "api/sheets.js",            "use": "@vercel/node" },
     { "src": "api/config.js",            "use": "@vercel/node" },
