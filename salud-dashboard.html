@@ -395,7 +395,6 @@ async function seleccionarEstudiante(est) {
   // Cargar historial y charlas
   document.getElementById('historial-nombre').textContent = `${est.nombre} ${est.apellido||''}`;
   await cargarHistorial(est.codigo);
-  await cargarCharlasEstudiante(est.codigo);
 
   document.getElementById('panelEstudiante').style.display = 'block';
   document.getElementById('panelEstudiante').scrollIntoView({behavior:'smooth',block:'start'});
