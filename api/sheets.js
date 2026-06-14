@@ -15,7 +15,8 @@ export default async function handler(req, res) {
   try {
     // ── GET: leer registros ──
     if (req.method === 'GET') {
-      const data = await query('registros', 'GET', null, '?order=ts.desc&limit=200');
+      const desde = req.query?.desde ? `&ts=gte.${req.query.desde}` : '';
+      const data = await query('registros', 'GET', null, `?order=ts.desc&limit=500${desde}`);
       const registros = (data || []).map(r => ({
         ts:            limaTime(r.ts),
         codigo:        r.codigo        || '',

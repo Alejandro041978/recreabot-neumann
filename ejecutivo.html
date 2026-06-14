@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Dashboard Ejecutivo — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+  --green:#10b981;--yellow:#f59e0b;--red:#ef4444;--blue:#3b82f6;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column;align-items:center;padding:32px 16px 60px}
+
+.logo-inst{font-size:0.75rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;text-align:center}
+h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-bottom:4px}
+.subtitulo{font-size:0.82rem;color:var(--t3);text-align:center;margin-bottom:36px}
+
+.modulos{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;width:100%;max-width:700px}
+
+.modulo{
+  background:var(--s);border:1px solid var(--b);border-radius:16px;
+  padding:28px 24px;cursor:pointer;text-decoration:none;color:inherit;
+  transition:border-color .2s, transform .15s;display:block;
+}
+.modulo:hover{border-color:var(--acc);transform:translateY(-2px)}
+
+.mod-icon{font-size:2rem;margin-bottom:12px}
+.mod-titulo{font-size:0.7rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px}
+.mod-kpi{font-size:3.2rem;font-weight:800;line-height:1;margin-bottom:6px}
+.mod-kpi-label{font-size:0.78rem;color:var(--t2);margin-bottom:20px}
+.mod-link{font-size:0.78rem;font-weight:600;display:flex;align-items:center;gap:6px}
+.mod-link svg{width:14px;height:14px;flex-shrink:0}
+
+.mod-cafeteria  { --acc: var(--yellow) }
+.mod-recreacion { --acc: var(--blue)   }
+
+.loading-kpi{font-size:2rem;color:var(--t3);font-weight:800}
+
+.footer{margin-top:40px;font-size:0.72rem;color:var(--t3);text-align:center}
+</style>
+</head>
+<body>
+
+<div class="logo-inst">Instituto Superior Neumann</div>
+<h1>Dashboard Ejecutivo</h1>
+<div class="subtitulo">Indicadores clave · Últimas 10 semanas</div>
+
+<div class="modulos">
+
+  <!-- Cafetería -->
+  <a class="modulo mod-cafeteria" href="/cafeteria-dashboard">
+    <div class="mod-icon">☕</div>
+    <div class="mod-titulo">Satisfacción Cafetería</div>
+    <div class="mod-kpi" id="kpi-cafeteria"><span class="loading-kpi">…</span></div>
+    <div class="mod-kpi-label">Promedio general / 5 · últimas 10 semanas</div>
+    <div class="mod-link" style="color:var(--yellow)">
+      Ver dashboard completo
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </div>
+  </a>
+
+  <!-- Servicios Recreativos -->
+  <a class="modulo mod-recreacion" href="/">
+    <div class="mod-icon">🏃</div>
+    <div class="mod-titulo">Servicios Recreativos</div>
+    <div class="mod-kpi" id="kpi-recreacion"><span class="loading-kpi">…</span></div>
+    <div class="mod-kpi-label">Reservas registradas · últimas 10 semanas</div>
+    <div class="mod-link" style="color:var(--blue)">
+      Ver panel de administración
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </div>
+  </a>
+
+</div>
+
+<div class="footer">Instituto Superior Neumann · recreabot-neumann.vercel.app</div>
+
+<script>
+const corte10 = new Date();
+corte10.setDate(corte10.getDate() - 70);
+
+async function cargarCafeteria() {
+  try {
+    const r = await fetch('/api/cafeteria');
+    const { evaluaciones } = await r.json();
+    const evs = (evaluaciones || []).filter(e => new Date(e.ts) >= corte10);
+    if (!evs.length) { document.getElementById('kpi-cafeteria').textContent = '—'; return; }
+    const prom = evs.reduce((s,e) => {
+      const vals = ['p1','p2','p3','p4','p5','p6','p7','p8','p9','p10'].map(p=>Number(e[p]));
+      return s + vals.reduce((a,b)=>a+b,0)/vals.length;
+    }, 0) / evs.length;
+    const el = document.getElementById('kpi-cafeteria');
+    el.textContent = prom.toFixed(2);
+    el.style.color = prom >= 4 ? 'var(--green)' : prom >= 3 ? 'var(--yellow)' : 'var(--red)';
+  } catch(e) {
+    document.getElementById('kpi-cafeteria').textContent = 'Error';
+  }
+}
+
+async function cargarRecreacion() {
+  try {
+    const desde = corte10.toISOString();
+    const r = await fetch(`/api/sheets?desde=${encodeURIComponent(desde)}`);
+    const { registros } = await r.json();
+    const el = document.getElementById('kpi-recreacion');
+    el.textContent = (registros || []).length;
+    el.style.color = 'var(--blue)';
+  } catch(e) {
+    document.getElementById('kpi-recreacion').textContent = 'Error';
+  }
+}
+
+cargarCafeteria();
+cargarRecreacion();
+</script>
+</body>
+</html>
