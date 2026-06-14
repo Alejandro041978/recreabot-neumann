@@ -292,11 +292,14 @@ async function initAuth() {
 async function cargarKpis() {
   try {
     const r = await fetch('/api/salud?accion=kpis');
-    const { atenciones, charlas } = await r.json();
+    const { atenciones, charlas, eval_atenciones } = await r.json();
     const corte10 = new Date(); corte10.setDate(corte10.getDate()-70);
     const at10 = atenciones.filter(a => new Date(a.ts) >= corte10);
     const promCharla = charlas.length
       ? (charlas.reduce((s,c)=>(s+(c.p1+c.p2+c.p3)/3),0)/charlas.length).toFixed(2)
+      : '—';
+    const promEval = eval_atenciones.length
+      ? (eval_atenciones.reduce((s,e)=>s+(e.p1+e.p2+e.p3)/3,0)/eval_atenciones.length).toFixed(2)
       : '—';
     const porResultado = {};
     ['finalizado','en_seguimiento','derivado','no_concluyente'].forEach(r => porResultado[r] = atenciones.filter(a=>a.resultado===r).length);
@@ -308,6 +311,8 @@ async function cargarKpis() {
       <div class="kpi"><div class="kpi-val" style="color:var(--yellow)">${porResultado['en_seguimiento']}</div><div class="kpi-label">En seguimiento</div></div>
       <div class="kpi"><div class="kpi-val" style="color:var(--acc2)">${promCharla}</div><div class="kpi-label">Prom. charlas / 5</div></div>
       <div class="kpi"><div class="kpi-val">${charlas.length}</div><div class="kpi-label">Eval. charlas</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:var(--acc2)">${promEval}</div><div class="kpi-label">Satisfacción atención / 5</div></div>
+      <div class="kpi"><div class="kpi-val">${eval_atenciones.length}</div><div class="kpi-label">Eval. de atenciones</div></div>
     `;
 
     // Tabla recientes

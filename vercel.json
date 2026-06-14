@@ -42,6 +42,7 @@
     { "src": "/api/salud",              "dest": "/api/salud.js"               },
     { "src": "/charla",                 "dest": "/charla.html"                },
     { "src": "/salud-dashboard",        "dest": "/salud-dashboard.html"       },
+    { "src": "/atencion-eval",          "dest": "/atencion-eval.html"         },
     { "src": "/bot.html",               "dest": "/bot.html"                  },
     { "src": "/(.*)",                   "dest": "/index.html"                }
   ]

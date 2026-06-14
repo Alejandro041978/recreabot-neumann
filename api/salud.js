@@ -1,4 +1,4 @@
-// api/salud.js — Módulo de salud: atenciones, fichas y charlas
+// api/salud.js — Módulo de salud: atenciones, fichas, charlas y evaluaciones
 import { query } from './_supabase.js';
 
 export default async function handler(req, res) {
@@ -39,9 +39,12 @@ export default async function handler(req, res) {
       }
 
       if (accion === 'kpis') {
-        const data  = await query('atenciones_salud', 'GET', null, '?order=ts.desc&limit=1000');
-        const charlas = await query('evaluaciones_charla', 'GET', null, '?order=ts.desc&limit=500');
-        res.json({ atenciones: data || [], charlas: charlas || [] }); return;
+        const [atenciones, charlas, evals] = await Promise.all([
+          query('atenciones_salud',    'GET', null, '?order=ts.desc&limit=1000'),
+          query('evaluaciones_charla', 'GET', null, '?order=ts.desc&limit=500'),
+          query('evaluaciones_atencion','GET', null, '?order=ts.desc&limit=500'),
+        ]);
+        res.json({ atenciones: atenciones||[], charlas: charlas||[], eval_atenciones: evals||[] }); return;
       }
 
       res.status(400).json({ error: 'Acción no válida' }); return;
@@ -54,16 +57,64 @@ export default async function handler(req, res) {
         const { codigo, nombre, fecha_atencion, hora_atencion, motivo, resultado, notas } = req.body;
         if (!codigo || !fecha_atencion || !hora_atencion || !motivo || !resultado)
           { res.status(400).json({ error: 'Campos obligatorios faltantes' }); return; }
+
         const row = { ts: new Date().toISOString(), codigo, nombre: nombre||'', fecha_atencion, hora_atencion, motivo, resultado, notas: notas||'' };
         const data = await query('atenciones_salud', 'POST', row);
-        res.json({ ok: true, id: data?.[0]?.id }); return;
+        const atencionId = data?.[0]?.id;
+
+        // Buscar email del estudiante y enviar correo de evaluación
+        try {
+          const estData = await query('estudiantes', 'GET', null, `?codigo=eq.${codigo}&limit=1`);
+          const email = estData?.[0]?.email;
+          if (email && atencionId) {
+            const RESEND_KEY = process.env.RESEND_API_KEY;
+            const EMAIL_FROM = process.env.EMAIL_FROM || 'RecreaBot Neumann <onboarding@resend.dev>';
+            const evalUrl = `https://recreabot-neumann.vercel.app/atencion-eval?id=${atencionId}`;
+            const nombreEst = `${estData[0].nombre} ${estData[0].apellido||''}`.trim();
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                from: EMAIL_FROM,
+                to: [email],
+                subject: '🏥 Evalúa tu atención en enfermería — Instituto Neumann',
+                html: `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif">
+<div style="max-width:520px;margin:30px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
+  <div style="background:linear-gradient(135deg,#064e3b,#0f1117);padding:28px 32px">
+    <div style="font-size:28px;margin-bottom:8px">🏥</div>
+    <h1 style="margin:0;color:#34d399;font-size:20px">Evalúa tu atención médica</h1>
+    <p style="margin:6px 0 0;color:#94a3b8;font-size:14px">Instituto Superior Neumann</p>
+  </div>
+  <div style="padding:28px 32px">
+    <p style="font-size:15px;color:#334155;margin-bottom:16px">Hola <strong>${nombreEst}</strong>,</p>
+    <p style="font-size:14px;color:#334155;margin-bottom:24px;line-height:1.6">
+      Hoy recibiste atención en el área de enfermería del instituto. Nos gustaría conocer tu opinión sobre el servicio recibido. Son solo <strong>3 preguntas rápidas</strong>.
+    </p>
+    <div style="text-align:center;margin-bottom:24px">
+      <a href="${evalUrl}" style="display:inline-block;background:#10b981;color:#fff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none">
+        Evaluar atención →
+      </a>
+    </div>
+    <p style="font-size:12px;color:#94a3b8;text-align:center">Tu opinión es confidencial y nos ayuda a mejorar el servicio.</p>
+  </div>
+</div>
+</body></html>`,
+              }),
+            });
+          }
+        } catch(emailErr) {
+          // No interrumpir si falla el email
+          console.error('Email error:', emailErr.message);
+        }
+
+        res.json({ ok: true, id: atencionId }); return;
       }
 
       if (accion === 'ficha') {
         const { codigo, grupo_sanguineo, estatura, enfermedades, discapacidad, conadis, seguro } = req.body;
         if (!codigo) { res.status(400).json({ error: 'Código requerido' }); return; }
         const row = { codigo, grupo_sanguineo: grupo_sanguineo||null, estatura: estatura?Number(estatura):null, enfermedades: enfermedades||null, discapacidad: discapacidad||null, conadis: conadis===true||conadis==='true', seguro: seguro||null };
-        // upsert via PATCH si existe, POST si no
         const existe = await query('fichas_salud', 'GET', null, `?codigo=eq.${codigo}&limit=1`);
         if (existe?.[0]) {
           await query('fichas_salud', 'PATCH', row, `?codigo=eq.${codigo}`);
@@ -74,11 +125,24 @@ export default async function handler(req, res) {
       }
 
       if (accion === 'charla') {
-        const { p1, p2, p3 } = req.body;
+        const { p1, p2, p3, codigo, nombre } = req.body;
         const vals = [p1,p2,p3].map(Number);
         if (vals.some(v => v<1||v>5||isNaN(v))) { res.status(400).json({ error: 'Valores 1-5 requeridos' }); return; }
-        const { codigo, nombre } = req.body;
         const data = await query('evaluaciones_charla', 'POST', { ts: new Date().toISOString(), p1:vals[0], p2:vals[1], p3:vals[2], codigo: codigo||null, nombre: nombre||null });
+        res.json({ ok: true, id: data?.[0]?.id }); return;
+      }
+
+      if (accion === 'eval_atencion') {
+        const { p1, p2, p3, codigo, nombre, atencion_id } = req.body;
+        const vals = [p1,p2,p3].map(Number);
+        if (vals.some(v => v<1||v>5||isNaN(v))) { res.status(400).json({ error: 'Valores 1-5 requeridos' }); return; }
+        const data = await query('evaluaciones_atencion', 'POST', {
+          ts: new Date().toISOString(),
+          atencion_id: atencion_id || null,
+          codigo: codigo || null,
+          nombre: nombre || null,
+          p1: vals[0], p2: vals[1], p3: vals[2],
+        });
         res.json({ ok: true, id: data?.[0]?.id }); return;
       }
 
