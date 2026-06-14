@@ -34,8 +34,8 @@ export default async function handler(req, res) {
       const hace70 = new Date();
       hace70.setDate(hace70.getDate() - 70);
       const data = await query('asistencia', 'GET', null,
-        `?fecha=gte.${hace70.toISOString()}&tipo=eq.true&order=fecha.desc&limit=50000`);
-      const registros = data || [];
+        `?fecha=gte.${hace70.toISOString()}&order=fecha.desc&limit=50000`);
+      const registros = (data || []).filter(r => r.tipo === true);
 
       // Agrupar ingresos únicos por persona por día
       const porDia = {};
