@@ -186,6 +186,12 @@ tbody tr:last-child td{border-bottom:none}
       <button class="btn btn-acc btn-sm" onclick="guardarFicha()">Guardar ficha</button>
       <div class="msg-ok" id="fichaOk">✅ Ficha guardada</div>
       <div class="msg-err" id="fichaErr"></div>
+
+      <!-- Evaluaciones de charlas del estudiante -->
+      <div style="margin-top:18px;border-top:1px solid var(--b);padding-top:14px">
+        <div style="font-size:0.78rem;font-weight:700;color:var(--t2);margin-bottom:10px;display:flex;align-items:center;gap:6px">🎤 Charlas evaluadas</div>
+        <div id="charlasEstudiante"><div style="font-size:0.78rem;color:var(--t3)">Cargando...</div></div>
+      </div>
     </div>
 
     <!-- Registrar atención -->
@@ -390,12 +396,44 @@ async function seleccionarEstudiante(est) {
     ['fGrupo','fEstatura','fSeguro','fConadis','fDiscapacidad','fEnfermedades'].forEach(id => document.getElementById(id).value='');
   }
 
-  // Cargar historial
+  // Cargar historial y charlas
   document.getElementById('historial-nombre').textContent = `${est.nombre} ${est.apellido||''}`;
   await cargarHistorial(est.codigo);
+  await cargarCharlasEstudiante(est.codigo);
 
   document.getElementById('panelEstudiante').style.display = 'block';
   document.getElementById('panelEstudiante').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+async function cargarCharlasEstudiante(codigo) {
+  const el = document.getElementById('charlasEstudiante');
+  try {
+    const r = await fetch(`/api/salud?accion=charlas&codigo=${codigo}`);
+    const { charlas } = await r.json();
+    if (!charlas.length) {
+      el.innerHTML = '<div style="font-size:0.78rem;color:var(--t3)">Sin evaluaciones de charlas</div>'; return;
+    }
+    const prom = v => (charlas.reduce((s,c)=>s+c[v],0)/charlas.length).toFixed(2);
+    const total = (charlas.reduce((s,c)=>s+(c.p1+c.p2+c.p3)/3,0)/charlas.length).toFixed(2);
+    el.innerHTML = `
+      <div style="font-size:0.75rem;color:var(--t3);margin-bottom:8px">${charlas.length} evaluación(es) realizadas · Promedio: <strong style="color:var(--acc2)">${total}/5</strong></div>
+      <table style="width:100%;font-size:0.73rem;border-collapse:collapse">
+        <thead><tr>
+          <th style="padding:5px 8px;color:var(--t3);text-align:left;border-bottom:1px solid var(--b)">Fecha</th>
+          <th style="padding:5px 8px;color:var(--t3);text-align:center;border-bottom:1px solid var(--b)">Claridad</th>
+          <th style="padding:5px 8px;color:var(--t3);text-align:center;border-bottom:1px solid var(--b)">Utilidad</th>
+          <th style="padding:5px 8px;color:var(--t3);text-align:center;border-bottom:1px solid var(--b)">Calidad</th>
+        </tr></thead>
+        <tbody>${charlas.map(c=>`<tr>
+          <td style="padding:5px 8px;color:var(--t2)">${formatFecha(c.ts)}</td>
+          <td style="padding:5px 8px;text-align:center;color:var(--acc2);font-weight:700">${c.p1}</td>
+          <td style="padding:5px 8px;text-align:center;color:var(--acc2);font-weight:700">${c.p2}</td>
+          <td style="padding:5px 8px;text-align:center;color:var(--acc2);font-weight:700">${c.p3}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+  } catch(e) {
+    el.innerHTML = `<div style="font-size:0.78rem;color:var(--red)">Error: ${e.message}</div>`;
+  }
 }
 
 async function cargarHistorial(codigo) {

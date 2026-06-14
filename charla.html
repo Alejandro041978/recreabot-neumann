@@ -19,10 +19,24 @@ body{display:flex;flex-direction:column;align-items:center;padding:24px 16px 60p
 .titulo{font-size:1.25rem;font-weight:800;color:var(--acc2);text-align:center;margin-bottom:4px}
 .subtitulo{font-size:0.8rem;color:var(--t3);text-align:center;margin-bottom:28px}
 
+/* Paso 1: identificación */
+.id-card{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:24px 20px;width:100%;max-width:440px;margin-bottom:14px}
+.id-label{font-size:0.75rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.id-input{width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;padding:12px 14px;color:var(--text);font-size:1rem;font-family:'Inter',sans-serif;outline:none;text-align:center;letter-spacing:2px}
+.id-input:focus{border-color:var(--acc)}
+.id-input::placeholder{color:var(--t3);letter-spacing:0}
+.btn-verificar{width:100%;padding:13px;border-radius:10px;border:none;background:var(--acc);color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;margin-top:12px;transition:opacity .15s}
+.btn-verificar:hover{opacity:.85}
+.btn-verificar:disabled{opacity:.4;cursor:not-allowed}
+
+.estudiante-ok{display:none;background:rgba(16,185,129,.1);border:1px solid var(--acc);border-radius:10px;padding:12px 16px;width:100%;max-width:440px;margin-bottom:14px;text-align:center}
+.est-bienvenida{font-size:0.88rem;color:var(--acc2);font-weight:700;margin-bottom:2px}
+.est-carrera{font-size:0.75rem;color:var(--t3)}
+
+/* Preguntas */
 .card{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:22px 18px;width:100%;max-width:440px;margin-bottom:14px}
 .pregunta-num{font-size:0.68rem;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
 .pregunta-txt{font-size:0.92rem;font-weight:600;color:var(--text);margin-bottom:14px;line-height:1.4}
-
 .likert{display:flex;gap:8px;justify-content:center}
 .likert-btn{
   width:48px;height:48px;border-radius:10px;border:1.5px solid var(--b);
@@ -35,13 +49,10 @@ body{display:flex;flex-direction:column;align-items:center;padding:24px 16px 60p
 .likert-labels{display:flex;justify-content:space-between;padding:0 4px;margin-top:6px}
 .likert-label{font-size:0.65rem;color:var(--t3)}
 
-.btn-enviar{
-  width:100%;max-width:440px;padding:14px;border-radius:12px;border:none;
-  background:var(--acc);color:#fff;font-size:1rem;font-weight:800;
-  cursor:pointer;margin-top:8px;transition:opacity .15s;
-}
+.btn-enviar{width:100%;max-width:440px;padding:14px;border-radius:12px;border:none;background:var(--acc);color:#fff;font-size:1rem;font-weight:800;cursor:pointer;margin-top:8px;transition:opacity .15s}
 .btn-enviar:hover{opacity:.85}
 .btn-enviar:disabled{opacity:.4;cursor:not-allowed}
+
 .msg{width:100%;max-width:440px;padding:12px 16px;border-radius:10px;font-size:0.85rem;font-weight:600;text-align:center;margin-top:10px;display:none}
 .msg.err{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#ef4444}
 
@@ -57,7 +68,24 @@ body{display:flex;flex-direction:column;align-items:center;padding:24px 16px 60p
 <div class="titulo">Evalúa la Charla de Salud</div>
 <div class="subtitulo">Instituto Superior Neumann · Tu opinión mejora nuestras charlas</div>
 
-<div id="formulario">
+<!-- Paso 1: identificación -->
+<div id="pasoIdentificacion">
+  <div class="id-card">
+    <div class="id-label">Ingresa tu código de estudiante</div>
+    <input class="id-input" id="codigoInput" placeholder="Ej: 20230001" maxlength="20" autocomplete="off">
+    <button class="btn-verificar" id="btnVerificar">Verificar código</button>
+    <div class="msg" id="msgId"></div>
+  </div>
+</div>
+
+<!-- Confirmación estudiante -->
+<div class="estudiante-ok" id="estOk">
+  <div class="est-bienvenida" id="estNombre"></div>
+  <div class="est-carrera" id="estCarrera"></div>
+</div>
+
+<!-- Paso 2: preguntas (ocultas hasta verificar) -->
+<div id="formulario" style="display:none;width:100%;display:flex;flex-direction:column;align-items:center">
 
   <div class="card">
     <div class="pregunta-num">Pregunta 1 de 3</div>
@@ -100,6 +128,7 @@ body{display:flex;flex-direction:column;align-items:center;padding:24px 16px 60p
 
   <button class="btn-enviar" id="btnEnviar" disabled>Responde las 3 preguntas</button>
   <div class="msg" id="msg"></div>
+
 </div>
 
 <div class="gracias" id="gracias">
@@ -109,7 +138,48 @@ body{display:flex;flex-direction:column;align-items:center;padding:24px 16px 60p
 </div>
 
 <script>
+let estudianteVerificado = null;
 const resp = {};
+
+// ── Verificar código ──
+async function verificar() {
+  const codigo = document.getElementById('codigoInput').value.trim();
+  const btn = document.getElementById('btnVerificar');
+  const msg = document.getElementById('msgId');
+  if (!codigo) return;
+
+  btn.disabled = true; btn.textContent = 'Verificando...'; msg.style.display = 'none';
+
+  try {
+    const r = await fetch(`/api/salud?accion=buscar&q=${encodeURIComponent(codigo)}`);
+    const { estudiantes } = await r.json();
+    const est = estudiantes.find(e => e.codigo === codigo);
+
+    if (!est) {
+      msg.textContent = 'Código no encontrado. Verifica e intenta de nuevo.';
+      msg.className = 'msg err'; msg.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Verificar código'; return;
+    }
+
+    estudianteVerificado = est;
+    const nombre = `${est.nombre} ${est.apellido||''}`.trim();
+    document.getElementById('estNombre').textContent = `¡Hola, ${nombre}!`;
+    document.getElementById('estCarrera').textContent = est.carrera;
+    document.getElementById('estOk').style.display = 'block';
+    document.getElementById('pasoIdentificacion').style.display = 'none';
+    document.getElementById('formulario').style.display = 'flex';
+
+  } catch(e) {
+    msg.textContent = 'Error al verificar: ' + e.message;
+    msg.className = 'msg err'; msg.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Verificar código';
+  }
+}
+
+document.getElementById('btnVerificar').addEventListener('click', verificar);
+document.getElementById('codigoInput').addEventListener('keydown', e => { if(e.key==='Enter') verificar(); });
+
+// ── Likert ──
 document.querySelectorAll('.likert').forEach(g => {
   g.querySelectorAll('.likert-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -124,6 +194,7 @@ document.querySelectorAll('.likert').forEach(g => {
   });
 });
 
+// ── Enviar ──
 document.getElementById('btnEnviar').addEventListener('click', async () => {
   const btn = document.getElementById('btnEnviar');
   const msg = document.getElementById('msg');
@@ -132,11 +203,17 @@ document.getElementById('btnEnviar').addEventListener('click', async () => {
     const r = await fetch('/api/salud', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accion: 'charla', ...resp }),
+      body: JSON.stringify({
+        accion: 'charla',
+        codigo: estudianteVerificado.codigo,
+        nombre: `${estudianteVerificado.nombre} ${estudianteVerificado.apellido||''}`.trim(),
+        ...resp,
+      }),
     });
     const data = await r.json();
     if (data.ok) {
       document.getElementById('formulario').style.display = 'none';
+      document.getElementById('estOk').style.display = 'none';
       document.getElementById('gracias').style.display = 'flex';
     } else throw new Error(data.error || 'Error al enviar');
   } catch(e) {

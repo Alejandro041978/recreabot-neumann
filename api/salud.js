@@ -33,6 +33,11 @@ export default async function handler(req, res) {
         res.json({ atenciones: data || [] }); return;
       }
 
+      if (accion === 'charlas' && codigo) {
+        const data = await query('evaluaciones_charla', 'GET', null, `?codigo=eq.${codigo}&order=ts.desc`);
+        res.json({ charlas: data || [] }); return;
+      }
+
       if (accion === 'kpis') {
         const data  = await query('atenciones_salud', 'GET', null, '?order=ts.desc&limit=1000');
         const charlas = await query('evaluaciones_charla', 'GET', null, '?order=ts.desc&limit=500');
@@ -72,7 +77,8 @@ export default async function handler(req, res) {
         const { p1, p2, p3 } = req.body;
         const vals = [p1,p2,p3].map(Number);
         if (vals.some(v => v<1||v>5||isNaN(v))) { res.status(400).json({ error: 'Valores 1-5 requeridos' }); return; }
-        const data = await query('evaluaciones_charla', 'POST', { ts: new Date().toISOString(), p1:vals[0], p2:vals[1], p3:vals[2] });
+        const { codigo, nombre } = req.body;
+        const data = await query('evaluaciones_charla', 'POST', { ts: new Date().toISOString(), p1:vals[0], p2:vals[1], p3:vals[2], codigo: codigo||null, nombre: nombre||null });
         res.json({ ok: true, id: data?.[0]?.id }); return;
       }
 
