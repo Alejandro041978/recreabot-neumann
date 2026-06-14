@@ -12,6 +12,7 @@
     { "src": "api/cafeteria.js",         "use": "@vercel/node" },
     { "src": "api/cafeteria-reporte.js", "use": "@vercel/node" },
     { "src": "api/staff-info.js",        "use": "@vercel/node" },
+    { "src": "api/salud.js",             "use": "@vercel/node" },
     { "src": "*.html",                   "use": "@vercel/static" }
   ],
   "crons": [
@@ -38,6 +39,9 @@
     { "src": "/login",                  "dest": "/login.html"                 },
     { "src": "/recreativos-dashboard",  "dest": "/index.html"                 },
     { "src": "/api/staff-info",         "dest": "/api/staff-info.js"          },
+    { "src": "/api/salud",              "dest": "/api/salud.js"               },
+    { "src": "/charla",                 "dest": "/charla.html"                },
+    { "src": "/salud-dashboard",        "dest": "/salud-dashboard.html"       },
     { "src": "/bot.html",               "dest": "/bot.html"                  },
     { "src": "/(.*)",                   "dest": "/index.html"                }
   ]

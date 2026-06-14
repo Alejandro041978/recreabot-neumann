@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Dashboard Salud — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#10b981;--acc2:#34d399;--red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6;
+  --text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{padding:20px 16px 60px;max-width:960px;margin:0 auto}
+
+/* Topbar */
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:10px 16px;background:var(--s);border:1px solid var(--b);border-radius:10px}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-icon{font-size:1.4rem}
+.topbar-titulo{font-size:1rem;font-weight:800;color:var(--acc2)}
+.topbar-user{font-size:0.78rem;color:var(--t2)}.topbar-user strong{color:var(--text)}
+.btn-logout{font-size:0.75rem;font-weight:600;color:var(--t3);background:none;border:1px solid var(--b);border-radius:6px;padding:5px 12px;cursor:pointer;transition:all .15s}
+.btn-logout:hover{border-color:var(--red);color:var(--red)}
+
+/* KPI grid */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:16px;text-align:center}
+.kpi-val{font-size:2rem;font-weight:800;color:var(--acc2);line-height:1}
+.kpi-label{font-size:0.7rem;color:var(--t3);margin-top:5px;text-transform:uppercase;letter-spacing:.5px}
+
+/* Búsqueda */
+.busqueda-wrap{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px;margin-bottom:20px}
+.busqueda-titulo{font-size:0.85rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.search-row{display:flex;gap:10px}
+.search-input{flex:1;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;padding:10px 14px;color:var(--text);font-size:0.9rem;font-family:'Inter',sans-serif;outline:none}
+.search-input:focus{border-color:var(--acc)}
+.search-input::placeholder{color:var(--t3)}
+.btn{padding:10px 18px;border-radius:8px;border:none;font-size:0.85rem;font-weight:700;cursor:pointer;transition:opacity .15s;font-family:'Inter',sans-serif}
+.btn-acc{background:var(--acc);color:#fff}.btn-acc:hover{opacity:.85}
+.btn-sec{background:var(--s2);color:var(--t2);border:1px solid var(--b)}.btn-sec:hover{border-color:var(--acc);color:var(--text)}
+.btn-sm{padding:6px 12px;font-size:0.78rem}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid var(--red)}
+
+.resultados-busqueda{margin-top:12px;display:none}
+.res-item{padding:10px 14px;background:var(--s2);border:1px solid var(--b);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:border-color .15s}
+.res-item:hover{border-color:var(--acc)}
+.res-nombre{font-size:0.88rem;font-weight:600}
+.res-sub{font-size:0.75rem;color:var(--t3);margin-top:2px}
+
+/* Layout principal */
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:640px){.main-grid{grid-template-columns:1fr}}
+
+.panel{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px}
+.panel-titulo{font-size:0.85rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:6px}
+.panel-vacio{font-size:0.82rem;color:var(--t3);text-align:center;padding:20px 0}
+
+/* Estudiante card */
+.est-card{background:var(--s2);border-radius:10px;padding:14px;margin-bottom:14px}
+.est-nombre{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:4px}
+.est-meta{font-size:0.78rem;color:var(--t3)}
+.est-carrera{font-size:0.78rem;color:var(--acc2);margin-top:3px;font-weight:600}
+
+/* Ficha de salud */
+.ficha-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.ficha-field label{font-size:0.7rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
+.ficha-field input,.ficha-field select,.ficha-field textarea{width:100%;background:var(--s);border:1.5px solid var(--b);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.83rem;font-family:'Inter',sans-serif;outline:none}
+.ficha-field input:focus,.ficha-field select:focus,.ficha-field textarea:focus{border-color:var(--acc)}
+.ficha-field select option{background:var(--s2)}
+.ficha-field.full{grid-column:1/-1}
+
+/* Formulario atención */
+.form-field{margin-bottom:12px}
+.form-field label{font-size:0.7rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
+.form-field input,.form-field select,.form-field textarea{width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:7px;padding:9px 12px;color:var(--text);font-size:0.85rem;font-family:'Inter',sans-serif;outline:none}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--acc)}
+.form-field select option{background:var(--s2)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* Historial */
+.seccion{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px;margin-bottom:16px}
+.seccion-titulo{font-size:0.85rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+table{width:100%;border-collapse:collapse;font-size:0.78rem}
+thead th{padding:8px 10px;color:var(--t3);font-weight:600;text-align:left;border-bottom:1px solid var(--b)}
+tbody td{padding:9px 10px;border-bottom:1px solid rgba(42,58,82,.4);color:var(--t2);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700}
+.badge-green{background:rgba(16,185,129,.15);color:var(--acc)}
+.badge-yellow{background:rgba(245,158,11,.15);color:var(--yellow)}
+.badge-blue{background:rgba(59,130,246,.15);color:var(--blue)}
+.badge-red{background:rgba(239,68,68,.12);color:var(--red)}
+
+/* Charlas KPI */
+.charla-promedio{font-size:2.5rem;font-weight:800;color:var(--acc2);text-align:center;padding:16px 0 8px}
+.charla-sub{font-size:0.75rem;color:var(--t3);text-align:center;margin-bottom:16px}
+.criterio-row{margin-bottom:10px}
+.criterio-header{display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:5px}
+.criterio-nombre{color:var(--t2)}.criterio-prom{color:var(--acc2);font-weight:700}
+.barra-bg{background:var(--s2);border-radius:4px;height:8px}
+.barra-fill{height:8px;border-radius:4px;background:var(--acc);transition:width .5s}
+
+.msg-ok{background:rgba(16,185,129,.12);border:1px solid var(--acc);color:var(--acc);padding:10px 14px;border-radius:8px;font-size:0.83rem;font-weight:600;margin-top:10px;display:none;text-align:center}
+.msg-err{background:rgba(239,68,68,.12);border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:0.83rem;font-weight:600;margin-top:10px;display:none;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-icon">🏥</div>
+    <div class="topbar-titulo">Dashboard Salud</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="topbar-user" id="topbar-user"></div>
+    <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid" id="kpis">
+  <div class="kpi"><div class="kpi-val">…</div><div class="kpi-label">Cargando</div></div>
+</div>
+
+<!-- Búsqueda de estudiante -->
+<div class="busqueda-wrap">
+  <div class="busqueda-titulo">🔍 Buscar estudiante</div>
+  <div class="search-row">
+    <input class="search-input" id="searchInput" placeholder="Código o nombre del estudiante..." autocomplete="off">
+    <button class="btn btn-acc" onclick="buscar()">Buscar</button>
+  </div>
+  <div class="resultados-busqueda" id="resultados"></div>
+</div>
+
+<!-- Panel principal (visible cuando hay estudiante seleccionado) -->
+<div id="panelEstudiante" style="display:none">
+  <div class="main-grid">
+
+    <!-- Ficha de salud -->
+    <div class="panel">
+      <div class="panel-titulo">📋 Ficha de salud</div>
+      <div class="est-card" id="estCard"></div>
+      <div class="ficha-grid">
+        <div class="ficha-field">
+          <label>Grupo sanguíneo</label>
+          <select id="fGrupo">
+            <option value="">—</option>
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+          </select>
+        </div>
+        <div class="ficha-field">
+          <label>Estatura (cm)</label>
+          <input type="number" id="fEstatura" placeholder="170" min="100" max="220">
+        </div>
+        <div class="ficha-field">
+          <label>Tipo de seguro</label>
+          <select id="fSeguro">
+            <option value="">—</option>
+            <option value="privado">Privado</option>
+            <option value="essalud">EsSalud</option>
+            <option value="sis">SIS</option>
+            <option value="ninguno">Ninguno</option>
+          </select>
+        </div>
+        <div class="ficha-field">
+          <label>Registrado CONADIS</label>
+          <select id="fConadis">
+            <option value="">—</option>
+            <option value="true">Sí</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+        <div class="ficha-field full">
+          <label>Tipo de discapacidad</label>
+          <input type="text" id="fDiscapacidad" placeholder="Ninguna / especificar">
+        </div>
+        <div class="ficha-field full">
+          <label>Enfermedades preexistentes</label>
+          <textarea id="fEnfermedades" rows="2" placeholder="Diabetes, hipertensión..."></textarea>
+        </div>
+      </div>
+      <button class="btn btn-acc btn-sm" onclick="guardarFicha()">Guardar ficha</button>
+      <div class="msg-ok" id="fichaOk">✅ Ficha guardada</div>
+      <div class="msg-err" id="fichaErr"></div>
+    </div>
+
+    <!-- Registrar atención -->
+    <div class="panel">
+      <div class="panel-titulo">➕ Registrar atención</div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Fecha</label>
+          <input type="date" id="aFecha">
+        </div>
+        <div class="form-field">
+          <label>Hora</label>
+          <input type="time" id="aHora">
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Motivo de atención</label>
+        <textarea id="aMotivo" rows="3" placeholder="Describe el motivo..."></textarea>
+      </div>
+      <div class="form-field">
+        <label>Resultado</label>
+        <select id="aResultado">
+          <option value="">Selecciona...</option>
+          <option value="finalizado">Finalizado</option>
+          <option value="en_seguimiento">En seguimiento</option>
+          <option value="derivado">Derivado</option>
+          <option value="no_concluyente">No concluyente</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Notas adicionales</label>
+        <textarea id="aNotas" rows="2" placeholder="Observaciones opcionales..."></textarea>
+      </div>
+      <button class="btn btn-acc" style="width:100%" onclick="registrarAtencion()">Registrar atención</button>
+      <div class="msg-ok" id="atencionOk">✅ Atención registrada</div>
+      <div class="msg-err" id="atencionErr"></div>
+    </div>
+
+  </div>
+
+  <!-- Historial del estudiante -->
+  <div class="seccion">
+    <div class="seccion-titulo">
+      <span>🕐 Historial de atenciones</span>
+      <span id="historial-nombre" style="font-size:0.78rem;color:var(--t3);font-weight:400"></span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>Fecha</th><th>Hora</th><th>Motivo</th><th>Resultado</th><th>Notas</th>
+        </tr></thead>
+        <tbody id="tbodyHistorial">
+          <tr><td colspan="5" style="text-align:center;color:var(--t3);padding:20px">Sin atenciones registradas</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Historial reciente general + charlas -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="seccionGeneral">
+  <div class="seccion">
+    <div class="seccion-titulo"><span>📋 Últimas atenciones</span></div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Estudiante</th><th>Fecha</th><th>Resultado</th></tr></thead>
+        <tbody id="tbodyRecientes">
+          <tr><td colspan="3" style="text-align:center;color:var(--t3);padding:20px">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-titulo"><span>🎤 Evaluaciones de charlas</span></div>
+    <div id="charlasPanel"><div style="text-align:center;color:var(--t3);padding:20px;font-size:0.85rem">Cargando...</div></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const sb = supabase.createClient(
+  'https://exjaxhrylfdwehzjfjut.supabase.co',
+  'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
+);
+
+let estudianteActual = null;
+
+// ── Auth ──
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/login'; return false; }
+  const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
+  if (!r.ok) { window.location.href = '/login'; return false; }
+  const info = await r.json();
+  document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
+  document.getElementById('btnLogout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = '/login'; });
+  return true;
+}
+
+// ── KPIs ──
+async function cargarKpis() {
+  try {
+    const r = await fetch('/api/salud?accion=kpis');
+    const { atenciones, charlas } = await r.json();
+    const corte10 = new Date(); corte10.setDate(corte10.getDate()-70);
+    const at10 = atenciones.filter(a => new Date(a.ts) >= corte10);
+    const promCharla = charlas.length
+      ? (charlas.reduce((s,c)=>(s+(c.p1+c.p2+c.p3)/3),0)/charlas.length).toFixed(2)
+      : '—';
+    const porResultado = {};
+    ['finalizado','en_seguimiento','derivado','no_concluyente'].forEach(r => porResultado[r] = atenciones.filter(a=>a.resultado===r).length);
+
+    document.getElementById('kpis').innerHTML = `
+      <div class="kpi"><div class="kpi-val">${atenciones.length}</div><div class="kpi-label">Atenciones totales</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:var(--blue)">${at10.length}</div><div class="kpi-label">Últimas 10 semanas</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:var(--acc)">${porResultado['finalizado']}</div><div class="kpi-label">Finalizados</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:var(--yellow)">${porResultado['en_seguimiento']}</div><div class="kpi-label">En seguimiento</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:var(--acc2)">${promCharla}</div><div class="kpi-label">Prom. charlas / 5</div></div>
+      <div class="kpi"><div class="kpi-val">${charlas.length}</div><div class="kpi-label">Eval. charlas</div></div>
+    `;
+
+    // Tabla recientes
+    document.getElementById('tbodyRecientes').innerHTML = atenciones.slice(0,10).map(a => `
+      <tr>
+        <td style="color:var(--text)">${a.nombre||a.codigo}</td>
+        <td>${formatFecha(a.ts)}</td>
+        <td>${badgeResultado(a.resultado)}</td>
+      </tr>`).join('') || `<tr><td colspan="3" style="text-align:center;color:var(--t3);padding:16px">Sin atenciones</td></tr>`;
+
+    // Charlas
+    if (!charlas.length) {
+      document.getElementById('charlasPanel').innerHTML = '<div style="text-align:center;color:var(--t3);padding:20px;font-size:0.85rem">Sin evaluaciones aún</div>';
+    } else {
+      const p1 = charlas.reduce((s,c)=>s+c.p1,0)/charlas.length;
+      const p2 = charlas.reduce((s,c)=>s+c.p2,0)/charlas.length;
+      const p3 = charlas.reduce((s,c)=>s+c.p3,0)/charlas.length;
+      const total = (p1+p2+p3)/3;
+      document.getElementById('charlasPanel').innerHTML = `
+        <div class="charla-promedio" style="color:${total>=4?'var(--acc)':total>=3?'var(--yellow)':'var(--red)'}">
+          ${total.toFixed(2)}<span style="font-size:1rem;color:var(--t3)"> / 5</span>
+        </div>
+        <div class="charla-sub">${charlas.length} evaluaciones acumuladas</div>
+        ${[['Claridad del tema',p1],['Utilidad de la información',p2],['Calidad de presentación',p3]].map(([n,v])=>`
+          <div class="criterio-row">
+            <div class="criterio-header"><span class="criterio-nombre">${n}</span><span class="criterio-prom">${v.toFixed(2)}</span></div>
+            <div class="barra-bg"><div class="barra-fill" style="width:${(v/5)*100}%;background:${v>=4?'var(--acc)':v>=3?'var(--yellow)':'var(--red)'}"></div></div>
+          </div>`).join('')}`;
+    }
+  } catch(e) {
+    document.getElementById('kpis').innerHTML = `<div style="color:var(--red);font-size:0.82rem">Error: ${e.message}</div>`;
+  }
+}
+
+// ── Búsqueda ──
+async function buscar() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) return;
+  const r = await fetch(`/api/salud?accion=buscar&q=${encodeURIComponent(q)}`);
+  const { estudiantes } = await r.json();
+  const div = document.getElementById('resultados');
+  div.style.display = 'block';
+  if (!estudiantes.length) {
+    div.innerHTML = '<div style="font-size:0.83rem;color:var(--t3);padding:10px">Sin resultados</div>'; return;
+  }
+  div.innerHTML = estudiantes.map(e => `
+    <div class="res-item" onclick="seleccionarEstudiante(${JSON.stringify(e).replace(/"/g,'&quot;')})">
+      <div class="res-nombre">${e.nombre} ${e.apellido||''}</div>
+      <div class="res-sub">${e.codigo} · ${e.carrera}</div>
+    </div>`).join('');
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => { if(e.key==='Enter') buscar(); });
+
+// ── Seleccionar estudiante ──
+async function seleccionarEstudiante(est) {
+  estudianteActual = est;
+  document.getElementById('resultados').style.display = 'none';
+  document.getElementById('searchInput').value = `${est.nombre} ${est.apellido||''} (${est.codigo})`;
+
+  document.getElementById('estCard').innerHTML = `
+    <div class="est-nombre">${est.nombre} ${est.apellido||''}</div>
+    <div class="est-carrera">${est.carrera}</div>
+    <div class="est-meta">Código: ${est.codigo} · Email: ${est.email||'—'}</div>`;
+
+  // Prefill fecha/hora
+  const ahora = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Lima'}));
+  document.getElementById('aFecha').value = ahora.toISOString().split('T')[0];
+  document.getElementById('aHora').value  = ahora.toTimeString().slice(0,5);
+
+  // Cargar ficha
+  const fr = await fetch(`/api/salud?accion=ficha&codigo=${est.codigo}`);
+  const { ficha } = await fr.json();
+  if (ficha) {
+    document.getElementById('fGrupo').value       = ficha.grupo_sanguineo || '';
+    document.getElementById('fEstatura').value    = ficha.estatura || '';
+    document.getElementById('fSeguro').value      = ficha.seguro || '';
+    document.getElementById('fConadis').value     = ficha.conadis === true ? 'true' : ficha.conadis === false ? 'false' : '';
+    document.getElementById('fDiscapacidad').value= ficha.discapacidad || '';
+    document.getElementById('fEnfermedades').value= ficha.enfermedades || '';
+  } else {
+    ['fGrupo','fEstatura','fSeguro','fConadis','fDiscapacidad','fEnfermedades'].forEach(id => document.getElementById(id).value='');
+  }
+
+  // Cargar historial
+  document.getElementById('historial-nombre').textContent = `${est.nombre} ${est.apellido||''}`;
+  await cargarHistorial(est.codigo);
+
+  document.getElementById('panelEstudiante').style.display = 'block';
+  document.getElementById('panelEstudiante').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+async function cargarHistorial(codigo) {
+  const r = await fetch(`/api/salud?accion=atenciones&codigo=${codigo}`);
+  const { atenciones } = await r.json();
+  document.getElementById('tbodyHistorial').innerHTML = atenciones.length
+    ? atenciones.map(a=>`<tr>
+        <td style="color:var(--text)">${a.fecha_atencion}</td>
+        <td>${a.hora_atencion?.slice(0,5)||'—'}</td>
+        <td style="color:var(--text);max-width:200px">${a.motivo}</td>
+        <td>${badgeResultado(a.resultado)}</td>
+        <td style="max-width:150px">${a.notas||'—'}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;color:var(--t3);padding:16px">Sin atenciones</td></tr>';
+}
+
+// ── Registrar atención ──
+async function registrarAtencion() {
+  if (!estudianteActual) return;
+  const ok = document.getElementById('atencionOk');
+  const err = document.getElementById('atencionErr');
+  ok.style.display='none'; err.style.display='none';
+
+  const body = {
+    accion:'atencion',
+    codigo: estudianteActual.codigo,
+    nombre: `${estudianteActual.nombre} ${estudianteActual.apellido||''}`.trim(),
+    fecha_atencion: document.getElementById('aFecha').value,
+    hora_atencion:  document.getElementById('aHora').value,
+    motivo:    document.getElementById('aMotivo').value.trim(),
+    resultado: document.getElementById('aResultado').value,
+    notas:     document.getElementById('aNotas').value.trim(),
+  };
+  if (!body.fecha_atencion||!body.hora_atencion||!body.motivo||!body.resultado) {
+    err.textContent='Completa todos los campos obligatorios'; err.style.display='block'; return;
+  }
+  try {
+    const r = await fetch('/api/salud', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const data = await r.json();
+    if (data.ok) {
+      ok.style.display='block';
+      document.getElementById('aMotivo').value='';
+      document.getElementById('aNotas').value='';
+      document.getElementById('aResultado').value='';
+      await cargarHistorial(estudianteActual.codigo);
+      await cargarKpis();
+      setTimeout(()=>ok.style.display='none',3000);
+    } else throw new Error(data.error);
+  } catch(e) {
+    err.textContent='Error: '+e.message; err.style.display='block';
+  }
+}
+
+// ── Guardar ficha ──
+async function guardarFicha() {
+  if (!estudianteActual) return;
+  const ok = document.getElementById('fichaOk');
+  const err = document.getElementById('fichaErr');
+  ok.style.display='none'; err.style.display='none';
+  const body = {
+    accion:'ficha', codigo: estudianteActual.codigo,
+    grupo_sanguineo: document.getElementById('fGrupo').value||null,
+    estatura:        document.getElementById('fEstatura').value||null,
+    seguro:          document.getElementById('fSeguro').value||null,
+    conadis:         document.getElementById('fConadis').value,
+    discapacidad:    document.getElementById('fDiscapacidad').value||null,
+    enfermedades:    document.getElementById('fEnfermedades').value||null,
+  };
+  try {
+    const r = await fetch('/api/salud', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const data = await r.json();
+    if (data.ok) { ok.style.display='block'; setTimeout(()=>ok.style.display='none',3000); }
+    else throw new Error(data.error);
+  } catch(e) {
+    err.textContent='Error: '+e.message; err.style.display='block';
+  }
+}
+
+// ── Helpers ──
+function badgeResultado(r) {
+  const map = {
+    finalizado:     ['badge-green','Finalizado'],
+    en_seguimiento: ['badge-yellow','En seguimiento'],
+    derivado:       ['badge-blue','Derivado'],
+    no_concluyente: ['badge-red','No concluyente'],
+  };
+  const [cls,txt] = map[r]||['','—'];
+  return `<span class="badge ${cls}">${txt}</span>`;
+}
+
+function formatFecha(iso) {
+  try { return new Date(iso).toLocaleString('es-PE',{timeZone:'America/Lima',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true}); }
+  catch(e){ return iso; }
+}
+
+// ── Init ──
+initAuth().then(ok => { if (ok) cargarKpis(); });
+</script>
+</body>
+</html>

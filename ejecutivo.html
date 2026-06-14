@@ -43,6 +43,7 @@ h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-b
 
 .mod-cafeteria  { --acc: var(--yellow) }
 .mod-recreacion { --acc: var(--blue)   }
+.mod-salud      { --acc: var(--green)  }
 
 .loading-kpi{font-size:2rem;color:var(--t3);font-weight:800}
 
@@ -75,13 +76,25 @@ h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-b
   </a>
 
   <!-- Servicios Recreativos -->
-  <a class="modulo mod-recreacion" href="/">
+  <a class="modulo mod-recreacion" href="/recreativos-dashboard">
     <div class="mod-icon">🏃</div>
     <div class="mod-titulo">Servicios Recreativos</div>
     <div class="mod-kpi" id="kpi-recreacion"><span class="loading-kpi">…</span></div>
     <div class="mod-kpi-label">Reservas registradas · últimas 10 semanas</div>
     <div class="mod-link" style="color:var(--blue)">
       Ver panel de administración
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </div>
+  </a>
+
+  <!-- Salud -->
+  <a class="modulo mod-salud" href="/salud-dashboard">
+    <div class="mod-icon">🏥</div>
+    <div class="mod-titulo">Área de Salud</div>
+    <div class="mod-kpi" id="kpi-salud"><span class="loading-kpi">…</span></div>
+    <div class="mod-kpi-label">Atenciones registradas · últimas 10 semanas</div>
+    <div class="mod-link" style="color:var(--green)">
+      Ver dashboard de salud
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
     </div>
   </a>
@@ -149,10 +162,24 @@ async function cargarRecreacion() {
   }
 }
 
+async function cargarSalud() {
+  try {
+    const r = await fetch('/api/salud?accion=kpis');
+    const { atenciones } = await r.json();
+    const at10 = (atenciones || []).filter(a => new Date(a.ts) >= corte10);
+    const el = document.getElementById('kpi-salud');
+    el.textContent = at10.length;
+    el.style.color = 'var(--green)';
+  } catch(e) {
+    document.getElementById('kpi-salud').textContent = 'Error';
+  }
+}
+
 initAuth().then(ok => {
   if (!ok) return;
   cargarCafeteria();
   cargarRecreacion();
+  cargarSalud();
 });
 </script>
 </body>
