@@ -83,7 +83,7 @@ export default async function handler(req, res) {
 <div style="max-width:520px;margin:30px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
   <div style="background:linear-gradient(135deg,#064e3b,#0f1117);padding:28px 32px">
     <div style="font-size:28px;margin-bottom:8px">🏥</div>
-    <h1 style="margin:0;color:#34d399;font-size:20px">Evalúa tu atención médica</h1>
+    <h1 style="margin:0;color:#34d399;font-size:20px">Evalúa tu atención en tópico</h1>
     <p style="margin:6px 0 0;color:#94a3b8;font-size:14px">Instituto Superior Neumann</p>
   </div>
   <div style="padding:28px 32px">
