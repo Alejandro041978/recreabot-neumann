@@ -33,9 +33,18 @@ export default async function handler(req, res) {
     if (accion === 'kpis') {
       const hace70 = new Date();
       hace70.setDate(hace70.getDate() - 70);
-      const data = await query('asistencia', 'GET', null,
-        `?fecha=gte.${hace70.toISOString()}&order=fecha.desc&limit=50000`);
-      const registros = (data || []).filter(r => r.tipo === true);
+      const r70 = await fetch(
+        `${process.env.SUPABASE_URL}/rest/v1/asistencia?fecha=gte.${hace70.toISOString()}&order=fecha.desc`,
+        { headers: {
+          'apikey': process.env.SUPABASE_SECRET_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_SECRET_KEY}`,
+          'Range': '0-99999',
+          'Range-Unit': 'items',
+          'Prefer': 'count=none',
+        }}
+      );
+      const data = await r70.json();
+      const registros = (data || []).filter(r => r.tipo === true || r.tipo === 'true');
 
       // Agrupar ingresos únicos por persona por día
       const porDia = {};
