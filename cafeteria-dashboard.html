@@ -16,6 +16,11 @@
 html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
 body{padding:24px 16px 60px;max-width:900px;margin:0 auto}
 
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:10px 16px;background:var(--s);border:1px solid var(--b);border-radius:10px}
+.topbar-user{font-size:0.78rem;color:var(--t2)}.topbar-user strong{color:var(--text)}
+.btn-logout{font-size:0.75rem;font-weight:600;color:var(--t3);background:none;border:1px solid var(--b);border-radius:6px;padding:5px 12px;cursor:pointer;transition:all .15s}
+.btn-logout:hover{border-color:#ef4444;color:#ef4444}
+
 header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
 .header-icon{font-size:2rem}
 .header-titulo{font-size:1.4rem;font-weight:800;color:var(--acc2)}
@@ -70,6 +75,11 @@ tbody tr:last-child td{border-bottom:none}
 </head>
 <body>
 
+<div class="topbar" id="topbar" style="display:none">
+  <div class="topbar-user" id="topbar-user"></div>
+  <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
+</div>
+
 <header>
   <div class="header-icon">☕</div>
   <div>
@@ -114,6 +124,7 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const CRITERIOS = [
   { nombre:'Calidad e inocuidad',           preguntas:['p1','p2'] },
@@ -252,7 +263,31 @@ async function cargar() {
   }
 }
 
-cargar();
+// Auth
+const sb = supabase.createClient(
+  'https://exjaxhrylfdwehzjfjut.supabase.co',
+  'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
+);
+
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/login'; return false; }
+  const r = await fetch('/api/staff-info', {
+    headers: { 'Authorization': `Bearer ${session.access_token}` }
+  });
+  if (!r.ok) { window.location.href = '/login'; return false; }
+  const info = await r.json();
+  document.getElementById('topbar-user').innerHTML =
+    `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
+  document.getElementById('topbar').style.display = 'flex';
+  document.getElementById('btnLogout').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    window.location.href = '/login';
+  });
+  return true;
+}
+
+initAuth().then(ok => { if (ok) cargar(); });
 </script>
 </body>
 </html>

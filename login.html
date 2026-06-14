@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Acceso Staff — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#3b82f6;--acc2:#60a5fa;--text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px 16px}
+
+.card{background:var(--s);border:1px solid var(--b);border-radius:16px;padding:36px 28px;width:100%;max-width:380px}
+.logo{font-size:2rem;text-align:center;margin-bottom:8px}
+.titulo{font-size:1.2rem;font-weight:800;color:var(--acc2);text-align:center;margin-bottom:4px}
+.subtitulo{font-size:0.78rem;color:var(--t3);text-align:center;margin-bottom:28px}
+
+label{display:block;font-size:0.75rem;font-weight:600;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
+input{
+  width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;
+  padding:11px 14px;color:var(--text);font-size:0.9rem;font-family:'Inter',sans-serif;
+  outline:none;margin-bottom:16px;
+}
+input:focus{border-color:var(--acc)}
+input::placeholder{color:var(--t3)}
+
+.btn{
+  width:100%;padding:13px;border-radius:10px;border:none;
+  background:var(--acc);color:#fff;font-size:0.95rem;font-weight:700;
+  cursor:pointer;margin-top:4px;transition:opacity .15s;
+}
+.btn:hover{opacity:.85}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+.msg{padding:10px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;margin-top:14px;display:none;text-align:center}
+.msg.err{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#ef4444}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">🏫</div>
+  <div class="titulo">Acceso Staff</div>
+  <div class="subtitulo">Instituto Superior Neumann</div>
+
+  <label>Correo institucional</label>
+  <input type="email" id="email" placeholder="nombre@neumann.education" autocomplete="email">
+
+  <label>Contraseña</label>
+  <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+
+  <button class="btn" id="btnLogin">Ingresar</button>
+  <div class="msg" id="msg"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const sb = supabase.createClient(
+  'https://exjaxhrylfdwehzjfjut.supabase.co',
+  'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
+);
+
+// Si ya hay sesión activa, redirigir directo
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (session) window.location.href = '/ejecutivo';
+});
+
+document.getElementById('btnLogin').addEventListener('click', async () => {
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('btnLogin');
+  const msg = document.getElementById('msg');
+
+  if (!email || !password) {
+    msg.textContent = 'Completa todos los campos';
+    msg.className = 'msg err'; msg.style.display = 'block'; return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Ingresando...'; msg.style.display = 'none';
+
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    // Verificar que es staff registrado
+    const r = await fetch('/api/staff-info', {
+      headers: { 'Authorization': `Bearer ${data.session.access_token}` }
+    });
+    const info = await r.json();
+    if (!r.ok) throw new Error(info.error || 'Sin acceso');
+
+    window.location.href = '/ejecutivo';
+
+  } catch(e) {
+    msg.textContent = e.message === 'Invalid login credentials'
+      ? 'Correo o contraseña incorrectos'
+      : e.message;
+    msg.className = 'msg err'; msg.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Ingresar';
+  }
+});
+
+document.getElementById('password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btnLogin').click();
+});
+</script>
+</body>
+</html>
