@@ -379,9 +379,11 @@ select option { background: var(--surface2); }
     <span class="topbar-title" id="topbar-title">Dashboard</span>
     <span class="topbar-sub" id="topbar-sub">Visión general del sistema</span>
     <div class="topbar-right">
+      <span id="staff-nombre" style="font-size:0.78rem;color:var(--text3);margin-right:8px"></span>
       <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ Exportar</button>
       <button class="btn btn-ghost btn-sm" onclick="enviarReporte()" id="btn-reporte">📧 Enviar reporte</button>
       <button class="btn btn-primary btn-sm" onclick="nav('registro', document.querySelector('.nav-item:nth-child(3)'))">+ Nuevo registro</button>
+      <button class="btn btn-ghost btn-sm" id="btnLogout" style="display:none;border-color:var(--red);color:var(--red)" onclick="staffLogout()">Salir</button>
     </div>
   </div>
 
@@ -1794,14 +1796,31 @@ function updateConnStatus() {
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
+async function initStaffAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/login'; return; }
+  const r = await fetch('/api/staff-info', {
+    headers: { 'Authorization': `Bearer ${session.access_token}` }
+  });
+  if (!r.ok) { window.location.href = '/login'; return; }
+  const info = await r.json();
+  document.getElementById('staff-nombre').textContent = info.nombre + ' ·';
+  document.getElementById('btnLogout').style.display = '';
+}
+
+async function staffLogout() {
+  await sb.auth.signOut();
+  window.location.href = '/login';
+}
+
 window.addEventListener('load', () => {
   renderDashboard();
   updateConnStatus();
+  initStaffAuth();
   // Cargar datos reales desde Google Sheets
   cargarRegistrosDeSheets();
   // Refrescar cada 30 segundos automáticamente
   setInterval(cargarRegistrosDeSheets, 30000);
-  // Datos de demo si no hay nada
   if (STATE.registros.length === 0) {
     const demo = [
       { area:'Canchita A', carrera:'Administración', participantes:'4', horario:'11am-1pm', estado:'ok', calificacion:'5' },
@@ -1821,6 +1840,13 @@ window.addEventListener('load', () => {
     document.getElementById('inc-badge').textContent = 1;
   }
 });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const sb = supabase.createClient(
+  'https://exjaxhrylfdwehzjfjut.supabase.co',
+  'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
+);
 </script>
 </body>
 </html>
