@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Evalúa la Cafetería — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#f59e0b;--acc2:#fbbf24;--green:#10b981;--text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column;align-items:center;padding:24px 16px 60px}
+
+.logo{font-size:2.2rem;margin-bottom:6px;text-align:center}
+.titulo{font-size:1.25rem;font-weight:800;color:var(--acc2);text-align:center;margin-bottom:4px}
+.subtitulo{font-size:0.8rem;color:var(--t3);text-align:center;margin-bottom:28px}
+
+.criterio{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:18px 16px;width:100%;max-width:440px;margin-bottom:14px}
+.criterio-titulo{font-size:0.75rem;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.criterio-num{background:var(--acc);color:#000;font-size:0.65rem;font-weight:800;padding:2px 7px;border-radius:20px}
+
+.pregunta-bloque{margin-bottom:14px}
+.pregunta-bloque:last-child{margin-bottom:0}
+.pregunta-txt{font-size:0.83rem;color:var(--t2);margin-bottom:10px;line-height:1.4}
+
+.likert{display:flex;gap:6px;justify-content:center}
+.likert-btn{
+  width:44px;height:44px;border-radius:10px;border:1.5px solid var(--b);
+  background:var(--s2);color:var(--t3);font-size:1rem;font-weight:700;
+  cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;
+  user-select:none;-webkit-tap-highlight-color:transparent;
+}
+.likert-btn:hover{border-color:var(--acc);color:var(--acc)}
+.likert-btn.sel{background:var(--acc);border-color:var(--acc);color:#000}
+.likert-labels{display:flex;justify-content:space-between;padding:0 4px;margin-top:5px}
+.likert-label{font-size:0.65rem;color:var(--t3)}
+
+.btn-enviar{
+  width:100%;max-width:440px;padding:14px;border-radius:12px;border:none;
+  background:var(--acc);color:#000;font-size:1rem;font-weight:800;
+  cursor:pointer;margin-top:8px;transition:opacity .15s;
+}
+.btn-enviar:hover{opacity:.85}
+.btn-enviar:disabled{opacity:.4;cursor:not-allowed}
+
+.msg{width:100%;max-width:440px;padding:14px 16px;border-radius:10px;font-size:0.88rem;font-weight:600;text-align:center;margin-top:12px;display:none}
+.msg.ok{background:rgba(16,185,129,.15);border:1px solid var(--green);color:var(--green)}
+.msg.err{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#ef4444}
+
+.gracias{display:none;flex-direction:column;align-items:center;text-align:center;padding:40px 20px;max-width:440px}
+.gracias-icon{font-size:4rem;margin-bottom:16px}
+.gracias-titulo{font-size:1.4rem;font-weight:800;color:var(--green);margin-bottom:8px}
+.gracias-sub{font-size:0.9rem;color:var(--t2)}
+</style>
+</head>
+<body>
+
+<div class="logo">☕</div>
+<div class="titulo">Evalúa la Cafetería</div>
+<div class="subtitulo">Instituto Superior Neumann · Tu opinión mejora el servicio</div>
+
+<div id="formulario">
+
+<!-- Criterio 1 -->
+<div class="criterio">
+  <div class="criterio-titulo"><span class="criterio-num">1</span> Calidad e inocuidad de los alimentos</div>
+  <div class="pregunta-bloque">
+    <div class="pregunta-txt">Los alimentos se ven frescos y bien presentados</div>
+    <div class="likert" data-q="p1">
+      <button class="likert-btn" data-val="1">1</button>
+      <button class="likert-btn" data-val="2">2</button>
+      <button class="likert-btn" data-val="3">3</button>
+      <button class="likert-btn" data-val="4">4</button>
+      <button class="likert-btn" data-val="5">5</button>
+    </div>
+    <div class="likert-labels"><span class="likert-label">Muy malo</span><span class="likert-label">Excelente</span></div>
+  </div>
+  <div class="pregunta-bloque">
+    <div class="pregunta-txt">Confío en la higiene y manipulación de los alimentos</div>
+    <div class="likert" data-q="p2">
+      <button class="likert-btn" data-val="1">1</button>
+      <button class="likert-btn" data-val="2">2</button>
+      <button class="likert-btn" data-val="3">3</button>
+      <button class="likert-btn" data-val="4">4</button>
+      <button class="likert-btn" data-val="5">5</button>
+    </div>
+    <div class="likert-labels"><span class="likert-label">Muy malo</span><span class="likert-label">Excelente</span></div>
+  </div>
+</div>
+
+<!-- Criterio 2 -->
+<div class="criterio">
+  <div class="criterio-titulo"><span class="criterio-num">2</span> Variedad y valor nutricional</div>
+  <div class="pregunta-bloque">
+    <div class="pregunta-txt">La variedad de menús y opciones es suficiente</div>
+    <div class="likert" data-q="p3">
+      <button class="likert-btn" data-val="1">1</button>
+      <button class="likert-btn" data-val="2">2</button>
+      <button class="likert-btn" data-val="3">3</button>
+      <button class="likert-btn" data-val="4">4</button>
+      <button class="likert-btn" data-val="5">5</button>
+    </div>
+    <div class="likert-labels"><span class="likert-label">Muy malo</span><span class="likert-label">Excelente</span></div>
+  </div>
+  <div class="pregunta-bloque">
+    <div class="pregunta-txt">Hay opciones saludables para distintos horarios y necesidades</div>
+    <div class="likert" data-q="p4">
+      <button class="likert-btn" data-val="1">1</button>
+      <button class="likert-btn" data-val="2">2</button>
+      <button class="likert-btn" data-val="3">3</button>
+      <button class="likert-btn" data-val="4">4</button>
+      <button class="likert-btn" data-val="5">5</button>
+    </div>
+    <div class="likert-labels"><span class="likert-label">Muy malo</span><span class="likert-label">Excelente</span></div>
+  </div>
+</div>
+
+<!-- Criterio 3 -->
+<div class="criterio">
+  <div class="criterio-titulo"><span class="criterio-num">3</span> Atención al usuario</div>
+  <div class="pregunta-bloque">
+    <div class="pregunta-txt">El personal me atendió con rapidez y amabilidad</div>
+    <div class="likert" data-q="p5">
+      <button class="likert-btn" data-val="1">1</button>
+      <button class="likert-btn" data-val="2">2</button>
+      <button class="likert-btn" data-val="3">3</button>
+      <button class="likert-btn" data-val="4">4</button>
+      <button class="likert-btn" data-val="5">5</button>
+    </div>
+    <div class="likert-labels"><span class="likert-label">Muy malo</span><span class="likert-label">Excelente</span></div>
+  </div>
+  <div class="pregunta-bloque">
+    <div class="pregunta-txt">El orden y las colas en la atención son adecuados</div>
+    <div class="likert" data-q="p6">
+      <button class="likert-btn" data-val="1">1</button>
+      <button class="likert-btn" data-val="2">2</button>
+      <button class="likert-btn" data-val="3">3</button>
+      <button class="likert-btn" data-val="4">4</button>
+      <button class="likert-btn" data-val="5">5</button>
+    </div>
+    <div class="likert-labels"><span class="likert-label">Muy malo</span><span class="likert-label">Excelente</span></div>
+  </div>
+</div>
+
+<!-- Criterio 4 -->
+<div class="criterio">
+  <div class="criterio-titulo"><span class="criterio-num">4</span> Precios y relación calidad-precio</div>
+  <div class="pregunta-bloque">
+    <div class="pregunta-txt">Los precios son accesibles para los estudiantes</div>
+    <div class="likert" data-q="p7">
+      <button class="likert-btn" data-val="1">1</button>
+      <button class="likert-btn" data-val="2">2</button>
+      <button class="likert-btn" data-val="3">3</button>
+      <button class="likert-btn" data-val="4">4</button>
+      <button class="likert-btn" data-val="5">5</button>
+    </div>
+    <div class="likert-labels"><span class="likert-label">Muy malo</span><span class="likert-label">Excelente</span></div>
+  </div>
+  <div class="pregunta-bloque">
+    <div class="pregunta-txt">El precio pagado corresponde a la cantidad y calidad recibida</div>
+    <div class="likert" data-q="p8">
+      <button class="likert-btn" data-val="1">1</button>
+      <button class="likert-btn" data-val="2">2</button>
+      <button class="likert-btn" data-val="3">3</button>
+      <button class="likert-btn" data-val="4">4</button>
+      <button class="likert-btn" data-val="5">5</button>
+    </div>
+    <div class="likert-labels"><span class="likert-label">Muy malo</span><span class="likert-label">Excelente</span></div>
+  </div>
+</div>
+
+<!-- Criterio 5 -->
+<div class="criterio">
+  <div class="criterio-titulo"><span class="criterio-num">5</span> Cumplimiento operativo y contractual</div>
+  <div class="pregunta-bloque">
+    <div class="pregunta-txt">La cafetería abre puntual y se mantiene limpia</div>
+    <div class="likert" data-q="p9">
+      <button class="likert-btn" data-val="1">1</button>
+      <button class="likert-btn" data-val="2">2</button>
+      <button class="likert-btn" data-val="3">3</button>
+      <button class="likert-btn" data-val="4">4</button>
+      <button class="likert-btn" data-val="5">5</button>
+    </div>
+    <div class="likert-labels"><span class="likert-label">Muy malo</span><span class="likert-label">Excelente</span></div>
+  </div>
+  <div class="pregunta-bloque">
+    <div class="pregunta-txt">El local cumple con las normas e infraestructura esperadas</div>
+    <div class="likert" data-q="p10">
+      <button class="likert-btn" data-val="1">1</button>
+      <button class="likert-btn" data-val="2">2</button>
+      <button class="likert-btn" data-val="3">3</button>
+      <button class="likert-btn" data-val="4">4</button>
+      <button class="likert-btn" data-val="5">5</button>
+    </div>
+    <div class="likert-labels"><span class="likert-label">Muy malo</span><span class="likert-label">Excelente</span></div>
+  </div>
+</div>
+
+<button class="btn-enviar" id="btnEnviar" disabled>Responde todas las preguntas</button>
+<div class="msg" id="msg"></div>
+
+</div><!-- /formulario -->
+
+<div class="gracias" id="gracias">
+  <div class="gracias-icon">✅</div>
+  <div class="gracias-titulo">¡Gracias por tu evaluación!</div>
+  <div class="gracias-sub">Tu opinión ayuda a mejorar el servicio de cafetería del Instituto Neumann.</div>
+</div>
+
+<script>
+const respuestas = {};
+const total = 10;
+
+document.querySelectorAll('.likert').forEach(grupo => {
+  const q = grupo.dataset.q;
+  grupo.querySelectorAll('.likert-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      grupo.querySelectorAll('.likert-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      respuestas[q] = parseInt(btn.dataset.val);
+      verificar();
+    });
+  });
+});
+
+function verificar() {
+  const listo = Object.keys(respuestas).length === total;
+  const btn = document.getElementById('btnEnviar');
+  btn.disabled = !listo;
+  btn.textContent = listo ? 'Enviar evaluación' : `Responde todas las preguntas (${Object.keys(respuestas).length}/${total})`;
+}
+
+document.getElementById('btnEnviar').addEventListener('click', async () => {
+  const btn = document.getElementById('btnEnviar');
+  const msg = document.getElementById('msg');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  msg.style.display = 'none';
+
+  try {
+    const r = await fetch('/api/cafeteria', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(respuestas),
+    });
+    const data = await r.json();
+    if (data.ok) {
+      document.getElementById('formulario').style.display = 'none';
+      document.getElementById('gracias').style.display = 'flex';
+    } else {
+      throw new Error(data.error || 'Error al enviar');
+    }
+  } catch(e) {
+    msg.textContent = 'Error al enviar: ' + e.message;
+    msg.className = 'msg err';
+    msg.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Reintentar';
+  }
+});
+</script>
+</body>
+</html>

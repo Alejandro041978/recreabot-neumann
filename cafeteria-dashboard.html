@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Dashboard Cafetería — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#f59e0b;--acc2:#fbbf24;--green:#10b981;--red:#ef4444;
+  --text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{padding:24px 16px 60px;max-width:900px;margin:0 auto}
+
+header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.header-icon{font-size:2rem}
+.header-titulo{font-size:1.4rem;font-weight:800;color:var(--acc2)}
+.header-sub{font-size:0.8rem;color:var(--t3);margin-top:2px}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:28px}
+.kpi{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:18px 16px;text-align:center}
+.kpi-val{font-size:2.2rem;font-weight:800;color:var(--acc2);line-height:1}
+.kpi-label{font-size:0.72rem;color:var(--t3);margin-top:6px;text-transform:uppercase;letter-spacing:.6px}
+
+.seccion{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px;margin-bottom:20px}
+.seccion-titulo{font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+/* Criterios */
+.criterio-row{margin-bottom:16px}
+.criterio-row:last-child{margin-bottom:0}
+.criterio-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.criterio-nombre{font-size:0.82rem;color:var(--t2);font-weight:600}
+.criterio-prom{font-size:0.9rem;font-weight:800;color:var(--acc2)}
+.barra-bg{background:var(--s2);border-radius:6px;height:10px;overflow:hidden}
+.barra-fill{height:10px;border-radius:6px;transition:width .6s ease;background:var(--acc)}
+.criterio-preguntas{display:flex;gap:8px;margin-top:6px}
+.q-pill{font-size:0.68rem;color:var(--t3);background:var(--s2);border-radius:6px;padding:3px 8px}
+.q-val{color:var(--acc2);font-weight:700}
+
+/* Tabla últimas encuestas */
+.tabla-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:0.78rem}
+thead th{padding:8px 10px;color:var(--t3);font-weight:600;text-align:center;border-bottom:1px solid var(--b);white-space:nowrap}
+thead th:first-child{text-align:left}
+tbody td{padding:8px 10px;border-bottom:1px solid rgba(42,58,82,.5);text-align:center;color:var(--t2)}
+tbody td:first-child{text-align:left;color:var(--text)}
+tbody tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:700}
+.badge-green{background:rgba(16,185,129,.15);color:var(--green)}
+.badge-yellow{background:rgba(245,158,11,.15);color:var(--acc)}
+.badge-red{background:rgba(239,68,68,.12);color:var(--red)}
+
+.loading{text-align:center;color:var(--t3);padding:40px;font-size:0.88rem}
+.error-msg{color:var(--red);font-size:0.82rem;text-align:center;padding:20px}
+
+/* Periodos */
+.periodos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.periodo-card{background:var(--s2);border:1px solid var(--b);border-radius:10px;padding:14px}
+.periodo-label{font-size:0.7rem;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.periodo-prom{font-size:1.6rem;font-weight:800;color:var(--acc2)}
+.periodo-n{font-size:0.72rem;color:var(--t3);margin-top:2px}
+.periodo-criterios{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.pc-row{display:flex;justify-content:space-between;font-size:0.72rem;color:var(--t2)}
+.pc-val{color:var(--acc2);font-weight:600}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-icon">☕</div>
+  <div>
+    <div class="header-titulo">Dashboard Cafetería</div>
+    <div class="header-sub">Instituto Superior Neumann · Monitoreo de satisfacción</div>
+  </div>
+</header>
+
+<!-- KPIs -->
+<div class="kpi-grid" id="kpis">
+  <div class="loading">Cargando...</div>
+</div>
+
+<!-- Promedios por criterio (acumulado total) -->
+<div class="seccion">
+  <div class="seccion-titulo">📊 Promedio acumulado por criterio</div>
+  <div id="criterios"><div class="loading">Cargando...</div></div>
+</div>
+
+<!-- Comparación por periodos -->
+<div class="seccion">
+  <div class="seccion-titulo">📅 Comparación por periodos</div>
+  <div class="periodos-grid" id="periodos"><div class="loading">Cargando...</div></div>
+</div>
+
+<!-- Últimas 10 encuestas -->
+<div class="seccion">
+  <div class="seccion-titulo">🕐 Últimas 10 encuestas</div>
+  <div class="tabla-wrap">
+    <table id="tabla-recientes">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>C1</th><th>C2</th><th>C3</th><th>C4</th><th>C5</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-recientes">
+        <tr><td colspan="7" class="loading">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const CRITERIOS = [
+  { nombre:'Calidad e inocuidad',           preguntas:['p1','p2'] },
+  { nombre:'Variedad y valor nutricional',   preguntas:['p3','p4'] },
+  { nombre:'Atención al usuario',            preguntas:['p5','p6'] },
+  { nombre:'Precios y calidad-precio',       preguntas:['p7','p8'] },
+  { nombre:'Cumplimiento operativo',         preguntas:['p9','p10'] },
+];
+
+function promCriterio(ev, ps) {
+  const vals = ps.map(p => Number(ev[p])).filter(v => v > 0);
+  return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+}
+
+function promTotal(ev) {
+  const vals = ['p1','p2','p3','p4','p5','p6','p7','p8','p9','p10'].map(p=>Number(ev[p])).filter(v=>v>0);
+  return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+}
+
+function badge(p) {
+  const v = p.toFixed(1);
+  if (p >= 4) return `<span class="badge badge-green">${v}</span>`;
+  if (p >= 3) return `<span class="badge badge-yellow">${v}</span>`;
+  return `<span class="badge badge-red">${v}</span>`;
+}
+
+function colorBarra(p) {
+  if (p >= 4) return 'var(--green)';
+  if (p >= 3) return 'var(--acc)';
+  return 'var(--red)';
+}
+
+function filtrarSemanas(evs, semanas) {
+  const corte = new Date();
+  corte.setDate(corte.getDate() - semanas * 7);
+  return evs.filter(e => new Date(e.ts) >= corte);
+}
+
+function promediosPeriodo(evs) {
+  if (!evs.length) return null;
+  const cs = CRITERIOS.map(c => {
+    const p = evs.reduce((s,e)=>s+promCriterio(e,c.preguntas),0)/evs.length;
+    return { nombre: c.nombre, prom: p };
+  });
+  const total = cs.reduce((s,c)=>s+c.prom,0)/cs.length;
+  return { total, criterios: cs, n: evs.length };
+}
+
+function formatFecha(iso) {
+  try {
+    return new Date(iso).toLocaleString('es-PE',{timeZone:'America/Lima',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true});
+  } catch(e){ return iso; }
+}
+
+async function cargar() {
+  try {
+    const r = await fetch('/api/cafeteria');
+    const { evaluaciones } = await r.json();
+    const evs = evaluaciones || [];
+
+    // KPIs
+    const totalEncuestas = evs.length;
+    const promG = totalEncuestas ? evs.reduce((s,e)=>s+promTotal(e),0)/totalEncuestas : 0;
+    const semana1 = filtrarSemanas(evs,1);
+    const promSem = semana1.length ? semana1.reduce((s,e)=>s+promTotal(e),0)/semana1.length : 0;
+
+    document.getElementById('kpis').innerHTML = `
+      <div class="kpi"><div class="kpi-val">${totalEncuestas}</div><div class="kpi-label">Encuestas totales</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:${colorBarra(promG)}">${promG.toFixed(2)}</div><div class="kpi-label">Promedio acumulado</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:${colorBarra(promSem)}">${semana1.length ? promSem.toFixed(2) : '—'}</div><div class="kpi-label">Promedio última semana</div></div>
+      <div class="kpi"><div class="kpi-val">${semana1.length}</div><div class="kpi-label">Encuestas esta semana</div></div>
+    `;
+
+    // Criterios acumulados
+    if (!totalEncuestas) {
+      document.getElementById('criterios').innerHTML = '<div class="error-msg">Sin datos aún</div>';
+    } else {
+      document.getElementById('criterios').innerHTML = CRITERIOS.map((c,i) => {
+        const prom = evs.reduce((s,e)=>s+promCriterio(e,c.preguntas),0)/evs.length;
+        const pct  = (prom/5)*100;
+        const q1   = evs.reduce((s,e)=>s+Number(e[c.preguntas[0]]),0)/evs.length;
+        const q2   = evs.reduce((s,e)=>s+Number(e[c.preguntas[1]]),0)/evs.length;
+        return `<div class="criterio-row">
+          <div class="criterio-header">
+            <span class="criterio-nombre">${i+1}. ${c.nombre}</span>
+            <span class="criterio-prom">${prom.toFixed(2)} / 5</span>
+          </div>
+          <div class="barra-bg"><div class="barra-fill" style="width:${pct}%;background:${colorBarra(prom)}"></div></div>
+          <div class="criterio-preguntas">
+            <span class="q-pill">P${i*2+1}: <span class="q-val">${q1.toFixed(2)}</span></span>
+            <span class="q-pill">P${i*2+2}: <span class="q-val">${q2.toFixed(2)}</span></span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // Periodos
+    const periodos = [
+      { label:'Última semana',    semanas:1 },
+      { label:'Últimas 3 semanas', semanas:3 },
+      { label:'Últimas 5 semanas', semanas:5 },
+      { label:'Últimas 10 semanas',semanas:10 },
+    ];
+    document.getElementById('periodos').innerHTML = periodos.map(p => {
+      const sub = filtrarSemanas(evs, p.semanas);
+      const dat = promediosPeriodo(sub);
+      if (!dat) return `<div class="periodo-card"><div class="periodo-label">${p.label}</div><div class="periodo-prom" style="color:var(--t3)">—</div><div class="periodo-n">Sin datos</div></div>`;
+      return `<div class="periodo-card">
+        <div class="periodo-label">${p.label}</div>
+        <div class="periodo-prom" style="color:${colorBarra(dat.total)}">${dat.total.toFixed(2)}</div>
+        <div class="periodo-n">${dat.n} encuesta${dat.n!==1?'s':''}</div>
+        <div class="periodo-criterios">
+          ${dat.criterios.map((c,i)=>`<div class="pc-row"><span>C${i+1}</span><span class="pc-val">${c.prom.toFixed(2)}</span></div>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+
+    // Últimas 10
+    const recientes = evs.slice(0,10);
+    if (!recientes.length) {
+      document.getElementById('tbody-recientes').innerHTML = '<tr><td colspan="7" class="error-msg">Sin encuestas aún</td></tr>';
+    } else {
+      document.getElementById('tbody-recientes').innerHTML = recientes.map(e => {
+        const cs = CRITERIOS.map(c => promCriterio(e,c.preguntas));
+        const tot = cs.reduce((a,b)=>a+b,0)/cs.length;
+        return `<tr>
+          <td>${formatFecha(e.ts)}</td>
+          ${cs.map(v=>`<td>${badge(v)}</td>`).join('')}
+          <td>${badge(tot)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+  } catch(err) {
+    document.getElementById('kpis').innerHTML = `<div class="error-msg">Error cargando datos: ${err.message}</div>`;
+  }
+}
+
+cargar();
+</script>
+</body>
+</html>

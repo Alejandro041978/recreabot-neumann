@@ -1,32 +1,39 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/_supabase.js",    "use": "@vercel/node" },
-    { "src": "api/chat.js",         "use": "@vercel/node" },
-    { "src": "api/sheets.js",       "use": "@vercel/node" },
-    { "src": "api/config.js",       "use": "@vercel/node" },
-    { "src": "api/reporte.js",      "use": "@vercel/node" },
-    { "src": "api/estudiantes.js",  "use": "@vercel/node" },
-    { "src": "api/evaluacion.js",   "use": "@vercel/node" },
-    { "src": "api/evaluaciones.js", "use": "@vercel/node" },
-    { "src": "*.html",              "use": "@vercel/static" }
+    { "src": "api/_supabase.js",         "use": "@vercel/node" },
+    { "src": "api/chat.js",              "use": "@vercel/node" },
+    { "src": "api/sheets.js",            "use": "@vercel/node" },
+    { "src": "api/config.js",            "use": "@vercel/node" },
+    { "src": "api/reporte.js",           "use": "@vercel/node" },
+    { "src": "api/estudiantes.js",       "use": "@vercel/node" },
+    { "src": "api/evaluacion.js",        "use": "@vercel/node" },
+    { "src": "api/evaluaciones.js",      "use": "@vercel/node" },
+    { "src": "api/cafeteria.js",         "use": "@vercel/node" },
+    { "src": "api/cafeteria-reporte.js", "use": "@vercel/node" },
+    { "src": "*.html",                   "use": "@vercel/static" }
   ],
   "crons": [
-    { "path": "/api/reporte", "schedule": "0 13 * * 1" }
+    { "path": "/api/reporte",           "schedule": "0 13 * * 1" },
+    { "path": "/api/cafeteria-reporte", "schedule": "0 13 * * 1" }
   ],
   "routes": [
-    { "src": "/api/chat",        "dest": "/api/chat.js"        },
-    { "src": "/api/sheets",      "dest": "/api/sheets.js"      },
-    { "src": "/api/config",      "dest": "/api/config.js"      },
-    { "src": "/api/reporte",     "dest": "/api/reporte.js"     },
-    { "src": "/api/estudiantes", "dest": "/api/estudiantes.js" },
-    { "src": "/api/evaluacion",  "dest": "/api/evaluacion.js"  },
-    { "src": "/api/evaluaciones","dest": "/api/evaluaciones.js"},
-    { "src": "/bot",             "dest": "/bot.html"           },
-    { "src": "/config",          "dest": "/config.html"        },
-    { "src": "/qr",              "dest": "/qr.html"            },
-    { "src": "/eval",            "dest": "/eval.html"          },
-    { "src": "/bot.html",        "dest": "/bot.html"           },
-    { "src": "/(.*)",            "dest": "/index.html"         }
+    { "src": "/api/chat",               "dest": "/api/chat.js"               },
+    { "src": "/api/sheets",             "dest": "/api/sheets.js"             },
+    { "src": "/api/config",             "dest": "/api/config.js"             },
+    { "src": "/api/reporte",            "dest": "/api/reporte.js"            },
+    { "src": "/api/estudiantes",        "dest": "/api/estudiantes.js"        },
+    { "src": "/api/evaluacion",         "dest": "/api/evaluacion.js"         },
+    { "src": "/api/evaluaciones",       "dest": "/api/evaluaciones.js"       },
+    { "src": "/api/cafeteria",          "dest": "/api/cafeteria.js"          },
+    { "src": "/api/cafeteria-reporte",  "dest": "/api/cafeteria-reporte.js"  },
+    { "src": "/bot",                    "dest": "/bot.html"                  },
+    { "src": "/config",                 "dest": "/config.html"               },
+    { "src": "/qr",                     "dest": "/qr.html"                   },
+    { "src": "/eval",                   "dest": "/eval.html"                 },
+    { "src": "/cafeteria",              "dest": "/cafeteria.html"            },
+    { "src": "/cafeteria-dashboard",    "dest": "/cafeteria-dashboard.html"  },
+    { "src": "/bot.html",               "dest": "/bot.html"                  },
+    { "src": "/(.*)",                   "dest": "/index.html"                }
   ]
 }
