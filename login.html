@@ -94,7 +94,13 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
     const info = await r.json();
     if (!r.ok) throw new Error(info.error || 'Sin acceso');
 
-    window.location.href = '/ejecutivo';
+    const modulos = info.modulos || [];
+    if (modulos.length === 1) {
+      const dest = { salud: '/salud-dashboard', cafeteria: '/cafeteria-dashboard', recreativos: '/recreativos-dashboard' };
+      window.location.href = dest[modulos[0]] || '/ejecutivo';
+    } else {
+      window.location.href = '/ejecutivo';
+    }
 
   } catch(e) {
     msg.textContent = e.message === 'Invalid login credentials'

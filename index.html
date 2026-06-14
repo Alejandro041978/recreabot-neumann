@@ -1799,6 +1799,9 @@ async function initStaffAuth() {
   });
   if (!r.ok) { window.location.href = '/login'; return; }
   const info = await r.json();
+  if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('recreativos')) {
+    window.location.href = '/ejecutivo'; return;
+  }
   document.getElementById('staff-nombre').textContent = info.nombre + ' ·';
   document.getElementById('btnLogout').style.display = '';
 }

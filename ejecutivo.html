@@ -125,6 +125,20 @@ async function initAuth() {
     await sb.auth.signOut();
     window.location.href = '/login';
   });
+  // Filtrar cards por módulos asignados
+  const modulos = info.modulos || [];
+  if (modulos.length > 0) {
+    const mapa = { cafeteria: '.mod-cafeteria', recreativos: '.mod-recreacion', salud: '.mod-salud' };
+    Object.entries(mapa).forEach(([mod, sel]) => {
+      if (!modulos.includes(mod)) document.querySelector(sel)?.remove();
+    });
+    // Si solo tiene 1 módulo, redirigir directamente
+    if (modulos.length === 1) {
+      const dest = { salud: '/salud-dashboard', cafeteria: '/cafeteria-dashboard', recreativos: '/recreativos-dashboard' };
+      window.location.href = dest[modulos[0]] || '/ejecutivo';
+      return false;
+    }
+  }
   return true;
 }
 
