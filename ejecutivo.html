@@ -41,9 +41,10 @@ h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-b
 .mod-link{font-size:0.78rem;font-weight:600;display:flex;align-items:center;gap:6px}
 .mod-link svg{width:14px;height:14px;flex-shrink:0}
 
-.mod-cafeteria  { --acc: var(--yellow) }
-.mod-recreacion { --acc: var(--blue)   }
-.mod-salud      { --acc: var(--green)  }
+.mod-cafeteria   { --acc: var(--yellow)  }
+.mod-recreacion  { --acc: var(--blue)   }
+.mod-salud       { --acc: var(--green)  }
+.mod-asistencia  { --acc: #6366f1      }
 
 .loading-kpi{font-size:2rem;color:var(--t3);font-weight:800}
 
@@ -99,6 +100,18 @@ h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-b
     </div>
   </a>
 
+  <!-- Asistencia -->
+  <a class="modulo mod-asistencia" href="/asistencia-dashboard">
+    <div class="mod-icon">🎓</div>
+    <div class="mod-titulo">Asistencia al Campus</div>
+    <div class="mod-kpi" id="kpi-asistencia"><span class="loading-kpi">…</span></div>
+    <div class="mod-kpi-label">Promedio diario · últimas 3 semanas</div>
+    <div class="mod-link" style="color:#818cf8">
+      Ver dashboard de asistencia
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </div>
+  </a>
+
 </div>
 
 <div class="footer">Instituto Superior Neumann · recreabot-neumann.vercel.app</div>
@@ -128,7 +141,7 @@ async function initAuth() {
   // Filtrar cards por módulos asignados
   const modulos = info.modulos || [];
   if (modulos.length > 0) {
-    const mapa = { cafeteria: '.mod-cafeteria', recreativos: '.mod-recreacion', salud: '.mod-salud' };
+    const mapa = { cafeteria: '.mod-cafeteria', recreativos: '.mod-recreacion', salud: '.mod-salud', asistencia: '.mod-asistencia' };
     Object.entries(mapa).forEach(([mod, sel]) => {
       if (!modulos.includes(mod)) document.querySelector(sel)?.remove();
     });
@@ -189,11 +202,24 @@ async function cargarSalud() {
   }
 }
 
+async function cargarAsistencia() {
+  try {
+    const r = await fetch('/api/asistencia?accion=kpis');
+    const { prom3sem } = await r.json();
+    const el = document.getElementById('kpi-asistencia');
+    if (el) { el.textContent = prom3sem; el.style.color = '#818cf8'; }
+  } catch(e) {
+    const el = document.getElementById('kpi-asistencia');
+    if (el) el.textContent = 'Error';
+  }
+}
+
 initAuth().then(ok => {
   if (!ok) return;
   cargarCafeteria();
   cargarRecreacion();
   cargarSalud();
+  cargarAsistencia();
 });
 </script>
 </body>
