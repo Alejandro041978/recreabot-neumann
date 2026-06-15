@@ -687,8 +687,8 @@ async function send() {
     }
   }
 
-  // ── Cargar museos si módulo es cultura ──
-  if (modulo === 'cultura') {
+  // ── Cargar museos si módulo es cultura (solo si estudiante identificado) ──
+  if (modulo === 'cultura' && estudianteActual) {
     await cargarMuseos();
     registrarInteraccionCultura();
 
