@@ -686,6 +686,55 @@ async function send() {
   if (modulo === 'cultura') {
     await cargarMuseos();
     registrarInteraccionCultura();
+
+    // Buscar si el texto coincide con un museo de la lista
+    const museoElegido = museosCache?.find(m =>
+      tl.includes(m.nombre.toLowerCase()) ||
+      tl.includes(m.slug.replace(/-/g,' '))
+    );
+
+    if (museoElegido) {
+      // Responder directamente sin Claude
+      removeTyping();
+      const linkCorto = `https://recreabot-neumann.vercel.app/r/${museoElegido.slug}`;
+      const catLabel = museoElegido.categoria === 'peru' ? '🇵🇪 Museo peruano' : '🌍 Museo internacional';
+      addMsg('bot', `🏛️ ${museoElegido.nombre}\n${catLabel}\n\n${museoElegido.descripcion}\n\n👉 ${linkCorto}`);
+      history.push({ role: 'assistant', content: `Te comparto el museo: ${museoElegido.nombre}. Puedes visitarlo aquí: ${linkCorto}` });
+      // Chips con otros museos de la misma categoría
+      const otros = museosCache.filter(m => m.categoria === museoElegido.categoria && m.slug !== museoElegido.slug).slice(0,3);
+      setChips([...otros.map(m => m.nombre), 'Ver todos los museos']);
+      busy = false; document.getElementById('send-btn').disabled = false; return;
+    }
+
+    // Si activó cultura por primera vez, mostrar menú sin Claude
+    if (esConsultaCultura(tl) || tl.includes('museo') || tl.includes('museos virtuales')) {
+      removeTyping();
+      const peruanos = museosCache.filter(m => m.categoria === 'peru');
+      const internacionales = museosCache.filter(m => m.categoria === 'internacional');
+      addMsg('bot', `🏛️ Tenemos ${museosCache.length} museos virtuales disponibles.\n\n🇵🇪 Museos peruanos (${peruanos.length})\n🌍 Museos internacionales (${internacionales.length})\n\n¿Qué prefieres explorar?`);
+      history.push({ role: 'assistant', content: `Tenemos museos peruanos e internacionales disponibles. ¿Cuál te interesa?` });
+      setChips(['Museos peruanos', 'Museos internacionales', '¿Cuál me recomiendas?']);
+      busy = false; document.getElementById('send-btn').disabled = false; return;
+    }
+
+    // Si pide ver peruanos o internacionales
+    if (tl.includes('peruano') || tl.includes('peruanos') || tl.includes('perú') || tl.includes('peru')) {
+      removeTyping();
+      const peruanos = museosCache.filter(m => m.categoria === 'peru');
+      addMsg('bot', `🇵🇪 Museos peruanos disponibles:\n\n${peruanos.map(m => `• ${m.nombre}`).join('\n')}\n\n¿Cuál te gustaría visitar?`);
+      history.push({ role: 'assistant', content: `Lista de museos peruanos disponibles.` });
+      setChips(peruanos.slice(0,4).map(m => m.nombre));
+      busy = false; document.getElementById('send-btn').disabled = false; return;
+    }
+
+    if (tl.includes('internacional') || tl.includes('internacionales')) {
+      removeTyping();
+      const internacionales = museosCache.filter(m => m.categoria === 'internacional');
+      addMsg('bot', `🌍 Museos internacionales disponibles:\n\n${internacionales.map(m => `• ${m.nombre}`).join('\n')}\n\n¿Cuál te gustaría visitar?`);
+      history.push({ role: 'assistant', content: `Lista de museos internacionales disponibles.` });
+      setChips(internacionales.slice(0,4).map(m => m.nombre));
+      busy = false; document.getElementById('send-btn').disabled = false; return;
+    }
   }
 
   // ── PASO 2: Si es consulta de asistencia, obtener datos primero ──
