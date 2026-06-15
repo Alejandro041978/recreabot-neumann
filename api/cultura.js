@@ -2,20 +2,24 @@
 import { query } from './_supabase.js';
 
 async function checkUrl(url) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 8000);
-  try {
-    const r = await fetch(url, {
-      method: 'HEAD',
-      redirect: 'follow',
-      signal: ctrl.signal,
-      headers: { 'User-Agent': 'Mozilla/5.0 Neumann-HealthCheck/1.0' },
-    });
-    clearTimeout(timer);
-    return { ok: r.ok, status: r.status, url };
-  } catch(e) {
-    clearTimeout(timer);
-    return { ok: false, status: null, url, error: e.message };
+  const opts = {
+    redirect: 'follow',
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Neumann-HealthCheck/1.0)' },
+  };
+  for (const method of ['HEAD', 'GET']) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      const r = await fetch(url, { ...opts, method, signal: ctrl.signal });
+      clearTimeout(timer);
+      // 403/429 con HEAD suelen ser bloqueos al bot, no el sitio caído — reintenta con GET
+      if (method === 'HEAD' && (r.status === 403 || r.status === 429)) continue;
+      return { ok: r.ok, status: r.status, url };
+    } catch(e) {
+      clearTimeout(timer);
+      if (method === 'HEAD') continue;
+      return { ok: false, status: null, url, error: e.message };
+    }
   }
 }
 
