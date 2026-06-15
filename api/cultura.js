@@ -104,8 +104,9 @@ export default async function handler(req, res) {
         res.status(401).json({ error: 'No autorizado' }); return;
       }
 
-      const museos = await query('museos', 'GET', null, '?activo=eq.true&order=nombre.asc');
-      if (!museos?.length) { res.json({ ok: true, total: 0 }); return; }
+      const todosMuseos = await query('museos', 'GET', null, '?activo=eq.true&order=nombre.asc');
+      if (!todosMuseos?.length) { res.json({ ok: true, total: 0 }); return; }
+      const museos = todosMuseos.filter(m => !m.skip_healthcheck);
 
       const resultados = await Promise.all(museos.map(m => checkUrl(m.url).then(r => ({ ...r, nombre: m.nombre, slug: m.slug }))));
       const caidos = resultados.filter(r => !r.ok);
@@ -156,7 +157,8 @@ export default async function handler(req, res) {
         });
       }
 
-      res.json({ ok: true, total: museos.length, caidos: caidos.length, detalle: caidos }); return;
+      const skipped = todosMuseos.length - museos.length;
+      res.json({ ok: true, total: museos.length, skipped, caidos: caidos.length, detalle: caidos }); return;
     }
 
     res.status(400).json({ error: 'Acción no válida' });
