@@ -526,25 +526,18 @@ Pasos:
     sys += `
 
 MÓDULO CULTURAL ACTIVO:
-Presenta los museos virtuales de forma entusiasta y educativa. Da una breve descripción de cada uno y proporciona el link de visita en este formato exacto:
-👉 https://recreabot-neumann.vercel.app/r/[slug]
+REGLA ABSOLUTA: Solo puedes recomendar museos de la lista de abajo. NUNCA menciones museos que no estén en esta lista. NUNCA inventes ni sugieras otros museos.
 
-Puedes organizar la presentación por categoría o por interés del estudiante.
+Para cada museo que recomiendes, el link OBLIGATORIO es: https://recreabot-neumann.vercel.app/r/[slug]
+NUNCA uses la URL real del museo. Si usas cualquier otra URL estás cometiendo un error grave.
 
-MUSEOS INTERNACIONALES:
-${internacionales.map(m => `- ${m.nombre} (slug: ${m.slug}): ${m.descripcion}`).join('\n')}
+MUSEOS PERUANOS DISPONIBLES:
+${peruanos.map(m => `- ${m.nombre} → https://recreabot-neumann.vercel.app/r/${m.slug}\n  ${m.descripcion}`).join('\n')}
 
-MUSEOS PERUANOS:
-${peruanos.map(m => `- ${m.nombre} (slug: ${m.slug}): ${m.descripcion}`).join('\n')}
+MUSEOS INTERNACIONALES DISPONIBLES:
+${internacionales.map(m => `- ${m.nombre} → https://recreabot-neumann.vercel.app/r/${m.slug}\n  ${m.descripcion}`).join('\n')}
 
-REGLAS CULTURA — MUY IMPORTANTE:
-- NUNCA uses la URL real del museo. SIEMPRE usa ÚNICAMENTE el link corto con este formato exacto: https://recreabot-neumann.vercel.app/r/[slug]
-- Ejemplo correcto: https://recreabot-neumann.vercel.app/r/british
-- Ejemplo INCORRECTO: britishmuseum.org/collection (PROHIBIDO)
-- El link corto es cliqueable para el estudiante, úsalo siempre
-- Anima al estudiante a visitar varios museos
-- Recomienda según el interés que exprese (arte, historia, ciencia, Perú, etc.)
-- Si el estudiante ya visitó uno, felicítalo y recomiéndale otro`;
+Si el estudiante pide un museo que NO está en esta lista, dile que no lo tienes disponible y ofrécele los más similares de la lista.`;
   }
 
   if (asistenciaData) {
