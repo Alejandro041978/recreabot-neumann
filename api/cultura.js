@@ -12,8 +12,10 @@ async function checkUrl(url) {
     try {
       const r = await fetch(url, { ...opts, method, signal: ctrl.signal });
       clearTimeout(timer);
-      // 403/429 con HEAD suelen ser bloqueos al bot, no el sitio caído — reintenta con GET
-      if (method === 'HEAD' && (r.status === 403 || r.status === 429)) continue;
+      // 403/429: el sitio bloquea bots pero está vivo — no es un link caído
+      if (r.status === 403 || r.status === 429) return { ok: true, status: r.status, url, blocked: true };
+      // HEAD rechazado por otros motivos — reintenta con GET
+      if (method === 'HEAD' && !r.ok) continue;
       return { ok: r.ok, status: r.status, url };
     } catch(e) {
       clearTimeout(timer);
