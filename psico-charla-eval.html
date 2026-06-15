@@ -2,146 +2,221 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="theme-color" content="#0f1117">
-<title>Evalúa la charla psicopedagógica — Neumann</title>
+<title>Evalúa la Charla Psicopedagógica — Instituto Neumann</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{min-height:100%;font-family:'Inter',sans-serif;background:#0f1117;color:#e2e8f0}
-body{display:flex;align-items:center;justify-content:center;padding:24px 16px;min-height:100vh}
-.card{background:#1a2235;border:1px solid #2a3a52;border-radius:16px;max-width:480px;width:100%;overflow:hidden}
-.card-header{background:linear-gradient(135deg,#1e1b4b,#0f1117);padding:28px 28px 22px}
-.card-icon{font-size:2.2rem;margin-bottom:10px}
-.card-title{font-size:1.2rem;font-weight:800;color:#a5b4fc;margin-bottom:4px}
-.card-sub{font-size:0.82rem;color:#64748b}
-.card-body{padding:24px 28px}
-.campo{margin-bottom:16px}
-.campo label{font-size:0.7rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px}
-.campo input{width:100%;background:#212d42;border:1.5px solid #2a3a52;border-radius:8px;padding:10px 12px;color:#e2e8f0;font-size:0.88rem;font-family:'Inter',sans-serif;outline:none}
-.campo input:focus{border-color:#6366f1}
-.campo input::placeholder{color:#475569}
-.pregunta{margin-bottom:24px}
-.pregunta-texto{font-size:0.88rem;font-weight:600;color:#e2e8f0;margin-bottom:12px;line-height:1.5}
-.estrellas{display:flex;gap:8px}
-.estrella{width:44px;height:44px;border-radius:10px;border:2px solid #2a3a52;background:#212d42;color:#64748b;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;user-select:none}
-.estrella:hover,.estrella.sel{border-color:#6366f1;background:rgba(99,102,241,.2);color:#a5b4fc}
-.btn-enviar{width:100%;padding:14px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s;margin-top:8px}
-.btn-enviar:hover{opacity:.88}
-.btn-enviar:disabled{opacity:.5;cursor:default}
-.msg-ok{text-align:center;padding:32px 20px}
-.msg-ok-icon{font-size:3rem;margin-bottom:12px}
-.msg-ok-title{font-size:1.1rem;font-weight:800;color:#a5b4fc;margin-bottom:8px}
-.msg-ok-sub{font-size:0.85rem;color:#64748b;line-height:1.6}
-.msg-err{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#ef4444;padding:10px 14px;border-radius:8px;font-size:0.83rem;font-weight:600;margin-top:12px;display:none;text-align:center}
-.divider{border:none;border-top:1px solid #2a3a52;margin:4px 0 20px}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#6366f1;--acc2:#a5b4fc;--text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column;align-items:center;padding:24px 16px 60px}
+
+.logo{font-size:2.2rem;margin-bottom:6px;text-align:center}
+.titulo{font-size:1.25rem;font-weight:800;color:var(--acc2);text-align:center;margin-bottom:4px}
+.subtitulo{font-size:0.8rem;color:var(--t3);text-align:center;margin-bottom:28px}
+
+.id-card{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:24px 20px;width:100%;max-width:440px;margin-bottom:14px}
+.id-label{font-size:0.75rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.id-input{width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;padding:12px 14px;color:var(--text);font-size:1rem;font-family:'Inter',sans-serif;outline:none;text-align:center;letter-spacing:2px}
+.id-input:focus{border-color:var(--acc)}
+.id-input::placeholder{color:var(--t3);letter-spacing:0}
+.btn-verificar{width:100%;padding:13px;border-radius:10px;border:none;background:var(--acc);color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;margin-top:12px;transition:opacity .15s}
+.btn-verificar:hover{opacity:.85}
+.btn-verificar:disabled{opacity:.4;cursor:not-allowed}
+
+.estudiante-ok{display:none;background:rgba(99,102,241,.1);border:1px solid var(--acc);border-radius:10px;padding:12px 16px;width:100%;max-width:440px;margin-bottom:14px;text-align:center}
+.est-bienvenida{font-size:0.88rem;color:var(--acc2);font-weight:700;margin-bottom:2px}
+.est-carrera{font-size:0.75rem;color:var(--t3)}
+
+.card{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:22px 18px;width:100%;max-width:440px;margin-bottom:14px}
+.pregunta-num{font-size:0.68rem;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.pregunta-txt{font-size:0.92rem;font-weight:600;color:var(--text);margin-bottom:14px;line-height:1.4}
+.likert{display:flex;gap:8px;justify-content:center}
+.likert-btn{
+  width:48px;height:48px;border-radius:10px;border:1.5px solid var(--b);
+  background:var(--s2);color:var(--t3);font-size:1.05rem;font-weight:700;
+  cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;
+  user-select:none;-webkit-tap-highlight-color:transparent;
+}
+.likert-btn:hover{border-color:var(--acc);color:var(--acc)}
+.likert-btn.sel{background:var(--acc);border-color:var(--acc);color:#fff}
+.likert-labels{display:flex;justify-content:space-between;padding:0 4px;margin-top:6px}
+.likert-label{font-size:0.65rem;color:var(--t3)}
+
+.btn-enviar{width:100%;max-width:440px;padding:14px;border-radius:12px;border:none;background:var(--acc);color:#fff;font-size:1rem;font-weight:800;cursor:pointer;margin-top:8px;transition:opacity .15s}
+.btn-enviar:hover{opacity:.85}
+.btn-enviar:disabled{opacity:.4;cursor:not-allowed}
+
+.msg{width:100%;max-width:440px;padding:12px 16px;border-radius:10px;font-size:0.85rem;font-weight:600;text-align:center;margin-top:10px;display:none}
+.msg.err{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#ef4444}
+
+.gracias{display:none;flex-direction:column;align-items:center;text-align:center;padding:40px 20px;max-width:440px}
+.gracias-icon{font-size:4rem;margin-bottom:16px}
+.gracias-titulo{font-size:1.4rem;font-weight:800;color:var(--acc2);margin-bottom:8px}
+.gracias-sub{font-size:0.9rem;color:var(--t2)}
 </style>
 </head>
 <body>
 
-<div class="card">
-  <div class="card-header">
-    <div class="card-icon">🎤</div>
-    <div class="card-title">Evalúa la charla psicopedagógica</div>
-    <div class="card-sub">Instituto Superior Neumann · Tu opinión es anónima</div>
-  </div>
+<div class="logo">🧠</div>
+<div class="titulo">Evalúa la Charla Psicopedagógica</div>
+<div class="subtitulo">Instituto Superior Neumann · Tu opinión mejora nuestras charlas</div>
 
-  <div class="card-body" id="formWrap">
-    <div class="campo">
-      <label>Tu código de estudiante (opcional)</label>
-      <input type="text" id="inCodigo" placeholder="Ej: 12345">
-    </div>
-    <div class="campo">
-      <label>Tu nombre (opcional)</label>
-      <input type="text" id="inNombre" placeholder="Nombre y apellido">
-    </div>
-    <hr class="divider">
-
-    <div class="pregunta">
-      <div class="pregunta-texto">1. ¿El tema de la charla fue relevante para ti?</div>
-      <div class="estrellas" id="s1">
-        <div class="estrella" onclick="sel(1,1)">1</div>
-        <div class="estrella" onclick="sel(1,2)">2</div>
-        <div class="estrella" onclick="sel(1,3)">3</div>
-        <div class="estrella" onclick="sel(1,4)">4</div>
-        <div class="estrella" onclick="sel(1,5)">5</div>
-      </div>
-    </div>
-    <div class="pregunta">
-      <div class="pregunta-texto">2. ¿La psicóloga explicó de forma clara y cercana?</div>
-      <div class="estrellas" id="s2">
-        <div class="estrella" onclick="sel(2,1)">1</div>
-        <div class="estrella" onclick="sel(2,2)">2</div>
-        <div class="estrella" onclick="sel(2,3)">3</div>
-        <div class="estrella" onclick="sel(2,4)">4</div>
-        <div class="estrella" onclick="sel(2,5)">5</div>
-      </div>
-    </div>
-    <div class="pregunta">
-      <div class="pregunta-texto">3. ¿Aplicarías lo aprendido en esta charla en tu vida?</div>
-      <div class="estrellas" id="s3">
-        <div class="estrella" onclick="sel(3,1)">1</div>
-        <div class="estrella" onclick="sel(3,2)">2</div>
-        <div class="estrella" onclick="sel(3,3)">3</div>
-        <div class="estrella" onclick="sel(3,4)">4</div>
-        <div class="estrella" onclick="sel(3,5)">5</div>
-      </div>
-    </div>
-    <button class="btn-enviar" id="btnEnviar" onclick="enviar()" disabled>Enviar evaluación</button>
-    <div class="msg-err" id="msgErr"></div>
-  </div>
-
-  <div id="gracias" style="display:none">
-    <div class="msg-ok">
-      <div class="msg-ok-icon">💜</div>
-      <div class="msg-ok-title">¡Gracias por tu evaluación!</div>
-      <div class="msg-ok-sub">Tu opinión nos ayuda a mejorar las charlas del servicio psicopedagógico del instituto.</div>
-    </div>
+<!-- Paso 1: identificación -->
+<div id="pasoIdentificacion">
+  <div class="id-card">
+    <div class="id-label">Ingresa tu código de estudiante</div>
+    <input class="id-input" id="codigoInput" placeholder="Ej: 20230001" maxlength="20" autocomplete="off">
+    <button class="btn-verificar" id="btnVerificar">Verificar código</button>
+    <div class="msg" id="msgId"></div>
   </div>
 </div>
 
-<script>
-const vals = { 1:0, 2:0, 3:0 };
+<!-- Confirmación estudiante -->
+<div class="estudiante-ok" id="estOk">
+  <div class="est-bienvenida" id="estNombre"></div>
+  <div class="est-carrera" id="estCarrera"></div>
+</div>
 
-function sel(pregunta, valor) {
-  vals[pregunta] = valor;
-  const stars = document.getElementById('s'+pregunta).children;
-  for (let i=0; i<stars.length; i++) {
-    stars[i].classList.toggle('sel', i < valor);
+<!-- Paso 2: preguntas -->
+<div id="formulario" style="display:none;width:100%;display:flex;flex-direction:column;align-items:center">
+
+  <div class="card">
+    <div class="pregunta-num">Pregunta 1 de 3</div>
+    <div class="pregunta-txt">¿El tema de la charla fue relevante para ti?</div>
+    <div class="likert" data-q="p1">
+      <button class="likert-btn" data-val="1">1</button>
+      <button class="likert-btn" data-val="2">2</button>
+      <button class="likert-btn" data-val="3">3</button>
+      <button class="likert-btn" data-val="4">4</button>
+      <button class="likert-btn" data-val="5">5</button>
+    </div>
+    <div class="likert-labels"><span class="likert-label">Nada relevante</span><span class="likert-label">Muy relevante</span></div>
+  </div>
+
+  <div class="card">
+    <div class="pregunta-num">Pregunta 2 de 3</div>
+    <div class="pregunta-txt">¿La psicóloga explicó de forma clara y cercana?</div>
+    <div class="likert" data-q="p2">
+      <button class="likert-btn" data-val="1">1</button>
+      <button class="likert-btn" data-val="2">2</button>
+      <button class="likert-btn" data-val="3">3</button>
+      <button class="likert-btn" data-val="4">4</button>
+      <button class="likert-btn" data-val="5">5</button>
+    </div>
+    <div class="likert-labels"><span class="likert-label">Nada clara</span><span class="likert-label">Muy clara</span></div>
+  </div>
+
+  <div class="card">
+    <div class="pregunta-num">Pregunta 3 de 3</div>
+    <div class="pregunta-txt">¿Aplicarías lo aprendido en esta charla en tu vida?</div>
+    <div class="likert" data-q="p3">
+      <button class="likert-btn" data-val="1">1</button>
+      <button class="likert-btn" data-val="2">2</button>
+      <button class="likert-btn" data-val="3">3</button>
+      <button class="likert-btn" data-val="4">4</button>
+      <button class="likert-btn" data-val="5">5</button>
+    </div>
+    <div class="likert-labels"><span class="likert-label">Probablemente no</span><span class="likert-label">Definitivamente sí</span></div>
+  </div>
+
+  <button class="btn-enviar" id="btnEnviar" disabled>Responde las 3 preguntas</button>
+  <div class="msg" id="msg"></div>
+
+</div>
+
+<div class="gracias" id="gracias">
+  <div class="gracias-icon">💜</div>
+  <div class="gracias-titulo">¡Gracias por tu evaluación!</div>
+  <div class="gracias-sub">Tu opinión ayuda a mejorar las charlas psicopedagógicas del Instituto Neumann.</div>
+</div>
+
+<script>
+let estudianteVerificado = null;
+const resp = {};
+
+async function verificar() {
+  const codigo = document.getElementById('codigoInput').value.trim();
+  const btn = document.getElementById('btnVerificar');
+  const msg = document.getElementById('msgId');
+  if (!codigo) return;
+
+  btn.disabled = true; btn.textContent = 'Verificando...'; msg.style.display = 'none';
+
+  try {
+    const r = await fetch(`/api/psicopedagogico?accion=buscar&q=${encodeURIComponent(codigo)}`);
+    const { estudiantes } = await r.json();
+    const est = estudiantes.find(e => e.codigo === codigo);
+
+    if (!est) {
+      msg.textContent = 'Código no encontrado. Verifica e intenta de nuevo.';
+      msg.className = 'msg err'; msg.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Verificar código'; return;
+    }
+
+    estudianteVerificado = est;
+    const nombre = `${est.nombre} ${est.apellido||''}`.trim();
+    document.getElementById('estNombre').textContent = `¡Hola, ${nombre}!`;
+    document.getElementById('estCarrera').textContent = est.carrera;
+    document.getElementById('estOk').style.display = 'block';
+    document.getElementById('pasoIdentificacion').style.display = 'none';
+    document.getElementById('formulario').style.display = 'flex';
+
+  } catch(e) {
+    msg.textContent = 'Error al verificar: ' + e.message;
+    msg.className = 'msg err'; msg.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Verificar código';
   }
-  document.getElementById('btnEnviar').disabled = !(vals[1]&&vals[2]&&vals[3]);
 }
 
-async function enviar() {
-  const btn = document.getElementById('btnEnviar');
-  const err = document.getElementById('msgErr');
-  btn.disabled = true;
-  btn.textContent = 'Enviando...';
-  err.style.display = 'none';
+document.getElementById('btnVerificar').addEventListener('click', verificar);
+document.getElementById('codigoInput').addEventListener('keydown', e => { if(e.key==='Enter') verificar(); });
 
+document.querySelectorAll('.likert').forEach(g => {
+  g.querySelectorAll('.likert-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      g.querySelectorAll('.likert-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      resp[g.dataset.q] = parseInt(btn.dataset.val);
+      const listo = Object.keys(resp).length === 3;
+      const b = document.getElementById('btnEnviar');
+      b.disabled = !listo;
+      b.textContent = listo ? 'Enviar evaluación' : `Responde las 3 preguntas (${Object.keys(resp).length}/3)`;
+    });
+  });
+});
+
+document.getElementById('btnEnviar').addEventListener('click', async () => {
+  const btn = document.getElementById('btnEnviar');
+  const msg = document.getElementById('msg');
+  btn.disabled = true; btn.textContent = 'Enviando...'; msg.style.display = 'none';
   try {
     const r = await fetch('/api/psicopedagogico', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         accion: 'charla',
-        p1: vals[1], p2: vals[2], p3: vals[3],
-        codigo: document.getElementById('inCodigo').value.trim() || null,
-        nombre: document.getElementById('inNombre').value.trim() || null,
+        codigo: estudianteVerificado.codigo,
+        nombre: `${estudianteVerificado.nombre} ${estudianteVerificado.apellido||''}`.trim(),
+        ...resp,
       }),
     });
     const data = await r.json();
     if (data.ok) {
-      document.getElementById('formWrap').style.display = 'none';
-      document.getElementById('gracias').style.display = 'block';
-    } else throw new Error(data.error);
+      document.getElementById('formulario').style.display = 'none';
+      document.getElementById('estOk').style.display = 'none';
+      document.getElementById('gracias').style.display = 'flex';
+    } else throw new Error(data.error || 'Error al enviar');
   } catch(e) {
-    err.textContent = 'Error al enviar: ' + e.message;
-    err.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Enviar evaluación';
+    msg.textContent = 'Error: ' + e.message;
+    msg.className = 'msg err'; msg.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Reintentar';
   }
-}
+});
 </script>
 </body>
 </html>
