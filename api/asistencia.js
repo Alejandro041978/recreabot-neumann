@@ -74,14 +74,15 @@ export default async function handler(req, res) {
       // Agrupar por fecha Lima y calcular primera entrada / última salida
       const byDate = {};
       for (const r of records || []) {
-        const dt = new Date(r.fecha);
-        const key = dt.toLocaleDateString('es-PE', { timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit' });
+        // Fecha Lima ya está en el ISO string (datos ZKTeco sin offset)
+        const key = r.fecha.substring(0, 10); // "YYYY-MM-DD"
         if (!byDate[key]) byDate[key] = { entradas: [], salidas: [] };
         if (r.tipo === true || r.tipo === 'true') byDate[key].entradas.push(r.fecha);
         else byDate[key].salidas.push(r.fecha);
       }
 
-      const fmt = (iso) => new Date(iso).toLocaleTimeString('es-PE', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit' });
+      // Los timestamps de ZKTeco se almacenan en hora Lima sin offset → extraer directo del ISO string
+      const fmt = (iso) => iso.substring(11, 16); // "HH:MM" sin conversión de zona
 
       const dias = Object.entries(byDate)
         .map(([fecha, d]) => ({
@@ -89,7 +90,7 @@ export default async function handler(req, res) {
           entrada: d.entradas.length ? fmt(d.entradas[0]) : null,
           salida:  d.salidas.length  ? fmt(d.salidas[d.salidas.length - 1]) : null,
         }))
-        .sort((a, b) => new Date(b.fecha.split('/').reverse().join('-')) - new Date(a.fecha.split('/').reverse().join('-')));
+        .sort((a, b) => b.fecha.localeCompare(a.fecha));
 
       res.json({ nombre: `${est.nombre} ${est.apellido || ''}`.trim(), dias, total_dias: dias.length }); return;
     }
