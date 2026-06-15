@@ -33,11 +33,12 @@ export default async function handler(req, res) {
         res.status(401).json({ error: 'No autorizado' }); return;
       }
 
-      // Rango: ayer 00:00 → hoy 00:00 hora Lima (UTC-5)
+      // Rango: ayer 00:00 → hoy 00:00 hora Lima (UTC-5) — o hoy si test=1
       const ahora   = new Date();
       const hoyLima = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Lima' }));
       const hoy     = new Date(hoyLima); hoy.setHours(0,0,0,0);
-      const ayer    = new Date(hoy);     ayer.setDate(ayer.getDate() - 1);
+      const ayer    = new Date(hoy);
+      if (!req.query.test) ayer.setDate(ayer.getDate() - 1);
 
       // Convertir a UTC para la query
       const offset     = 5 * 60 * 60 * 1000; // UTC-5
