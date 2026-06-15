@@ -58,6 +58,7 @@
     { "src": "/api/psicopedagogico",        "dest": "/api/psicopedagogico.js"          },
     { "src": "/psicopedagogico-dashboard",  "dest": "/psicopedagogico-dashboard.html"  },
     { "src": "/psico-atencion-eval",        "dest": "/psico-atencion-eval.html"        },
+    { "src": "/psico-charla-eval",          "dest": "/psico-charla-eval.html"          },
     { "src": "/bot.html",                   "dest": "/bot.html"                        },
     { "src": "/",                       "dest": "/login.html"                },
     { "src": "/(.*)",                   "dest": "/index.html"                }
