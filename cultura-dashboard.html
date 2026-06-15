@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Dashboard Cultural — Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#8b5cf6;--acc2:#a78bfa;
+  --text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+  --green:#10b981;--yellow:#f59e0b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column}
+
+.nav{background:var(--s);border-bottom:1px solid var(--b);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.nav-icon{font-size:1.4rem}
+.nav-title{font-size:1rem;font-weight:700}
+.nav-sub{font-size:0.72rem;color:var(--t3);margin-top:1px}
+.nav-back{margin-left:auto;font-size:0.78rem;color:var(--t3);text-decoration:none;padding:6px 12px;border:1px solid var(--b);border-radius:8px;transition:all .15s}
+.nav-back:hover{border-color:var(--acc);color:var(--acc2)}
+
+.main{flex:1;padding:24px;max-width:1000px;margin:0 auto;width:100%}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px}
+.kpi{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px 18px;text-align:center}
+.kpi-num{font-size:2.4rem;font-weight:800;margin-bottom:4px}
+.kpi-label{font-size:0.72rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.kpi-interacciones .kpi-num{color:var(--acc2)}
+.kpi-clics .kpi-num{color:var(--yellow)}
+
+.ranking-wrap{background:var(--s);border:1px solid var(--b);border-radius:14px;overflow:hidden}
+.ranking-header{padding:16px 20px;border-bottom:1px solid var(--b)}
+.ranking-title{font-size:0.9rem;font-weight:700}
+.ranking-sub{font-size:0.75rem;color:var(--t3);margin-top:2px}
+
+.museo-row{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--b);transition:background .15s}
+.museo-row:last-child{border-bottom:none}
+.museo-row:hover{background:var(--s2)}
+
+.museo-rank{font-size:1.1rem;font-weight:800;width:28px;text-align:center;flex-shrink:0}
+.rank-1{color:#fbbf24}.rank-2{color:#94a3b8}.rank-3{color:#b45309}
+.rank-other{color:var(--t3)}
+
+.museo-info{flex:1;min-width:0}
+.museo-nombre{font-size:0.88rem;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.museo-cat{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.cat-peru{color:#10b981}.cat-internacional{color:var(--acc2)}
+
+.museo-bar-wrap{width:180px;flex-shrink:0}
+.museo-bar-bg{height:6px;background:var(--b);border-radius:3px;overflow:hidden;margin-bottom:4px}
+.museo-bar{height:100%;border-radius:3px;background:var(--acc);transition:width .6s}
+.museo-clics{font-size:0.72rem;color:var(--t3);text-align:right}
+
+.empty{padding:40px;text-align:center;color:var(--t3);font-size:0.85rem}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-icon">🏛️</div>
+  <div>
+    <div class="nav-title">Dashboard Cultural</div>
+    <div class="nav-sub">Instituto Superior Neumann</div>
+  </div>
+  <a href="/ejecutivo" class="nav-back">← Dashboard</a>
+</nav>
+
+<div class="main">
+
+  <div class="kpis">
+    <div class="kpi kpi-interacciones">
+      <div class="kpi-num" id="kInteracciones">…</div>
+      <div class="kpi-label">Consultas al bot</div>
+    </div>
+    <div class="kpi kpi-clics">
+      <div class="kpi-num" id="kClics">…</div>
+      <div class="kpi-label">Visitas a museos</div>
+    </div>
+  </div>
+
+  <div class="ranking-wrap">
+    <div class="ranking-header">
+      <div class="ranking-title">Ranking de museos más visitados</div>
+      <div class="ranking-sub">Ordenado por clics totales</div>
+    </div>
+    <div id="rankingBody"><div class="empty">Cargando...</div></div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const sb = supabase.createClient(
+  'https://exjaxhrylfdwehzjfjut.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4amF4aHJ5bGZkd2Voempmanp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3MjA1NzcsImV4cCI6MjA1OTI5NjU3N30.5cmNkBnVMZLMz9mFNQG0L0Xgik0ZN3dqxvsMrO5K4E8'
+);
+
+async function checkAuth() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = '/login'; return; }
+    const r = await fetch('/api/staff-info', {
+      headers: { 'Authorization': `Bearer ${session.access_token}` }
+    });
+    if (!r.ok) { window.location.href = '/login'; return; }
+    const info = await r.json();
+    if (!info.email) { window.location.href = '/login'; return; }
+    if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('cultura')) {
+      window.location.href = '/ejecutivo'; return;
+    }
+  } catch(e) { window.location.href = '/login'; }
+}
+
+async function cargarDashboard() {
+  const r = await fetch('/api/cultura?accion=dashboard');
+  const { total_interacciones, total_clics, ranking } = await r.json();
+
+  document.getElementById('kInteracciones').textContent = total_interacciones;
+  document.getElementById('kClics').textContent = total_clics;
+
+  const maxClics = ranking[0]?.clics || 1;
+  const body = document.getElementById('rankingBody');
+
+  if (!ranking.length) {
+    body.innerHTML = '<div class="empty">No hay datos aún</div>';
+    return;
+  }
+
+  body.innerHTML = ranking.map((m, i) => {
+    const pos = i + 1;
+    const rankClass = pos === 1 ? 'rank-1' : pos === 2 ? 'rank-2' : pos === 3 ? 'rank-3' : 'rank-other';
+    const rankIcon = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : pos;
+    const pct = maxClics > 0 ? Math.round(m.clics / maxClics * 100) : 0;
+    return `
+      <div class="museo-row">
+        <div class="museo-rank ${rankClass}">${rankIcon}</div>
+        <div class="museo-info">
+          <div class="museo-nombre">${m.nombre}</div>
+          <div class="museo-cat cat-${m.categoria}">${m.categoria === 'peru' ? '🇵🇪 Perú' : '🌍 Internacional'}</div>
+        </div>
+        <div class="museo-bar-wrap">
+          <div class="museo-bar-bg"><div class="museo-bar" style="width:${pct}%"></div></div>
+          <div class="museo-clics">${m.clics} ${m.clics === 1 ? 'visita' : 'visitas'}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+window.addEventListener('load', async () => {
+  await checkAuth();
+  await cargarDashboard();
+});
+</script>
+</body>
+</html>

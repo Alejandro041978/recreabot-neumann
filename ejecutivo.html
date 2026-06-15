@@ -46,6 +46,7 @@ h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-b
 .mod-salud       { --acc: var(--green)  }
 .mod-asistencia  { --acc: #6366f1      }
 .mod-becas       { --acc: #8b5cf6      }
+.mod-cultura     { --acc: #ec4899      }
 
 .loading-kpi{font-size:2rem;color:var(--t3);font-weight:800}
 
@@ -97,6 +98,18 @@ h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-b
     <div class="mod-kpi-label">Atenciones registradas · últimas 10 semanas</div>
     <div class="mod-link" style="color:var(--green)">
       Ver dashboard de salud
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </div>
+  </a>
+
+  <!-- Cultura -->
+  <a class="modulo mod-cultura" href="/cultura-dashboard">
+    <div class="mod-icon">🏛️</div>
+    <div class="mod-titulo">Actividades Culturales</div>
+    <div class="mod-kpi" id="kpi-cultura"><span class="loading-kpi">…</span></div>
+    <div class="mod-kpi-label" id="kpi-cultura-label">Visitas a museos virtuales</div>
+    <div class="mod-link" style="color:#f472b6">
+      Ver dashboard cultural
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
     </div>
   </a>
@@ -154,7 +167,7 @@ async function initAuth() {
   // Filtrar cards por módulos asignados
   const modulos = info.modulos || [];
   if (modulos.length > 0) {
-    const mapa = { cafeteria: '.mod-cafeteria', recreativos: '.mod-recreacion', salud: '.mod-salud', asistencia: '.mod-asistencia', becas: '.mod-becas' };
+    const mapa = { cafeteria: '.mod-cafeteria', recreativos: '.mod-recreacion', salud: '.mod-salud', asistencia: '.mod-asistencia', becas: '.mod-becas', cultura: '.mod-cultura' };
     Object.entries(mapa).forEach(([mod, sel]) => {
       if (!modulos.includes(mod)) document.querySelector(sel)?.remove();
     });
@@ -227,6 +240,18 @@ async function cargarAsistencia() {
   }
 }
 
+async function cargarCultura() {
+  try {
+    const r = await fetch('/api/cultura?accion=dashboard');
+    const { total_clics } = await r.json();
+    const el = document.getElementById('kpi-cultura');
+    if (el) { el.textContent = total_clics; el.style.color = '#f472b6'; }
+  } catch(e) {
+    const el = document.getElementById('kpi-cultura');
+    if (el) el.textContent = '—';
+  }
+}
+
 async function cargarBecas() {
   try {
     const r = await fetch('/api/beca?accion=dashboard');
@@ -250,6 +275,7 @@ initAuth().then(ok => {
   cargarSalud();
   cargarAsistencia();
   cargarBecas();
+  cargarCultura();
 });
 </script>
 </body>
