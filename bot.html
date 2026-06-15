@@ -222,6 +222,38 @@ let registro = { area: AREA, codigo:'', carrera:'', participantes:'', fecha_rese
 let pasoActual = AREA ? 'codigo' : 'codigo'; // siempre pide código primero
 let estudianteActual = null;
 
+// ── SESIÓN ──
+const sessionId   = crypto.randomUUID();
+const sessionStart = Date.now();
+let resultado      = 'no_identificado'; // se actualiza según avance
+let sesiónGuardada = false;
+
+async function guardarConversacion(res) {
+  if (sesiónGuardada || history.length === 0) return;
+  sesiónGuardada = true;
+  if (res) resultado = res;
+  const payload = {
+    session_id:        sessionId,
+    codigo:            estudianteActual?.codigo   || null,
+    carrera:           estudianteActual?.carrera  || null,
+    modulo_final:      modulo                     || null,
+    resultado,
+    mensajes:          history,
+    duracion_segundos: Math.round((Date.now() - sessionStart) / 1000),
+  };
+  try {
+    // sendBeacon para garantizar envío al cerrar la página
+    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    navigator.sendBeacon('/api/conversaciones', blob);
+  } catch(e) {}
+}
+
+// Guardar al cerrar/salir de la página
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') guardarConversacion();
+});
+window.addEventListener('pagehide', () => guardarConversacion());
+
 // ── EXTRACCIÓN DE DATOS DE RESERVA ──
 function actualizarRegistro(msgEstudiante) {
   const t  = msgEstudiante.trim();
@@ -622,6 +654,7 @@ async function send() {
         estudianteActual = est;
         registro.codigo  = est.codigo;
         registro.carrera = est.carrera;
+        resultado = 'sin_resultado'; // identificado pero aún no completó nada
         history[history.length - 1].content =
           `Mi código es ${est.codigo}. Soy ${est.nombre} ${est.apellido} de ${est.carrera}.`;
 
@@ -666,6 +699,7 @@ async function send() {
   // ── Módulo cultura: redirigir a la landing page ──
   if (modulo === 'cultura' && estudianteActual) {
     registrarInteraccionCultura();
+    guardarConversacion('cultura_enviada');
     const urlCultura = 'https://recreabot-neumann.vercel.app/cultura';
     addMsg('bot', `🏛️ Tenemos 24 museos virtuales disponibles — arte, historia y arqueología peruana e internacional.\n\nExplóralos en nuestra galería:\n👉 ${urlCultura}`);
     history.push({ role: 'assistant', content: `Te comparto el catálogo de museos virtuales: ${urlCultura}` });
@@ -681,6 +715,7 @@ async function send() {
     const data = await fetchAsistenciaAlumno(estudianteActual.codigo);
     removeTyping();
     asistenciaData = formatearAsistenciaParaClaude(data);
+    guardarConversacion('asistencia_mostrada');
   }
 
   // ── PASO 3: Actualizar registro si es módulo reserva ──
@@ -700,6 +735,7 @@ async function send() {
 
       // Guardar reserva si Claude confirmó
       if (reply.includes('[REGISTRO COMPLETO')) {
+        guardarConversacion('reserva_completada');
         const reg = extraerDeResumen(reply);
         if (reg) {
           const resultado = await guardarEnSheets(reg);

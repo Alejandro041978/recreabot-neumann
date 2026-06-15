@@ -13,6 +13,7 @@
     { "src": "api/staff-info.js",        "use": "@vercel/node" },
     { "src": "api/salud.js",             "use": "@vercel/node" },
     { "src": "api/asistencia.js",        "use": "@vercel/node" },
+    { "src": "api/conversaciones.js",   "use": "@vercel/node" },
     { "src": "*.html",                   "use": "@vercel/static" }
   ],
   "crons": [
@@ -44,6 +45,7 @@
     { "src": "/api/staff-info",         "dest": "/api/staff-info.js"         },
     { "src": "/api/salud",              "dest": "/api/salud.js"              },
     { "src": "/api/asistencia",         "dest": "/api/asistencia.js"         },
+    { "src": "/api/conversaciones",    "dest": "/api/conversaciones.js"     },
     { "src": "/charla",                 "dest": "/charla.html"               },
     { "src": "/salud-dashboard",        "dest": "/salud-dashboard.html"      },
     { "src": "/atencion-eval",          "dest": "/atencion-eval.html"        },
