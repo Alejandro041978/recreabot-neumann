@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Dashboard Becas — Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#3b82f6;--acc2:#60a5fa;--green:#10b981;--green2:#34d399;
+  --text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+  --yellow:#f59e0b;--red:#ef4444;--purple:#8b5cf6;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column}
+
+/* NAV */
+.nav{background:var(--s);border-bottom:1px solid var(--b);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.nav-icon{font-size:1.4rem}
+.nav-title{font-size:1rem;font-weight:700}
+.nav-sub{font-size:0.72rem;color:var(--t3);margin-top:1px}
+.nav-back{margin-left:auto;font-size:0.78rem;color:var(--t3);text-decoration:none;padding:6px 12px;border:1px solid var(--b);border-radius:8px;transition:all .15s}
+.nav-back:hover{border-color:var(--acc);color:var(--acc2)}
+
+/* MAIN */
+.main{flex:1;padding:24px;max-width:1200px;margin:0 auto;width:100%}
+
+/* SELECTOR SEMESTRE */
+.top-bar{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.semestre-sel{background:var(--s);border:1.5px solid var(--b);border-radius:10px;padding:9px 14px;color:var(--text);font-size:0.88rem;font-family:'Inter',sans-serif;outline:none;cursor:pointer}
+.semestre-sel:focus{border-color:var(--acc)}
+.semestre-sel option{background:#1a2235}
+.periodo-info{font-size:0.8rem;color:var(--t3)}
+.periodo-info strong{color:var(--t2)}
+
+/* CRONOGRAMA */
+.cron-card{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.cron-item{text-align:center}
+.cron-label{font-size:0.68rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.cron-value{font-size:0.88rem;font-weight:600;color:var(--text)}
+.cron-sep{width:1px;height:40px;background:var(--b)}
+.cron-estado{margin-left:auto;padding:6px 14px;border-radius:20px;font-size:0.78rem;font-weight:700}
+.cron-abierto{background:rgba(16,185,129,.15);color:var(--green);border:1px solid var(--green)}
+.cron-cerrado{background:rgba(100,116,139,.15);color:var(--t3);border:1px solid var(--b)}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:24px}
+.kpi{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:18px 16px;text-align:center}
+.kpi-num{font-size:2rem;font-weight:800;margin-bottom:4px}
+.kpi-label{font-size:0.72rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.kpi-total .kpi-num{color:var(--acc2)}
+.kpi-recibidas .kpi-num{color:var(--yellow)}
+.kpi-aprobadas .kpi-num{color:var(--green)}
+.kpi-rechazadas .kpi-num{color:var(--red)}
+.kpi-descalificadas .kpi-num{color:var(--t3)}
+
+/* CUPOS */
+.cupos{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
+.cupo-card{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:18px 20px}
+.cupo-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cupo-title{font-size:0.82rem;font-weight:700;color:var(--text)}
+.cupo-pct{font-size:1.4rem;font-weight:800}
+.cupo-50 .cupo-pct{color:var(--green)}
+.cupo-25 .cupo-pct{color:var(--yellow)}
+.cupo-bar-wrap{height:8px;background:var(--b);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.cupo-bar{height:100%;border-radius:4px;transition:width .5s}
+.cupo-50 .cupo-bar{background:var(--green)}
+.cupo-25 .cupo-bar{background:var(--yellow)}
+.cupo-nums{font-size:0.75rem;color:var(--t3)}
+
+/* TABLA */
+.tabla-wrap{background:var(--s);border:1px solid var(--b);border-radius:14px;overflow:hidden;margin-bottom:24px}
+.tabla-header{padding:16px 20px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.tabla-title{font-size:0.9rem;font-weight:700}
+.tabla-filters{display:flex;gap:8px;flex-wrap:wrap}
+.filter-btn{padding:5px 12px;border-radius:20px;font-size:0.75rem;font-weight:600;cursor:pointer;border:1px solid var(--b);background:var(--s2);color:var(--t2);transition:all .15s}
+.filter-btn:hover,.filter-btn.active{border-color:var(--acc);color:var(--acc2);background:rgba(59,130,246,.08)}
+.tabla{width:100%;border-collapse:collapse}
+.tabla th{padding:11px 16px;font-size:0.72rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;text-align:left;border-bottom:1px solid var(--b);white-space:nowrap}
+.tabla td{padding:13px 16px;font-size:0.82rem;border-bottom:1px solid rgba(42,58,82,.5);vertical-align:middle}
+.tabla tr:last-child td{border-bottom:none}
+.tabla tr:hover td{background:rgba(255,255,255,.02)}
+.rank{font-size:0.72rem;font-weight:800;color:var(--t3);width:28px;text-align:center}
+.rank.top{color:var(--green)}
+.nombre-cell{font-weight:600}
+.codigo-cell{font-size:0.75rem;color:var(--t3)}
+.puntaje-num{font-size:1.1rem;font-weight:800;color:var(--acc2)}
+.puntaje-empty{color:var(--t3);font-size:0.78rem}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;white-space:nowrap}
+.badge-recibida{background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.3)}
+.badge-en_evaluacion{background:rgba(139,92,246,.12);color:var(--purple);border:1px solid rgba(139,92,246,.3)}
+.badge-aprobada{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.badge-rechazada{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.badge-descalificada{background:rgba(100,116,139,.1);color:var(--t3);border:1px solid var(--b)}
+.badge-50{background:rgba(16,185,129,.15);color:var(--green2);border:1px solid rgba(16,185,129,.4);margin-left:4px}
+.badge-25{background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.3);margin-left:4px}
+
+/* DETALLE PUNTAJE */
+.detalle-btn{font-size:0.7rem;color:var(--acc2);cursor:pointer;text-decoration:underline;background:none;border:none;padding:0}
+.detalle-panel{display:none;background:var(--s2);border-radius:8px;padding:12px 14px;margin-top:8px;font-size:0.75rem;color:var(--t2);line-height:1.8}
+.detalle-row{display:flex;justify-content:space-between}
+.detalle-row span:last-child{font-weight:700;color:var(--text)}
+
+/* VACÍO */
+.empty{text-align:center;padding:48px 24px;color:var(--t3)}
+.empty-icon{font-size:2.5rem;margin-bottom:12px}
+.empty-txt{font-size:0.88rem}
+
+/* LOADING */
+.loading{text-align:center;padding:40px;color:var(--t3);font-size:0.88rem}
+
+@media(max-width:640px){
+  .cupos{grid-template-columns:1fr}
+  .tabla th:nth-child(4),.tabla td:nth-child(4){display:none}
+  .cron-sep{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-icon">🎓</div>
+  <div>
+    <div class="nav-title">Becas Asistenciales</div>
+    <div class="nav-sub">Instituto Superior Neumann</div>
+  </div>
+  <a href="/ejecutivo" class="nav-back">← Dashboard</a>
+</nav>
+
+<div class="main">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <select class="semestre-sel" id="semestreSel" onchange="cargarSemestre()">
+      <option value="MAY-AGO-2026">MAY-AGO-2026</option>
+    </select>
+    <div class="periodo-info" id="periodoInfo"></div>
+  </div>
+
+  <!-- CRONOGRAMA -->
+  <div class="cron-card" id="cronCard" style="display:none">
+    <div class="cron-item">
+      <div class="cron-label">Inicio postulaciones</div>
+      <div class="cron-value" id="cronInicio">—</div>
+    </div>
+    <div class="cron-sep"></div>
+    <div class="cron-item">
+      <div class="cron-label">Cierre postulaciones</div>
+      <div class="cron-value" id="cronCierre">—</div>
+    </div>
+    <div class="cron-sep"></div>
+    <div class="cron-item">
+      <div class="cron-label">Publicación resultados</div>
+      <div class="cron-value" id="cronResultados">—</div>
+    </div>
+    <div class="cron-estado" id="cronEstado"></div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi kpi-total">
+      <div class="kpi-num" id="kTotal">—</div>
+      <div class="kpi-label">Total</div>
+    </div>
+    <div class="kpi kpi-recibidas">
+      <div class="kpi-num" id="kRecibidas">—</div>
+      <div class="kpi-label">Recibidas</div>
+    </div>
+    <div class="kpi kpi-aprobadas">
+      <div class="kpi-num" id="kAprobadas">—</div>
+      <div class="kpi-label">Aprobadas</div>
+    </div>
+    <div class="kpi kpi-rechazadas">
+      <div class="kpi-num" id="kRechazadas">—</div>
+      <div class="kpi-label">Rechazadas</div>
+    </div>
+    <div class="kpi kpi-descalificadas">
+      <div class="kpi-num" id="kDescalificadas">—</div>
+      <div class="kpi-label">Descalificadas</div>
+    </div>
+  </div>
+
+  <!-- CUPOS -->
+  <div class="cupos">
+    <div class="cupo-card cupo-50">
+      <div class="cupo-header">
+        <div class="cupo-title">Becas del 50%</div>
+        <div class="cupo-pct">50%</div>
+      </div>
+      <div class="cupo-bar-wrap"><div class="cupo-bar" id="bar50" style="width:0%"></div></div>
+      <div class="cupo-nums" id="nums50">0 / 10 cupos</div>
+    </div>
+    <div class="cupo-card cupo-25">
+      <div class="cupo-header">
+        <div class="cupo-title">Becas del 25%</div>
+        <div class="cupo-pct">25%</div>
+      </div>
+      <div class="cupo-bar-wrap"><div class="cupo-bar" id="bar25" style="width:0%"></div></div>
+      <div class="cupo-nums" id="nums25">0 / 10 cupos</div>
+    </div>
+  </div>
+
+  <!-- TABLA POSTULACIONES -->
+  <div class="tabla-wrap">
+    <div class="tabla-header">
+      <div class="tabla-title">Postulaciones</div>
+      <div class="tabla-filters">
+        <button class="filter-btn active" onclick="filtrar('todos',this)">Todos</button>
+        <button class="filter-btn" onclick="filtrar('recibida',this)">Recibidas</button>
+        <button class="filter-btn" onclick="filtrar('aprobada',this)">Aprobadas</button>
+        <button class="filter-btn" onclick="filtrar('rechazada',this)">Rechazadas</button>
+        <button class="filter-btn" onclick="filtrar('descalificada',this)">Descalificadas</button>
+      </div>
+    </div>
+    <div id="tablaBody">
+      <div class="loading">Cargando postulaciones...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SUPABASE_URL = 'https://exjaxhrylfdwehzjfjut.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4amF4aHJ5bGZkd2Voempmanp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3MjA1NzcsImV4cCI6MjA1OTI5NjU3N30.5cmNkBnVMZLMz9mFNQG0L0Xgik0ZN3dqxvsMrO5K4E8';
+
+let todasPostulaciones = [];
+let filtroActual = 'todos';
+let cronogramaActual = null;
+
+const fmtFecha = (d) => new Date(d).toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'});
+const fmtHora  = (d) => d ? new Date(d).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'}) : '';
+
+// ── CRITERIOS LABELS ──
+const criterioLabels = {
+  c1:'Ingreso mensual', c2:'Carga familiar', c3:'Notas',
+  c4:'Salud', c5:'SISFOH', c6:'Deudas banco',
+  c7:'Evidencias', c8:'Becas anteriores', c9:'Domicilio',
+};
+
+// ── CARGAR CRONOGRAMAS ──
+async function cargarCronogramas() {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/cronograma_becas?order=fecha_inicio.desc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+  });
+  const data = await r.json();
+  if (!data || !data.length) return;
+
+  const sel = document.getElementById('semestreSel');
+  sel.innerHTML = data.map(c => `<option value="${c.semestre}">${c.semestre}</option>`).join('');
+  await cargarSemestre();
+}
+
+// ── CARGAR SEMESTRE ──
+async function cargarSemestre() {
+  const semestre = document.getElementById('semestreSel').value;
+
+  // Cronograma
+  const rc = await fetch(`${SUPABASE_URL}/rest/v1/cronograma_becas?semestre=eq.${encodeURIComponent(semestre)}&limit=1`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+  });
+  const crons = await rc.json();
+  cronogramaActual = crons?.[0] || null;
+
+  if (cronogramaActual) {
+    const hoy    = new Date().toISOString().split('T')[0];
+    const abierto = hoy >= cronogramaActual.fecha_inicio && hoy <= cronogramaActual.fecha_cierre;
+
+    document.getElementById('cronInicio').textContent    = fmtFecha(cronogramaActual.fecha_inicio);
+    document.getElementById('cronCierre').textContent    = fmtFecha(cronogramaActual.fecha_cierre);
+    document.getElementById('cronResultados').textContent = fmtFecha(cronogramaActual.fecha_resultados);
+
+    const estadoEl = document.getElementById('cronEstado');
+    estadoEl.textContent  = abierto ? '🟢 Período abierto' : '🔴 Período cerrado';
+    estadoEl.className    = 'cron-estado ' + (abierto ? 'cron-abierto' : 'cron-cerrado');
+    document.getElementById('cronCard').style.display = 'flex';
+  }
+
+  // Postulaciones
+  const rp = await fetch(`/api/beca?accion=dashboard&semestre=${encodeURIComponent(semestre)}`);
+  const { postulaciones, resumen } = await rp.json();
+
+  todasPostulaciones = postulaciones || [];
+
+  // KPIs
+  document.getElementById('kTotal').textContent          = resumen.total;
+  document.getElementById('kRecibidas').textContent      = resumen.recibidas + (resumen.en_evaluacion ? `+${resumen.en_evaluacion}` : '');
+  document.getElementById('kAprobadas').textContent      = resumen.aprobadas;
+  document.getElementById('kRechazadas').textContent     = resumen.rechazadas;
+  document.getElementById('kDescalificadas').textContent = resumen.descalificadas;
+
+  // Cupos
+  const ap50 = todasPostulaciones.filter(p => p.estado === 'aprobada' && p.porcentaje_beca === 50).length;
+  const ap25 = todasPostulaciones.filter(p => p.estado === 'aprobada' && p.porcentaje_beca === 25).length;
+  document.getElementById('bar50').style.width  = Math.min(ap50/10*100, 100) + '%';
+  document.getElementById('bar25').style.width  = Math.min(ap25/10*100, 100) + '%';
+  document.getElementById('nums50').textContent = `${ap50} / 10 cupos`;
+  document.getElementById('nums25').textContent = `${ap25} / 10 cupos`;
+
+  renderTabla();
+}
+
+// ── FILTRAR ──
+function filtrar(estado, btn) {
+  filtroActual = estado;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTabla();
+}
+
+// ── RENDER TABLA ──
+function renderTabla() {
+  const lista = filtroActual === 'todos'
+    ? todasPostulaciones
+    : todasPostulaciones.filter(p => p.estado === filtroActual);
+
+  const body = document.getElementById('tablaBody');
+
+  if (!lista.length) {
+    body.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-txt">No hay postulaciones para mostrar</div></div>`;
+    return;
+  }
+
+  // Rank solo para calificadas con puntaje
+  let rank = 0;
+  const rows = lista.map(p => {
+    const conPuntaje = p.puntaje !== null && p.puntaje !== undefined;
+    if (conPuntaje && (p.estado === 'aprobada' || p.estado === 'rechazada')) rank++;
+    const rankShow = conPuntaje && (p.estado === 'aprobada' || p.estado === 'rechazada') ? rank : '';
+    const esTop    = rankShow && rankShow <= 20;
+
+    const badgeEst = `<span class="badge badge-${p.estado}">${estadoLabel(p)}</span>${p.porcentaje_beca ? `<span class="badge badge-${p.porcentaje_beca}">${p.porcentaje_beca}%</span>` : ''}`;
+
+    const detalleId = `det_${p.id}`;
+    const detalleHtml = p.puntaje_detalle ? `
+      <button class="detalle-btn" onclick="toggleDetalle('${detalleId}')">ver detalle</button>
+      <div class="detalle-panel" id="${detalleId}">
+        ${Object.entries(p.puntaje_detalle).map(([k,v]) =>
+          `<div class="detalle-row"><span>${criterioLabels[k]||k}</span><span>${v}</span></div>`
+        ).join('')}
+        <div class="detalle-row" style="border-top:1px solid var(--b);margin-top:6px;padding-top:6px">
+          <span><strong>Total</strong></span><span><strong>${p.puntaje} / 39</strong></span>
+        </div>
+      </div>` : '';
+
+    return `<tr>
+      <td class="rank ${esTop?'top':''}">${rankShow || '—'}</td>
+      <td>
+        <div class="nombre-cell">${p.nombre}</div>
+        <div class="codigo-cell">${p.codigo} · ${p.carrera}</div>
+      </td>
+      <td>${badgeEst}</td>
+      <td>${conPuntaje
+        ? `<span class="puntaje-num">${p.puntaje}</span><span style="font-size:.72rem;color:var(--t3)"> /39</span>${detalleHtml}`
+        : `<span class="puntaje-empty">Pendiente</span>`}
+      </td>
+      <td style="font-size:.75rem;color:var(--t3)">${fmtFecha(p.ts)}</td>
+    </tr>`;
+  }).join('');
+
+  body.innerHTML = `<table class="tabla">
+    <thead><tr>
+      <th>#</th><th>Estudiante</th><th>Estado</th><th>Puntaje</th><th>Fecha</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function estadoLabel(p) {
+  const map = { recibida:'Recibida', en_evaluacion:'En evaluación', aprobada:'Aprobada', rechazada:'Rechazada', descalificada:'Descalificada' };
+  return map[p.estado] || p.estado;
+}
+
+function toggleDetalle(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+// ── AUTH GUARD ──
+async function checkAuth() {
+  try {
+    const r = await fetch('/api/staff-info');
+    const info = await r.json();
+    if (!info.email) { window.location.href = '/login'; return; }
+    if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('becas') && !info.modulos.includes('director')) {
+      window.location.href = '/ejecutivo'; return;
+    }
+  } catch(e) { window.location.href = '/login'; }
+}
+
+window.addEventListener('load', async () => {
+  await checkAuth();
+  await cargarCronogramas();
+});
+</script>
+</body>
+</html>
