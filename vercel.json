@@ -9,7 +9,7 @@
     { "src": "api/evaluacion.js",        "use": "@vercel/node" },
     { "src": "api/evaluaciones.js",      "use": "@vercel/node" },
     { "src": "api/cafeteria.js",         "use": "@vercel/node" },
-    { "src": "api/cafeteria-reporte.js", "use": "@vercel/node" },
+    { "src": "api/beca.js",             "use": "@vercel/node" },
     { "src": "api/staff-info.js",        "use": "@vercel/node" },
     { "src": "api/salud.js",             "use": "@vercel/node" },
     { "src": "api/asistencia.js",        "use": "@vercel/node" },
@@ -17,7 +17,7 @@
   ],
   "crons": [
     { "path": "/api/reporte",           "schedule": "0 13 * * 1" },
-    { "path": "/api/cafeteria-reporte", "schedule": "0 13 * * 1" }
+    { "path": "/api/cafeteria?accion=reporte", "schedule": "0 13 * * 1" }
   ],
   "routes": [
     { "src": "/api/chat",               "dest": "/api/chat.js"               },
@@ -28,7 +28,7 @@
     { "src": "/api/evaluacion",         "dest": "/api/evaluacion.js"         },
     { "src": "/api/evaluaciones",       "dest": "/api/evaluaciones.js"       },
     { "src": "/api/cafeteria",          "dest": "/api/cafeteria.js"          },
-    { "src": "/api/cafeteria-reporte",  "dest": "/api/cafeteria-reporte.js"  },
+    { "src": "/api/beca",              "dest": "/api/beca.js"               },
     { "src": "/bot",                    "dest": "/bot.html"                  },
     { "src": "/config",                 "dest": "/config.html"               },
     { "src": "/qr",                     "dest": "/qr.html"                   },
@@ -45,6 +45,8 @@
     { "src": "/salud-dashboard",        "dest": "/salud-dashboard.html"       },
     { "src": "/atencion-eval",          "dest": "/atencion-eval.html"         },
     { "src": "/asistencia-dashboard",   "dest": "/asistencia-dashboard.html"  },
+    { "src": "/beca",                  "dest": "/beca.html"                  },
+    { "src": "/beca-dashboard",        "dest": "/beca-dashboard.html"        },
     { "src": "/bot.html",               "dest": "/bot.html"                  },
     { "src": "/",                        "dest": "/login.html"                },
     { "src": "/(.*)",                   "dest": "/index.html"                }
