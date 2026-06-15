@@ -571,12 +571,15 @@ async function send() {
   addMsg('user', text);
   history.push({ role: 'user', content: text });
 
-  // Verificar código siempre que el mensaje sea solo números (4-10 dígitos)
-  // independientemente del paso actual
-  const esCodigo = text.trim().match(/^\d{4,10}$/);
+  // Verificar código cuando el paso es 'codigo' y el mensaje contiene un número de 4-10 dígitos
+  const codigoMatch = pasoActual === 'codigo'
+    ? (text.trim().match(/^\d{4,10}$/) || text.trim().match(/\b(\d{4,10})\b/))
+    : null;
+  const codigoExtraido = codigoMatch ? (codigoMatch[1] || codigoMatch[0]) : null;
+  const esCodigo = !!codigoExtraido;
   if (esCodigo && !estudianteActual) {
     addTyping();
-    const est = await buscarEstudiante(text.trim());
+    const est = await buscarEstudiante(codigoExtraido);
     removeTyping();
     if (est.encontrado && est.activo) {
       // ✅ Válido — registrar estudiante y continuar con Claude
@@ -594,7 +597,7 @@ async function send() {
       busy = false; return;
     } else {
       // ❌ No encontrado — bloquear
-      addMsg('bot', `El código ${text.trim()} no está registrado en el Instituto Superior Neumann. ❌\n\nVerifica que sea correcto o consulta con secretaría. Puedes intentarlo de nuevo.`);
+      addMsg('bot', `El código ${codigoExtraido} no está registrado en el Instituto Superior Neumann. ❌\n\nVerifica que sea correcto o consulta con secretaría. Puedes intentarlo de nuevo.`);
       history.pop();
       document.getElementById('send-btn').disabled = false;
       busy = false; return;
