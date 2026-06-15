@@ -451,11 +451,16 @@ function esConsultaReserva(texto) {
 
 function esConsultaCultura(texto) {
   const tl = texto.toLowerCase();
+  // Keywords generales
   const keywords = ['museo','museos','cultura','cultural','arte','visita virtual',
     'recorrido virtual','exposición','exposicion','louvre','prado','hermitage',
     'vaticano','sipán','sipan','chan chan','pachacamac','inca','tawantinsuyu',
-    'actividad cultural','actividades culturales'];
-  return keywords.some(k => tl.includes(k));
+    'actividad cultural','actividades culturales','historia','arqueología','arqueologia',
+    'pintura','escultura','precolombino','virtual','recorrido'];
+  if (keywords.some(k => tl.includes(k))) return true;
+  // También si el módulo ya es cultura, todo mensaje es cultural
+  if (modulo === 'cultura') return true;
+  return false;
 }
 
 // ── SYSTEM PROMPT ──
