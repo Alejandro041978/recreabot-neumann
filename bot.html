@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0f1117">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>RecreaBot — Neumann</title>
+<title>Asistente Neumann</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -32,7 +32,6 @@ html, body {
   overflow: hidden;
 }
 
-/* ── LAYOUT ── */
 .app {
   display: flex; flex-direction: column;
   height: 100%; height: 100dvh;
@@ -40,7 +39,6 @@ html, body {
   position: relative;
 }
 
-/* ── HEADER ── */
 .header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -66,7 +64,6 @@ html, body {
   white-space: nowrap;
 }
 
-/* ── MENSAJES ── */
 .messages {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   padding: 16px 14px; display: flex; flex-direction: column; gap: 10px;
@@ -95,14 +92,12 @@ html, body {
 }
 .msg-time { font-size: 0.65rem; color: var(--text3); padding: 0 4px; }
 
-/* typing */
 .typing-dots { display: flex; gap: 5px; align-items: center; padding: 14px 16px; }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); animation: bounce 1.2s infinite; }
 .dot:nth-child(2) { animation-delay: 0.2s; }
 .dot:nth-child(3) { animation-delay: 0.4s; }
 @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
 
-/* ── CHIPS DE RESPUESTA RÁPIDA ── */
 .chips-wrap {
   padding: 8px 14px 4px;
   display: flex; gap: 7px; flex-wrap: wrap;
@@ -116,7 +111,6 @@ html, body {
 }
 .chip:active, .chip:hover { background: var(--surface2); border-color: var(--accent); color: var(--accent2); }
 
-/* ── INPUT ── */
 .input-area {
   padding: 10px 14px 14px;
   background: var(--bg);
@@ -148,7 +142,6 @@ html, body {
 .send-btn:active { background: #2563eb; transform: scale(0.95); }
 .send-btn:disabled { opacity: 0.4; }
 
-/* ── SCROLLBAR ── */
 .messages::-webkit-scrollbar { width: 3px; }
 .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 </style>
@@ -156,23 +149,18 @@ html, body {
 <body>
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
-    <div class="avatar">🎮</div>
+    <div class="avatar">🎓</div>
     <div class="header-info">
-      <div class="header-name">RecreaBot</div>
-      <div class="header-status"><span class="status-dot"></span> En línea · Neumann</div>
+      <div class="header-name">Asistente Neumann</div>
+      <div class="header-status"><span class="status-dot"></span> En línea · Instituto Superior Neumann</div>
     </div>
-    <div class="area-badge" id="area-badge">Recreación</div>
+    <div class="area-badge" id="area-badge">Campus</div>
   </div>
 
-  <!-- MENSAJES -->
   <div class="messages" id="messages"></div>
-
-  <!-- CHIPS -->
   <div class="chips-wrap" id="chips"></div>
 
-  <!-- INPUT -->
   <div class="input-area">
     <textarea class="input-box" id="input" placeholder="Escribe un mensaje..." rows="1"
       onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"
@@ -184,21 +172,18 @@ html, body {
 </div>
 
 <script>
-// ── CARGAR CONFIGURACIÓN DE HORARIOS ──
+// ── CONFIG DE HORARIOS ──
 let SLOTS_CONFIG = {};
 async function cargarConfig() {
   try {
     const r = await fetch('/api/config');
     SLOTS_CONFIG = await r.json();
   } catch(e) {
-    // Config por defecto si falla
     const s2h = ['8-10am','10am-12pm','12-2pm','2-4pm','4-6pm','6-8pm','8-10pm'];
     const s1h = ['8-9am','9-10am','10-11am','11am-12pm','12-1pm','1-2pm','2-3pm','3-4pm','4-5pm','5-6pm','6-7pm','7-8pm','8-9pm','9-10pm'];
     SLOTS_CONFIG = {
-      'Canchita A':{ slots:s2h, activa:true },
-      'Canchita B':{ slots:s2h, activa:true },
-      'Taka Taka': { slots:s1h, activa:true },
-      'Ajedrez':   { slots:s1h, activa:true },
+      'Canchita A':{ slots:s2h, activa:true }, 'Canchita B':{ slots:s2h, activa:true },
+      'Taka Taka': { slots:s1h, activa:true }, 'Ajedrez':   { slots:s1h, activa:true },
       'Sapito':    { slots:s1h, activa:true },
     };
   }
@@ -207,20 +192,17 @@ async function cargarConfig() {
 function getSlotsParaArea(area) {
   const cfg = SLOTS_CONFIG[area];
   if (!cfg) return [];
-  // activa puede ser booleano o string "TRUE"/"FALSE" desde Sheets
   const activa = cfg.activa === true || String(cfg.activa).toUpperCase() === 'TRUE';
   if (!activa) return [];
-  // slots puede ser array o string separado por comas
   if (Array.isArray(cfg.slots)) return cfg.slots;
   if (typeof cfg.slots === 'string') return cfg.slots.split(',').map(s => s.trim()).filter(Boolean);
   return [];
 }
 
-// ── DETECTAR ÁREA DESDE URL ──
+// ── PARÁMETROS URL ──
 const params  = new URLSearchParams(window.location.search);
 const AREA    = params.get('area') || '';
 const AREAS   = ['Canchita A','Canchita B','Taka Taka','Ajedrez','Sapito'];
-const CARRERAS = ['Administración','Contabilidad'];
 
 // Badge del header
 const badge = document.getElementById('area-badge');
@@ -235,33 +217,27 @@ if (AREA) {
 // ── ESTADO ──
 let history  = [];
 let busy     = false;
+let modulo   = AREA ? 'reserva' : null; // 'reserva' | 'asistencia' | null
 let registro = { area: AREA, codigo:'', carrera:'', participantes:'', fecha_reserva:'', horario:'', estado:'ok', problema:'', calificacion:'' };
-let pasoActual = AREA ? 'codigo' : 'area';
-let estudianteActual = null; // datos del estudiante identificado // flujo: area → codigo → carrera → participantes → horario → estado → guardar
+let pasoActual = AREA ? 'codigo' : 'codigo'; // siempre pide código primero
+let estudianteActual = null;
 
-// ── EXTRACCIÓN PRECISA — solo analiza el mensaje del estudiante en cada paso ──
+// ── EXTRACCIÓN DE DATOS DE RESERVA ──
 function actualizarRegistro(msgEstudiante) {
   const t  = msgEstudiante.trim();
   const tl = t.toLowerCase();
 
-  // Detectar área siempre — no solo cuando pasoActual === 'area'
   if (!registro.area || pasoActual === 'area') {
     for (const a of AREAS) {
       if (tl.includes(a.toLowerCase())) {
         registro.area = a;
-        if (pasoActual === 'area') pasoActual = 'codigo';
+        if (pasoActual === 'area') pasoActual = 'participantes';
         break;
       }
     }
   }
 
-  if (pasoActual === 'codigo') {
-    const m = t.match(/^(\d{4,10})$/) || t.match(/\b(\d{4,10})\b/);
-    if (m) { registro.codigo = m[1]; pasoActual = 'carrera'; }
-  } else if (pasoActual === 'carrera') {
-    if (tl.includes('admin')) { registro.carrera = 'Administración'; pasoActual = 'participantes'; }
-    else if (tl.includes('contab')) { registro.carrera = 'Contabilidad'; pasoActual = 'participantes'; }
-  } else if (pasoActual === 'participantes') {
+  if (pasoActual === 'participantes') {
     if (tl === '6 o más' || tl === '6+' || tl.includes('6 o más')) {
       registro.participantes = '6+'; pasoActual = 'horario';
     } else {
@@ -271,108 +247,83 @@ function actualizarRegistro(msgEstudiante) {
       if (num) { registro.participantes = num; pasoActual = 'horario'; }
     }
   } else if (pasoActual === 'horario') {
-    const mapa = [
-      { keys: ['7-9am','7am'], val: '7-9am' },
-      { keys: ['9-11am','9am'], val: '9-11am' },
-      { keys: ['11am-1pm','11am'], val: '11am-1pm' },
-      { keys: ['1-3pm','1pm'], val: '1-3pm' },
-      { keys: ['3-5pm','3pm'], val: '3-5pm' },
-      { keys: ['5-7pm','5pm'], val: '5-7pm' },
-    ];
+    const slots = getSlotsParaArea(registro.area || AREA);
     const limpio = tl.replace(/\s/g,'');
-    for (const entry of mapa) {
-      if (entry.keys.some(k => limpio.includes(k))) {
-        registro.horario = entry.val; pasoActual = 'estado'; break;
+    for (const slot of slots) {
+      if (limpio.includes(slot.toLowerCase().replace(/\s/g,''))) {
+        registro.horario = slot; pasoActual = 'estado'; break;
       }
     }
   } else if (pasoActual === 'estado') {
     if (tl.includes('problema') || tl.includes('dañado') || tl.includes('roto') || tl.includes('falta')) {
-      registro.estado = 'problema'; pasoActual = 'guardar';
+      registro.estado = 'problema';
     } else {
-      registro.estado = 'ok'; pasoActual = 'guardar';
+      registro.estado = 'ok';
     }
+    pasoActual = 'guardar';
   }
 }
 
-function registroCompleto() {
-  return registro.codigo && registro.carrera && registro.area && registro.participantes && registro.horario;
-}
-
-// ── EXTRAE DATOS DEL RESUMEN QUE GENERA CLAUDE ──
 function extraerDeResumen(texto) {
   const t  = texto;
   const tl = texto.toLowerCase();
   const reg = { area: AREA, codigo:'', carrera:'', participantes:'', horario:'', estado:'ok', problema:'', calificacion:'' };
 
-  // Código — buscar "Código: XXXXXX"
   const cod = t.match(/[Cc][oó]digo[:\s]+([0-9]{4,10})/);
   if (cod) reg.codigo = cod[1];
 
-  // Carrera
   if (tl.includes('administración de negocios') || tl.includes('administracion de negocios')) reg.carrera = 'Administración de Negocios Internacionales';
   else if (tl.includes('administración') || tl.includes('administracion')) reg.carrera = 'Administración de Negocios Internacionales';
   else if (tl.includes('contabilidad')) reg.carrera = 'Contabilidad';
 
-  // Área — buscar "Área: Canchita A" o similar
   for (const a of AREAS) {
     if (tl.includes(a.toLowerCase())) { reg.area = a; break; }
   }
 
-  // Participantes — buscar "Participantes: 5" o "5 personas"
   const part = t.match(/[Pp]articipantes?[:\s]+([0-9]+|6\+|6 o más)/);
   const partB = t.match(/([0-9]+)\s+persona/);
   if (part) reg.participantes = part[1];
   else if (partB) reg.participantes = partB[1];
 
-  // Fecha de reserva — usar fecha del navegador del estudiante (siempre correcta)
   const hoyCliente = new Date();
-  const DIAS_ES  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-  const DIAS_SIN = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
   if (tl.includes('hoy')) {
     reg.fecha_reserva = hoyCliente.toLocaleDateString('es-PE');
   } else if (tl.includes('mañana') || tl.includes('manana')) {
     const m = new Date(hoyCliente); m.setDate(m.getDate() + 1);
     reg.fecha_reserva = m.toLocaleDateString('es-PE');
   } else {
+    const DIAS_ES  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    const DIAS_SIN = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
     for (let i = 0; i < DIAS_ES.length; i++) {
       if (tl.includes(DIAS_ES[i]) || tl.includes(DIAS_SIN[i])) {
         const f = new Date(hoyCliente);
         const diff = (i - f.getDay() + 7) % 7 || 7;
         f.setDate(f.getDate() + diff);
-        reg.fecha_reserva = f.toLocaleDateString('es-PE');
-        break;
+        reg.fecha_reserva = f.toLocaleDateString('es-PE'); break;
       }
     }
     const fm = texto.match(/(\d{1,2})[\/\-](\d{1,2})/);
     if (fm && !reg.fecha_reserva) reg.fecha_reserva = fm[0];
   }
 
-  // Horario — buscar slot exacto o normalizar desde formato del bot
   const TODOS_SLOTS = [
     '8-10am','10am-12pm','12-2pm','2-4pm','4-6pm','6-8pm','8-10pm',
     '8-9am','9-10am','10-11am','11am-12pm','12-1pm','1-2pm',
     '2-3pm','3-4pm','4-5pm','5-6pm','6-7pm','7-8pm','8-9pm','9-10pm',
-    '7-9am','9-11am','11am-1pm','1-3pm','3-5pm','5-7pm',
   ];
-
-  // 1. Buscar slot exacto en el texto
   for (const slot of TODOS_SLOTS) {
     if (tl.includes(slot.toLowerCase())) { reg.horario = slot; break; }
   }
-
-  // 2. Si no encontró, buscar línea "Horario: X" y normalizar
   if (!reg.horario) {
     const lineaHorario = texto.match(/[Hh]orario[:\s]+([^\n]+)/);
     if (lineaHorario) {
       const h = lineaHorario[1].trim();
-      // Extraer horas de inicio del formato "8:00 AM - 9:00 AM" o "8 AM" etc.
-      const match = h.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm|AM|PM|a\.m\.|p\.m\.)/i);
+      const match = h.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm|AM|PM)/i);
       if (match) {
         let hora = parseInt(match[1]);
-        const ampm = match[3].toLowerCase().replace(/\./g,'');
-        if ((ampm === 'pm' || ampm === 'pm') && hora !== 12) hora += 12;
-        if ((ampm === 'am' || ampm === 'am') && hora === 12) hora = 0;
-        // Mapear hora de inicio al slot de 1h o 2h según el área
+        const ampm = match[3].toLowerCase();
+        if (ampm === 'pm' && hora !== 12) hora += 12;
+        if (ampm === 'am' && hora === 12) hora = 0;
         const es2h = ['Canchita A','Canchita B'].includes(reg.area || AREA || '');
         if (es2h) {
           if      (hora === 8)  reg.horario = '8-10am';
@@ -383,12 +334,7 @@ function extraerDeResumen(texto) {
           else if (hora === 18) reg.horario = '6-8pm';
           else if (hora === 20) reg.horario = '8-10pm';
         } else {
-          // Slots de 1 hora
-          const slots1h = ['8-9am','9-10am','10-11am','11am-12pm','12-1pm','1-2pm',
-                           '2-3pm','3-4pm','4-5pm','5-6pm','6-7pm','7-8pm','8-9pm','9-10pm'];
-          const horaBase = hora >= 12 ? hora : hora;
-          if (hora <= 7)  reg.horario = '8-9am';    // redondear a primer slot
-          else if (hora === 8)  reg.horario = '8-9am';
+          if      (hora === 8)  reg.horario = '8-9am';
           else if (hora === 9)  reg.horario = '9-10am';
           else if (hora === 10) reg.horario = '10-11am';
           else if (hora === 11) reg.horario = '11am-12pm';
@@ -407,25 +353,41 @@ function extraerDeResumen(texto) {
     }
   }
 
-  // Estado — siempre ok (el estudiante no ha usado el área aún)
   reg.estado = 'ok';
-
-  // Solo guardar si tenemos al menos código y área
   if (!reg.codigo || !reg.area) return null;
   return reg;
 }
 
-// ── BUSCAR ESTUDIANTE POR CÓDIGO ──
+// ── BUSCAR ESTUDIANTE ──
 async function buscarEstudiante(codigo) {
   try {
     const r = await fetch(`/api/estudiantes?codigo=${codigo.trim()}`);
     return await r.json();
-  } catch(e) {
-    return { encontrado: false };
-  }
+  } catch(e) { return { encontrado: false }; }
 }
 
-// ── ENVIAR EMAIL DE EVALUACIÓN ──
+// ── CONSULTAR ASISTENCIA DEL ALUMNO ──
+async function fetchAsistenciaAlumno(codigo) {
+  try {
+    const r = await fetch(`/api/asistencia?accion=alumno&codigo=${codigo}`);
+    return await r.json();
+  } catch(e) { return null; }
+}
+
+function formatearAsistenciaParaClaude(data) {
+  if (!data || !data.dias || data.dias.length === 0) {
+    return 'Sin registros de asistencia en los últimos 30 días.';
+  }
+  const lineas = data.dias.slice(0, 20).map(d => {
+    let linea = `• ${d.fecha}`;
+    if (d.entrada) linea += ` — ingresó ${d.entrada}`;
+    if (d.salida)  linea += `, salió ${d.salida}`;
+    return linea;
+  });
+  return `Días presentes (últimos 30 días): ${data.total_dias}\n\nRegistros recientes:\n${lineas.join('\n')}`;
+}
+
+// ── ENVIAR EMAIL EVALUACIÓN ──
 async function enviarEmailEvaluacion(estudiante, reserva) {
   if (!estudiante || !estudiante.email) return;
   try {
@@ -434,13 +396,10 @@ async function enviarEmailEvaluacion(estudiante, reserva) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ estudiante, reserva }),
     });
-    console.log('Email de evaluación enviado a', estudiante.email);
-  } catch(e) {
-    console.warn('No se pudo enviar email de evaluación:', e.message);
-  }
+  } catch(e) { console.warn('Email eval:', e.message); }
 }
 
-// ── GUARDAR EN GOOGLE SHEETS ──
+// ── GUARDAR RESERVA ──
 async function guardarEnSheets(reg) {
   try {
     const res = await fetch('/api/sheets', {
@@ -448,36 +407,113 @@ async function guardarEnSheets(reg) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ registro: { ...reg, ts: new Date().toISOString() } }),
     });
-    const d = await res.json();
-    console.log('Sheets response:', d);
-    return d;
-  } catch(e) {
-    console.warn('No se pudo guardar en Sheets:', e.message);
-    return null;
-  }
+    return await res.json();
+  } catch(e) { return null; }
 }
 
+// ── DETECTAR INTENCIÓN DE CONSULTA ──
+function esConsultaAsistencia(texto) {
+  const tl = texto.toLowerCase();
+  const keywords = ['asistencia','vine','llegué','llegue','asistí','asisti','falté','falte',
+    'mis días','mis dias','cuándo vine','cuando vine','cuántos días','cuantos dias',
+    'ingresé','ingrese','mis marcaciones','mis registros','cuánto he ido','cuanto he ido',
+    'he faltado','veces que vine','registro de entrada'];
+  return keywords.some(k => tl.includes(k));
+}
 
+function esConsultaReserva(texto) {
+  const tl = texto.toLowerCase();
+  const keywords = ['reservar','cancha','canchita','taka','ajedrez','sapito','reserva',
+    'quiero jugar','usar el área','usar el area','área recreativa','area recreativa'];
+  return keywords.some(k => tl.includes(k));
+}
+
+// ── SYSTEM PROMPT ──
+function buildSystem(asistenciaData = null) {
+  const areaActual  = AREA || registro.area || '';
+  const slotsArea   = areaActual ? getSlotsParaArea(areaActual) : [];
+  const slotsTexto  = slotsArea.length ? slotsArea.join(', ') : 'pregunta primero qué área quiere';
+  const hoyStr = new Date().toLocaleDateString('es-PE', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  const estudianteInfo = estudianteActual
+    ? `ESTUDIANTE IDENTIFICADO:
+  Nombre: ${estudianteActual.nombre} ${estudianteActual.apellido}
+  Carrera: ${estudianteActual.carrera}
+  Código: ${estudianteActual.codigo}
+  REGLA: Usa EXACTAMENTE este nombre. Nunca lo cambies.`
+    : 'Estudiante pendiente de identificación — pedir código.';
+
+  let sys = `Eres el Asistente Digital del Instituto Superior Neumann. Ayudas a los estudiantes con dos servicios:
+
+1. RESERVAS DE ÁREAS RECREATIVAS
+2. CONSULTA DE ASISTENCIA AL CAMPUS
+
+FECHA HOY: ${hoyStr}
+${estudianteInfo}
+
+MÓDULO ACTIVO: ${modulo === 'asistencia' ? 'Consulta de asistencia' : modulo === 'reserva' ? 'Reserva de área recreativa' : 'Por determinar según lo que pida el estudiante'}
+
+REGLAS GENERALES:
+- Respuestas cortas — máximo 3 líneas — estamos en móvil
+- No uses markdown, asteriscos ni guiones
+- El estudiante ya fue verificado — no le pidas su código de nuevo`;
+
+  if (!modulo && estudianteActual) {
+    sys += `\n\nSi el estudiante quiere reservar un área, guíalo por el flujo de reservas.
+Si quiere consultar su asistencia, muéstrale sus registros.
+Si no está claro qué quiere, pregúntale amablemente.`;
+  }
+
+  if (modulo === 'reserva' || AREA) {
+    sys += `
+
+FLUJO DE RESERVA:
+ÁREA ACTUAL: ${areaActual || 'no especificada — pregunta al estudiante'}
+ÁREAS DISPONIBLES: Canchita A, Canchita B, Taka Taka, Ajedrez, Sapito
+SLOTS PARA ${areaActual || 'el área elegida'}: ${slotsTexto}
+
+Pasos:
+1. Si el área viene del QR, no la preguntes
+2. Pide NÚMERO DE PARTICIPANTES (1 a 6+)
+3. Pide la FECHA (hoy, mañana o día de la semana)
+4. Muestra slots y pide elegir uno de la lista exacta
+5. Confirma con el formato EXACTO:
+   Código: XXXXXX
+   Carrera: Administración de Negocios Internacionales o Contabilidad
+   Área: nombre exacto
+   Participantes: número
+   Fecha: fecha exacta
+   Horario: slot exacto (ej: 8-9am)
+   [REGISTRO COMPLETO ✅]
+- Ofrece ÚNICAMENTE los slots listados arriba`;
+  }
+
+  if (asistenciaData) {
+    sys += `
+
+DATOS DE ASISTENCIA DEL ESTUDIANTE (usa esto para responder):
+${asistenciaData}
+
+Presenta estos datos de forma conversacional y amigable. Resalta el total de días presentes y los registros más recientes. Si el estudiante pregunta algo específico (ej: "¿vine el lunes?"), búscalo en los registros y responde directamente.`;
+  }
+
+  return sys;
+}
 
 // ── MENSAJE INICIAL ──
 const bienvenida = AREA
-  ? `👋 Hola, soy RecreaBot del Instituto Superior Neumann.\n\n¡Vas a usar ${AREA}! Para registrar tu uso necesito algunos datos rápidos.\n\n¿Cuál es tu código de estudiante?`
-  : `👋 Hola, soy RecreaBot del Instituto Superior Neumann.\n\nPuedo registrar tu uso de las áreas recreativas, consultar disponibilidad o reportar un problema.\n\n¿Qué área quieres usar hoy?`;
+  ? `👋 Hola, soy el Asistente del Instituto Neumann.\n\n¡Vas a usar ${AREA}! Para registrar necesito tu código de estudiante.`
+  : `👋 Hola, soy el Asistente del Instituto Neumann.\n\n¿En qué te puedo ayudar hoy?\n\n📅 Reservar un área recreativa\n📊 Consultar tu asistencia al campus\n\nPrimero dime tu código de estudiante.`;
 
-// ── CHIPS INICIALES ──
-const chipsIniciales = AREA
-  ? ['Tengo mi código', 'Ver disponibilidad', 'Reportar problema']
-  : ['⚽ Canchita A', '⚽ Canchita B', '🏓 Taka Taka', '♟️ Ajedrez', '🐸 Sapito'];
+const chipsIniciales = ['Tengo mi código', 'Reservar área', 'Ver mi asistencia'];
 
-// ── RENDER MENSAJE ──
+// ── RENDER ──
 function addMsg(role, text) {
   const wrap = document.getElementById('messages');
   const time = new Date().toLocaleTimeString('es-PE', {hour:'2-digit', minute:'2-digit'});
   const div = document.createElement('div');
   div.className = `msg ${role}`;
-  div.innerHTML = `
-    <div class="bubble">${text.replace(/\n/g,'<br>')}</div>
-    <div class="msg-time">${time}</div>`;
+  div.innerHTML = `<div class="bubble">${text.replace(/\n/g,'<br>')}</div><div class="msg-time">${time}</div>`;
   wrap.appendChild(div);
   wrap.scrollTop = wrap.scrollHeight;
 }
@@ -492,72 +528,32 @@ function addTyping() {
 }
 function removeTyping() { document.getElementById('typing')?.remove(); }
 
-// ── CHIPS ──
 function setChips(list) {
   const wrap = document.getElementById('chips');
   wrap.innerHTML = list.map(c =>
-    `<button class="chip" onclick="chipSend('${c}')">${c}</button>`
+    `<button class="chip" onclick="chipSend('${c.replace(/'/g,"\\'")}'">${c}</button>`
   ).join('');
 }
 function chipSend(text) { document.getElementById('input').value = text; send(); }
 
-// ── AUTO RESIZE TEXTAREA ──
 function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 100) + 'px';
 }
 
-// ── SYSTEM PROMPT ──
-function buildSystem() {
-  // Usar área del QR, o la que el estudiante eligió en la conversación
-  const areaActual = AREA || registro.area || '';
-  const slotsArea  = areaActual ? getSlotsParaArea(areaActual) : [];
-  const slotsTexto = slotsArea.length ? slotsArea.join(', ') : 'sin slots aún — pregunta primero qué área quiere el estudiante';
-  const estudianteInfo = estudianteActual
-    ? `ESTUDIANTE IDENTIFICADO Y VERIFICADO:
-  Nombre EXACTO: ${estudianteActual.nombre} ${estudianteActual.apellido}
-  Carrera: ${estudianteActual.carrera}
-  Código: ${estudianteActual.codigo}
-  Email: ${estudianteActual.email}
-  REGLA CRÍTICA: Usa EXACTAMENTE este nombre. NUNCA inventes ni cambies el nombre del estudiante.`
-    : 'Estudiante aún no identificado — pedir código';
-  const hoyStr = new Date().toLocaleDateString('es-PE', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-  return `Eres RecreaBot, asistente del Instituto Superior Neumann para reservas de áreas recreativas.
-
-FECHA HOY: ${hoyStr}
-ÁREA ACTUAL: ${areaActual || 'no especificada — pregunta al estudiante'}
-ÁREAS DISPONIBLES: Canchita A, Canchita B, Taka Taka, Ajedrez, Sapito.
-${estudianteInfo}
-SLOTS DISPONIBLES PARA ${areaActual || 'el área elegida'}: ${slotsTexto}
-IMPORTANTE: Ofrece ÚNICAMENTE esos slots. Si el estudiante pide otro horario, muéstrale la lista.
-
-FLUJO — sigue este orden:
-1. Si el área viene del QR, no la preguntes
-2. Pide CÓDIGO DE ESTUDIANTE (solo números)
-3. Si el estudiante fue identificado, salúdalo por nombre y NO preguntes carrera — la carrera ya está en el sistema
-4. Pide NÚMERO DE PARTICIPANTES (1 a 6+)
-5. Pide la FECHA (hoy, mañana, o día de la semana)
-6. Muestra los slots y pide elegir uno de la lista exacta
-7. Confirma el resumen y cierra
-
-REGLAS:
-- Respuestas cortas — máximo 3 líneas — estamos en móvil
-- NO preguntes por el estado del equipo ni las instalaciones — el estudiante aún no las ha usado y evaluará por email después
-- Cuando confirmes SIEMPRE escribe el resumen con este formato EXACTO:
-  Código: XXXXXX
-  Carrera: Administración de Negocios Internacionales o Contabilidad
-  Área: nombre exacto
-  Participantes: número
-  Fecha: fecha exacta o día
-  Horario: escribe el slot EXACTAMENTE como está en la lista (ej: 8-9am NO "8:00 AM - 9:00 AM")
-- Luego en línea nueva escribe exactamente: [REGISTRO COMPLETO ✅]
-- Si el estudiante da todos los datos en un mensaje, extrae y confirma sin más preguntas
-- No uses markdown, asteriscos ni guiones`;
+// ── LLAMADA A CLAUDE ──
+async function callClaude(systemPrompt) {
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ system: systemPrompt, messages: history, max_tokens: 350 }),
+  });
+  const data = await res.json();
+  return data.content?.[0]?.text || null;
 }
 
 // ── ENVIAR MENSAJE ──
 async function send() {
-  // Asegurar que la config está cargada
   if (Object.keys(SLOTS_CONFIG).length === 0) await cargarConfig();
   const input = document.getElementById('input');
   const text  = input.value.trim();
@@ -571,64 +567,84 @@ async function send() {
   addMsg('user', text);
   history.push({ role: 'user', content: text });
 
-  // Verificar código cuando el paso es 'codigo' y el mensaje contiene un número de 4-10 dígitos
-  const codigoMatch = pasoActual === 'codigo'
-    ? (text.trim().match(/^\d{4,10}$/) || text.trim().match(/\b(\d{4,10})\b/))
-    : null;
-  const codigoExtraido = codigoMatch ? (codigoMatch[1] || codigoMatch[0]) : null;
-  const esCodigo = !!codigoExtraido;
-  if (esCodigo && !estudianteActual) {
-    addTyping();
-    const est = await buscarEstudiante(codigoExtraido);
-    removeTyping();
-    if (est.encontrado && est.activo) {
-      // ✅ Válido — registrar estudiante y continuar con Claude
-      estudianteActual = est;
-      registro.codigo  = est.codigo;
-      registro.carrera = est.carrera;
-      pasoActual = 'participantes';
-      history[history.length - 1].content =
-        `Mi código es ${est.codigo}. Soy ${est.nombre} ${est.apellido} de ${est.carrera}.`;
-    } else if (est.encontrado && !est.activo) {
-      // 🔒 Inactivo — bloquear
-      addMsg('bot', `Lo siento ${est.nombre || ''}, tu código (${text.trim()}) está inactivo en el sistema. Consulta con secretaría para habilitarlo. 🔒`);
-      history.pop();
-      document.getElementById('send-btn').disabled = false;
-      busy = false; return;
-    } else {
-      // ❌ No encontrado — bloquear
-      addMsg('bot', `El código ${codigoExtraido} no está registrado en el Instituto Superior Neumann. ❌\n\nVerifica que sea correcto o consulta con secretaría. Puedes intentarlo de nuevo.`);
-      history.pop();
-      document.getElementById('send-btn').disabled = false;
-      busy = false; return;
+  const tl = text.toLowerCase();
+
+  // ── PASO 1: Identificar estudiante ──
+  if (!estudianteActual) {
+    const codigoMatch = text.trim().match(/^\d{4,10}$/) || text.trim().match(/\b(\d{4,10})\b/);
+    const codigoExtraido = codigoMatch ? (codigoMatch[1] || codigoMatch[0]) : null;
+
+    if (codigoExtraido) {
+      addTyping();
+      const est = await buscarEstudiante(codigoExtraido);
+      removeTyping();
+
+      if (est.encontrado && est.activo) {
+        estudianteActual = est;
+        registro.codigo  = est.codigo;
+        registro.carrera = est.carrera;
+        history[history.length - 1].content =
+          `Mi código es ${est.codigo}. Soy ${est.nombre} ${est.apellido} de ${est.carrera}.`;
+
+        // Si hay área por QR, ir directo a reserva
+        if (AREA) {
+          modulo = 'reserva';
+          pasoActual = 'participantes';
+        } else {
+          // Detectar intención del mensaje original
+          if (esConsultaAsistencia(text)) {
+            modulo = 'asistencia';
+          } else if (esConsultaReserva(text)) {
+            modulo = 'reserva';
+            pasoActual = 'area';
+          }
+          // Si no hay intención clara, Claude preguntará
+        }
+      } else if (est.encontrado && !est.activo) {
+        addMsg('bot', `Lo siento ${est.nombre || ''}, tu código está inactivo. Consulta con secretaría para habilitarlo. 🔒`);
+        history.pop();
+        busy = false; document.getElementById('send-btn').disabled = false; return;
+      } else {
+        addMsg('bot', `El código ${codigoExtraido} no está registrado en el Instituto Superior Neumann. ❌\n\nVerifica que sea correcto o consulta con secretaría.`);
+        history.pop();
+        busy = false; document.getElementById('send-btn').disabled = false; return;
+      }
+    }
+  } else {
+    // Estudiante ya identificado — detectar cambio de módulo
+    if (esConsultaAsistencia(tl) && modulo !== 'asistencia') {
+      modulo = 'asistencia';
+    } else if (esConsultaReserva(tl) && modulo !== 'reserva') {
+      modulo = 'reserva';
+      if (!registro.area && !AREA) pasoActual = 'area';
     }
   }
 
-  // Actualizar registro ANTES de buildSystem — el área ya estará disponible
-  actualizarRegistro(text);
+  // ── PASO 2: Si es consulta de asistencia, obtener datos primero ──
+  let asistenciaData = null;
+  if (modulo === 'asistencia' && estudianteActual) {
+    addTyping();
+    const data = await fetchAsistenciaAlumno(estudianteActual.codigo);
+    removeTyping();
+    asistenciaData = formatearAsistenciaParaClaude(data);
+  }
+
+  // ── PASO 3: Actualizar registro si es módulo reserva ──
+  if (modulo === 'reserva' && estudianteActual) {
+    actualizarRegistro(text);
+  }
 
   addTyping();
-
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system:     buildSystem(),
-        messages:   history,
-        max_tokens: 300,
-      }),
-    });
-
-    const data = await res.json();
+    const reply = await callClaude(buildSystem(asistenciaData));
     removeTyping();
 
-    if (data.content && data.content[0]) {
-      const reply = data.content[0].text;
+    if (reply) {
       history.push({ role: 'assistant', content: reply });
       addMsg('bot', reply);
-      updateChips(reply, text);
-      // Extraer datos directamente del resumen que Claude generó
+      updateChips(reply);
+
+      // Guardar reserva si Claude confirmó
       if (reply.includes('[REGISTRO COMPLETO')) {
         const reg = extraerDeResumen(reply);
         if (reg) {
@@ -640,15 +656,14 @@ async function send() {
             document.getElementById('messages').appendChild(confirmDiv);
             document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
           }
-          // Enviar email con datos extraídos del resumen — reg tiene área, horario, fecha correctos
-          console.log("EMAIL — estudiante:", estudianteActual?.email, "reg:", JSON.stringify(reg));
           if (estudianteActual && estudianteActual.email) {
             await enviarEmailEvaluacion(estudianteActual, reg);
           }
         }
-        estudianteActual = null;
-        registro   = { area: AREA, codigo:'', carrera:'', participantes:'', fecha_reserva:'', horario:'', estado:'ok', problema:'', calificacion:'' };
-        pasoActual = AREA ? 'codigo' : 'area';
+        // Reset para nueva reserva o nueva intención
+        registro   = { area: AREA, codigo: estudianteActual?.codigo || '', carrera: estudianteActual?.carrera || '', participantes:'', fecha_reserva:'', horario:'', estado:'ok', problema:'', calificacion:'' };
+        pasoActual = AREA ? 'participantes' : 'area';
+        modulo     = null;
       }
     } else {
       addMsg('bot', '⚠️ No pude responder. Intenta de nuevo.');
@@ -663,25 +678,26 @@ async function send() {
   document.getElementById('input').focus();
 }
 
-// ── CHIPS DINÁMICOS SEGÚN CONTEXTO ──
-function updateChips(reply, userMsg) {
+// ── CHIPS DINÁMICOS ──
+function updateChips(reply) {
   const r = reply.toLowerCase();
   let chips = [];
 
-  if (r.includes('código')) {
-    chips = ['No tengo mi código', 'Soy de Administración', 'Soy de Contabilidad'];
-  } else if (r.includes('carrera')) {
-    chips = ['Administración', 'Contabilidad'];
+  if (!estudianteActual) {
+    chips = ['Tengo mi código', 'Reservar área', 'Ver mi asistencia'];
+  } else if (r.includes('qué necesitas') || r.includes('en qué te puedo') || r.includes('qué deseas') || (!modulo && estudianteActual)) {
+    chips = ['📅 Reservar área', '📊 Ver mi asistencia'];
   } else if (r.includes('participante') || r.includes('cuántos')) {
     chips = ['1', '2', '3', '4', '5', '6 o más'];
-  } else if (r.includes('horario')) {
-    chips = ['7-9am', '9-11am', '11am-1pm', '1-3pm', '3-5pm', '5-7pm'];
-  } else if (r.includes('estado') || r.includes('buen estado') || r.includes('equipo')) {
-    chips = ['✅ Todo bien', '⚠️ Hay un problema'];
+  } else if (r.includes('horario') || r.includes('slot')) {
+    const slots = getSlotsParaArea(registro.area || AREA);
+    chips = slots.slice(0, 6);
   } else if (r.includes('registro completo') || r.includes('confirmado')) {
-    chips = ['Registrar otro uso', 'Reportar problema', 'Ver otras áreas'];
-  } else if (r.includes('qué área') || r.includes('qué deseas')) {
+    chips = ['📅 Hacer otra reserva', '📊 Ver mi asistencia'];
+  } else if (r.includes('qué área') || r.includes('área deseas')) {
     chips = ['⚽ Canchita A', '⚽ Canchita B', '🏓 Taka Taka', '♟️ Ajedrez', '🐸 Sapito'];
+  } else if (r.includes('días') || r.includes('asistencia')) {
+    chips = ['📅 Hacer una reserva'];
   }
 
   if (chips.length) setChips(chips);
@@ -690,7 +706,6 @@ function updateChips(reply, userMsg) {
 // ── INIT ──
 window.addEventListener('load', async () => {
   await cargarConfig();
-  // Mensaje de bienvenida con pequeño delay para sensación natural
   setTimeout(() => {
     addTyping();
     setTimeout(() => {
@@ -700,10 +715,7 @@ window.addEventListener('load', async () => {
     }, 800);
   }, 300);
 
-  // Focus en input solo en desktop
-  if (window.innerWidth > 480) {
-    document.getElementById('input').focus();
-  }
+  if (window.innerWidth > 480) document.getElementById('input').focus();
 });
 </script>
 </body>

@@ -55,6 +55,45 @@ export default async function handler(req, res) {
       res.json({ semana, prom3sem: kpis.prom3sem || 0, prom10sem: kpis.prom10sem || 0 }); return;
     }
 
+    // ── Asistencia de un alumno específico (últimos 30 días) ──
+    if (accion === 'alumno') {
+      const { codigo } = req.query;
+      if (!codigo) { res.status(400).json({ error: 'Código requerido' }); return; }
+
+      // Buscar nombre del estudiante
+      const estData = await query('estudiantes', 'GET', null, `?codigo=eq.${codigo}&limit=1`);
+      if (!estData || !estData[0]) { res.status(404).json({ error: 'Estudiante no encontrado' }); return; }
+      const est = estData[0];
+
+      // Registros de asistencia por nombre, últimos 30 días
+      const hace30 = new Date();
+      hace30.setDate(hace30.getDate() - 30);
+      const records = await query('asistencia', 'GET', null,
+        `?nombre=eq.${encodeURIComponent(est.nombre)}&fecha=gte.${hace30.toISOString()}&order=fecha.asc&limit=500`);
+
+      // Agrupar por fecha Lima y calcular primera entrada / última salida
+      const byDate = {};
+      for (const r of records || []) {
+        const dt = new Date(r.fecha);
+        const key = dt.toLocaleDateString('es-PE', { timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit' });
+        if (!byDate[key]) byDate[key] = { entradas: [], salidas: [] };
+        if (r.tipo === true || r.tipo === 'true') byDate[key].entradas.push(r.fecha);
+        else byDate[key].salidas.push(r.fecha);
+      }
+
+      const fmt = (iso) => new Date(iso).toLocaleTimeString('es-PE', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit' });
+
+      const dias = Object.entries(byDate)
+        .map(([fecha, d]) => ({
+          fecha,
+          entrada: d.entradas.length ? fmt(d.entradas[0]) : null,
+          salida:  d.salidas.length  ? fmt(d.salidas[d.salidas.length - 1]) : null,
+        }))
+        .sort((a, b) => new Date(b.fecha.split('/').reverse().join('-')) - new Date(a.fecha.split('/').reverse().join('-')));
+
+      res.json({ nombre: `${est.nombre} ${est.apellido || ''}`.trim(), dias, total_dias: dias.length }); return;
+    }
+
     res.status(400).json({ error: 'Acción no válida' });
   } catch(err) {
     res.status(500).json({ error: err.message });
