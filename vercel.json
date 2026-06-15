@@ -46,6 +46,7 @@
     { "src": "/atencion-eval",          "dest": "/atencion-eval.html"         },
     { "src": "/asistencia-dashboard",   "dest": "/asistencia-dashboard.html"  },
     { "src": "/bot.html",               "dest": "/bot.html"                  },
+    { "src": "/",                        "dest": "/login.html"                },
     { "src": "/(.*)",                   "dest": "/index.html"                }
   ]
 }
