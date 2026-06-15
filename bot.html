@@ -217,7 +217,8 @@ if (AREA) {
 // ── ESTADO ──
 let history  = [];
 let busy     = false;
-let modulo   = AREA ? 'reserva' : null; // 'reserva' | 'asistencia' | null
+let modulo   = AREA ? 'reserva' : null; // 'reserva' | 'asistencia' | 'cultura' | null
+let museosCache = null;
 let registro = { area: AREA, codigo:'', carrera:'', participantes:'', fecha_reserva:'', horario:'', estado:'ok', problema:'', calificacion:'' };
 let pasoActual = AREA ? 'codigo' : 'codigo'; // siempre pide código primero
 let estudianteActual = null;
@@ -388,13 +389,33 @@ function formatearAsistenciaParaClaude(data) {
 }
 
 // ── ENVIAR EMAIL EVALUACIÓN ──
+async function cargarMuseos() {
+  if (museosCache) return museosCache;
+  try {
+    const r = await fetch('/api/cultura');
+    const { museos } = await r.json();
+    museosCache = museos || [];
+  } catch(e) { museosCache = []; }
+  return museosCache;
+}
+
+async function registrarInteraccionCultura() {
+  try {
+    await fetch('/api/cultura?accion=interaccion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ codigo: estudianteActual?.codigo || null }),
+    });
+  } catch(e) {}
+}
+
 async function enviarEmailEvaluacion(estudiante, reserva) {
   if (!estudiante || !estudiante.email) return;
   try {
     await fetch('/api/evaluacion', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ estudiante, reserva }),
+      body: JSON.stringify({ accion: 'email-confirmacion', estudiante, reserva }),
     });
   } catch(e) { console.warn('Email eval:', e.message); }
 }
@@ -428,6 +449,15 @@ function esConsultaReserva(texto) {
   return keywords.some(k => tl.includes(k));
 }
 
+function esConsultaCultura(texto) {
+  const tl = texto.toLowerCase();
+  const keywords = ['museo','museos','cultura','cultural','arte','visita virtual',
+    'recorrido virtual','exposición','exposicion','louvre','prado','hermitage',
+    'vaticano','sipán','sipan','chan chan','pachacamac','inca','tawantinsuyu',
+    'actividad cultural','actividades culturales'];
+  return keywords.some(k => tl.includes(k));
+}
+
 // ── SYSTEM PROMPT ──
 function buildSystem(asistenciaData = null) {
   const areaActual  = AREA || registro.area || '';
@@ -443,10 +473,11 @@ function buildSystem(asistenciaData = null) {
   REGLA: Usa EXACTAMENTE este nombre. Nunca lo cambies.`
     : 'Estudiante pendiente de identificación — pedir código.';
 
-  let sys = `Eres el Asistente Digital del Instituto Superior Neumann. Ayudas a los estudiantes con dos servicios:
+  let sys = `Eres el Asistente Digital del Instituto Superior Neumann. Ayudas a los estudiantes con tres servicios:
 
 1. RESERVAS DE ÁREAS RECREATIVAS
 2. CONSULTA DE ASISTENCIA AL CAMPUS
+3. ORIENTACIÓN CULTURAL — museos virtuales que pueden visitar desde casa
 
 FECHA HOY: ${hoyStr}
 ${estudianteInfo}
@@ -461,6 +492,7 @@ REGLAS GENERALES:
   if (!modulo && estudianteActual) {
     sys += `\n\nSi el estudiante quiere reservar un área, guíalo por el flujo de reservas.
 Si quiere consultar su asistencia, muéstrale sus registros.
+Si quiere información cultural o de museos, ofrécele el servicio de museos virtuales.
 Si no está claro qué quiere, pregúntale amablemente.`;
   }
 
@@ -488,6 +520,30 @@ Pasos:
 - Ofrece ÚNICAMENTE los slots listados arriba`;
   }
 
+  if (modulo === 'cultura' && museosCache) {
+    const internacionales = museosCache.filter(m => m.categoria === 'internacional');
+    const peruanos = museosCache.filter(m => m.categoria === 'peru');
+    sys += `
+
+MÓDULO CULTURAL ACTIVO:
+Presenta los museos virtuales de forma entusiasta y educativa. Da una breve descripción de cada uno y proporciona el link de visita en este formato exacto:
+👉 https://recreabot-neumann.vercel.app/r/[slug]
+
+Puedes organizar la presentación por categoría o por interés del estudiante.
+
+MUSEOS INTERNACIONALES:
+${internacionales.map(m => `- ${m.nombre} (slug: ${m.slug}): ${m.descripcion}`).join('\n')}
+
+MUSEOS PERUANOS:
+${peruanos.map(m => `- ${m.nombre} (slug: ${m.slug}): ${m.descripcion}`).join('\n')}
+
+REGLAS CULTURA:
+- Siempre usa el link corto: https://recreabot-neumann.vercel.app/r/[slug]
+- Anima al estudiante a visitar varios museos
+- Puedes recomendar según el interés que exprese (arte, historia, ciencia, Perú, etc.)
+- Si el estudiante ya visitó uno, felicítalo y recomiéndale otro`;
+  }
+
   if (asistenciaData) {
     sys += `
 
@@ -503,9 +559,9 @@ Presenta estos datos de forma conversacional y amigable. Resalta el total de dí
 // ── MENSAJE INICIAL ──
 const bienvenida = AREA
   ? `👋 Hola, soy el Asistente del Instituto Neumann.\n\n¡Vas a usar ${AREA}! Para registrar necesito tu código de estudiante.`
-  : `👋 Hola, soy el Asistente del Instituto Neumann.\n\n¿En qué te puedo ayudar hoy?\n\n📅 Reservar un área recreativa\n📊 Consultar tu asistencia al campus\n\nPrimero dime tu código de estudiante.`;
+  : `👋 Hola, soy el Asistente del Instituto Neumann.\n\n¿En qué te puedo ayudar hoy?\n\n📅 Reservar un área recreativa\n📊 Consultar tu asistencia al campus\n🏛️ Visitar museos virtuales\n\nPrimero dime tu código de estudiante.`;
 
-const chipsIniciales = ['Tengo mi código', 'Reservar área', 'Ver mi asistencia'];
+const chipsIniciales = ['Tengo mi código', 'Reservar área', 'Ver mi asistencia', 'Museos virtuales'];
 
 // ── RENDER ──
 function addMsg(role, text) {
@@ -597,6 +653,8 @@ async function send() {
           } else if (esConsultaReserva(text)) {
             modulo = 'reserva';
             pasoActual = 'area';
+          } else if (esConsultaCultura(text)) {
+            modulo = 'cultura';
           }
           // Si no hay intención clara, Claude preguntará
         }
@@ -617,7 +675,15 @@ async function send() {
     } else if (esConsultaReserva(tl) && modulo !== 'reserva') {
       modulo = 'reserva';
       if (!registro.area && !AREA) pasoActual = 'area';
+    } else if (esConsultaCultura(tl) && modulo !== 'cultura') {
+      modulo = 'cultura';
     }
+  }
+
+  // ── Cargar museos si módulo es cultura ──
+  if (modulo === 'cultura') {
+    await cargarMuseos();
+    registrarInteraccionCultura();
   }
 
   // ── PASO 2: Si es consulta de asistencia, obtener datos primero ──
