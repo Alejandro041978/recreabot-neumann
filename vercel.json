@@ -17,7 +17,8 @@
   ],
   "crons": [
     { "path": "/api/reporte",                    "schedule": "0 13 * * 1" },
-    { "path": "/api/cafeteria?accion=reporte",   "schedule": "0 13 * * 1" }
+    { "path": "/api/cafeteria?accion=reporte",   "schedule": "0 13 * * 1" },
+    { "path": "/api/cultura?accion=healthcheck", "schedule": "0 14 1 * *" }
   ],
   "routes": [
     { "src": "/api/chat",               "dest": "/api/chat.js"               },
