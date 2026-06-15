@@ -113,151 +113,55 @@ const BASE = 'https://recreabot-neumann.vercel.app';
 
 const museos = [
   // INTERNACIONALES
-  {
-    slug:'hermitage', nombre:'Museo Hermitage', categoria:'internacional',
-    desc:'Uno de los museos más grandes del mundo con más de 3 millones de obras de arte e historia en San Petersburgo, Rusia.',
-    emoji:'🎨',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Hermitage_museum_2007.jpg/800px-Hermitage_museum_2007.jpg'
-  },
-  {
-    slug:'prado', nombre:'Museo del Prado', categoria:'internacional',
-    desc:'El principal museo de arte de España con obras maestras de Velázquez, Goya, El Greco y Rubens.',
-    emoji:'🖼️',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Museo_del_Prado_2016_%2825185969599%29.jpg/800px-Museo_del_Prado_2016_%2825185969599%29.jpg'
-  },
-  {
-    slug:'louvre', nombre:'Louvre Museum', categoria:'internacional',
-    desc:'El museo más visitado del mundo, hogar de la Mona Lisa y miles de obras desde la antigüedad hasta el siglo XIX.',
-    emoji:'🏺',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Louvre_Museum_Wikimedia_Commons.jpg/800px-Louvre_Museum_Wikimedia_Commons.jpg'
-  },
-  {
-    slug:'vaticano', nombre:'Museos del Vaticano', categoria:'internacional',
-    desc:'Las colecciones pontificias con la Capilla Sixtina de Miguel Ángel y obras de Rafael y Leonardo da Vinci.',
-    emoji:'⛪',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Musei_Vaticani_2019.jpg/800px-Musei_Vaticani_2019.jpg'
-  },
-  {
-    slug:'america', nombre:'Museo de América', categoria:'internacional',
-    desc:'Museo español especializado en las culturas y civilizaciones de América desde la prehistoria hasta la actualidad.',
-    emoji:'🌎',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Museo_de_Am%C3%A9rica_%28Madrid%29_01.jpg/800px-Museo_de_Am%C3%A9rica_%28Madrid%29_01.jpg'
-  },
-  {
-    slug:'british', nombre:'British Museum', categoria:'internacional',
-    desc:'Dos millones de años de historia humana en Londres, con la Piedra Rosetta y momias egipcias entre sus tesoros.',
-    emoji:'🏛️',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/British_Museum_from_NE_2.JPG/800px-British_Museum_from_NE_2.JPG'
-  },
-  {
-    slug:'orsay', nombre:"Museo d'Orsay", categoria:'internacional',
-    desc:'El mejor museo impresionista del mundo con obras de Monet, Renoir, Degas y Van Gogh en París.',
-    emoji:'🌸',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Musée_d%27Orsay%2C_North-West_view.jpg/800px-Musée_d%27Orsay%2C_North-West_view.jpg'
-  },
-  {
-    slug:'frida-kahlo', nombre:'Museo Frida Kahlo', categoria:'internacional',
-    desc:'La Casa Azul de Ciudad de México, hogar de la icónica pintora mexicana y testigo de su vida y obra.',
-    emoji:'🌺',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Casa_Azul%2C_Coyoac%C3%A1n%2C_M%C3%A9xico_D.F.%2C_M%C3%A9xico%2C_2013-10-13%2C_DD_47.JPG/800px-Casa_Azul%2C_Coyoac%C3%A1n%2C_M%C3%A9xico_D.F.%2C_M%C3%A9xico%2C_2013-10-13%2C_DD_47.JPG'
-  },
-  {
-    slug:'air-space', nombre:'Smithsonian Air and Space', categoria:'internacional',
-    desc:'El museo más visitado de EE.UU. con naves espaciales reales, aviones históricos y la historia de la aviación.',
-    emoji:'🚀',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/National_Air_and_Space_Museum_2012.jpg/800px-National_Air_and_Space_Museum_2012.jpg'
-  },
-  {
-    slug:'met', nombre:'The Metropolitan Museum of Art', categoria:'internacional',
-    desc:'El Met de Nueva York alberga más de 5,000 años de arte de todo el mundo en una de las colecciones más importantes del planeta.',
-    emoji:'🗽',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Metropolitan_Museum_of_Art_%28The_Met%29_-_Central_Park%2C_NYC.jpg/800px-Metropolitan_Museum_of_Art_%28The_Met%29_-_Central_Park%2C_NYC.jpg'
-  },
-  {
-    slug:'chichen-itza', nombre:'Chichén Itzá', categoria:'internacional',
-    desc:'Recorre virtualmente la majestuosa ciudad maya, una de las siete maravillas del mundo moderno.',
-    emoji:'🏯',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Chichen_Itza_3.jpg/800px-Chichen_Itza_3.jpg'
-  },
-  {
-    slug:'van-gogh', nombre:'Museo Van Gogh', categoria:'internacional',
-    desc:'Amsterdam celebra la vida y obra del genio holandés con la mayor colección de pinturas de Van Gogh del mundo.',
-    emoji:'🌻',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Van_Gogh_Museum_2019.jpg/800px-Van_Gogh_Museum_2019.jpg'
-  },
+  { slug:'hermitage',        nombre:'Museo Hermitage',                  categoria:'internacional', emoji:'🎨', wiki:'Hermitage Museum',
+    desc:'Uno de los museos más grandes del mundo con más de 3 millones de obras de arte e historia en San Petersburgo, Rusia.' },
+  { slug:'prado',            nombre:'Museo del Prado',                  categoria:'internacional', emoji:'🖼️', wiki:'Museo del Prado',
+    desc:'El principal museo de arte de España con obras maestras de Velázquez, Goya, El Greco y Rubens.' },
+  { slug:'louvre',           nombre:'Louvre Museum',                    categoria:'internacional', emoji:'🏺', wiki:'Louvre',
+    desc:'El museo más visitado del mundo, hogar de la Mona Lisa y miles de obras desde la antigüedad hasta el siglo XIX.' },
+  { slug:'vaticano',         nombre:'Museos del Vaticano',              categoria:'internacional', emoji:'⛪', wiki:'Vatican Museums',
+    desc:'Las colecciones pontificias con la Capilla Sixtina de Miguel Ángel y obras de Rafael y Leonardo da Vinci.' },
+  { slug:'america',          nombre:'Museo de América',                 categoria:'internacional', emoji:'🌎', wiki:'Museo de América',
+    desc:'Museo español especializado en las culturas y civilizaciones de América desde la prehistoria hasta la actualidad.' },
+  { slug:'british',          nombre:'British Museum',                   categoria:'internacional', emoji:'🏛️', wiki:'British Museum',
+    desc:'Dos millones de años de historia humana en Londres, con la Piedra Rosetta y momias egipcias entre sus tesoros.' },
+  { slug:'orsay',            nombre:"Museo d'Orsay",                    categoria:'internacional', emoji:'🌸', wiki:"Musée d'Orsay",
+    desc:'El mejor museo impresionista del mundo con obras de Monet, Renoir, Degas y Van Gogh en París.' },
+  { slug:'frida-kahlo',      nombre:'Museo Frida Kahlo',                categoria:'internacional', emoji:'🌺', wiki:'Frida Kahlo Museum',
+    desc:'La Casa Azul de Ciudad de México, hogar de la icónica pintora mexicana y testigo de su vida y obra.' },
+  { slug:'air-space',        nombre:'Smithsonian Air and Space',        categoria:'internacional', emoji:'🚀', wiki:'National Air and Space Museum',
+    desc:'El museo más visitado de EE.UU. con naves espaciales reales, aviones históricos y la historia de la aviación.' },
+  { slug:'met',              nombre:'The Metropolitan Museum of Art',   categoria:'internacional', emoji:'🗽', wiki:'Metropolitan Museum of Art',
+    desc:'El Met de Nueva York alberga más de 5,000 años de arte de todo el mundo en una de las colecciones más importantes del planeta.' },
+  { slug:'chichen-itza',     nombre:'Chichén Itzá',                     categoria:'internacional', emoji:'🏯', wiki:'Chichen Itza',
+    desc:'Recorre virtualmente la majestuosa ciudad maya, una de las siete maravillas del mundo moderno.' },
+  { slug:'van-gogh',         nombre:'Museo Van Gogh',                   categoria:'internacional', emoji:'🌻', wiki:'Van Gogh Museum',
+    desc:'Amsterdam celebra la vida y obra del genio holandés con la mayor colección de pinturas de Van Gogh del mundo.' },
   // PERUANOS
-  {
-    slug:'gastronomia-peruana', nombre:'Casa de la Gastronomía Peruana', categoria:'peru',
-    desc:'Descubre la riqueza y diversidad de la gastronomía peruana, patrimonio cultural de la nación.',
-    emoji:'🍽️',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Ceviche03.jpg/800px-Ceviche03.jpg'
-  },
-  {
-    slug:'cultura-peruana', nombre:'Museo Nacional de la Cultura Peruana', categoria:'peru',
-    desc:'Colección de arte popular, textiles, cerámica y expresiones culturales de todas las regiones del Perú.',
-    emoji:'🏺',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Tumi_de_oro.jpg/600px-Tumi_de_oro.jpg'
-  },
-  {
-    slug:'cajamarca', nombre:'Cuarto de Rescate — Cajamarca', categoria:'peru',
-    desc:'El lugar histórico donde el Inca Atahualpa prometió llenar una habitación de oro y plata a cambio de su libertad.',
-    emoji:'👑',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Cuarto_del_rescate.jpg/800px-Cuarto_del_rescate.jpg'
-  },
-  {
-    slug:'chan-chan', nombre:'Museo de Sitio Chan Chan', categoria:'peru',
-    desc:'La ciudad de barro más grande de América precolombina, capital del Imperio Chimú en La Libertad.',
-    emoji:'🏜️',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Chan_Chan-129.jpg/800px-Chan_Chan-129.jpg'
-  },
-  {
-    slug:'sipan', nombre:'Museo Tumbas Reales de Sipán', categoria:'peru',
-    desc:'El descubrimiento arqueológico más importante de América en el siglo XX: las tumbas del Señor de Sipán.',
-    emoji:'⚰️',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Museo_Tumbas_Reales_de_Sip%C3%A1n.jpg/800px-Museo_Tumbas_Reales_de_Sip%C3%A1n.jpg'
-  },
-  {
-    slug:'huallamarca', nombre:'Museo de Sitio de Huallamarca', categoria:'peru',
-    desc:'Pirámide prehispánica en el corazón de San Isidro, Lima, con más de 1,500 años de historia.',
-    emoji:'🔺',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Huaca_Huallamarca_Lima.jpg/800px-Huaca_Huallamarca_Lima.jpg'
-  },
-  {
-    slug:'muna', nombre:'MUNA Museo Nacional del Perú', categoria:'peru',
-    desc:'El museo nacional más importante del Perú con colecciones que abarcan toda la historia del país.',
-    emoji:'🇵🇪',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Machu_Picchu%2C_Peru.jpg/800px-Machu_Picchu%2C_Peru.jpg'
-  },
-  {
-    slug:'arqueologia-peru', nombre:'Museo Nacional de Arqueología', categoria:'peru',
-    desc:'La colección arqueológica más completa del Perú con piezas de todas las culturas precolombinas.',
-    emoji:'🏛️',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mochica_warrior_pot.jpg/600px-Mochica_warrior_pot.jpg'
-  },
-  {
-    slug:'chavin', nombre:'Museo Nacional Chavín', categoria:'peru',
-    desc:'La cultura Chavín, primera gran civilización andina, con sus misteriosas cabezas clavas de más de 3,000 años.',
-    emoji:'🗿',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Chavin_de_Huantar.jpg/800px-Chavin_de_Huantar.jpg'
-  },
-  {
-    slug:'pachacamac', nombre:'Museo de Sitio Pachacamac', categoria:'peru',
-    desc:'El gran santuario y oráculo de la costa central del Perú, venerado por múltiples culturas durante más de mil años.',
-    emoji:'☀️',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Pachacamac_ruins.jpg/800px-Pachacamac_ruins.jpg'
-  },
-  {
-    slug:'tawantinsuyu', nombre:'Museo Virtual del Tawantinsuyu', categoria:'peru',
-    desc:'Recorre el Imperio Inca, el más grande de América precolombina, su organización, arquitectura y legado cultural.',
-    emoji:'🌄',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Machu_Picchu%2C_Peru%2C_Salkantay.jpg/800px-Machu_Picchu%2C_Peru%2C_Salkantay.jpg'
-  },
-  {
-    slug:'tucume', nombre:'Museo Túcume', categoria:'peru',
-    desc:'El valle de las pirámides en Lambayeque con 26 pirámides truncas construidas por la cultura Lambayeque.',
-    emoji:'🔺',
-    img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/T%C3%BAcume_aerial.jpg/800px-T%C3%BAcume_aerial.jpg'
-  },
+  { slug:'gastronomia-peruana', nombre:'Casa de la Gastronomía Peruana', categoria:'peru', emoji:'🍽️', wiki:'Peruvian cuisine',
+    desc:'Descubre la riqueza y diversidad de la gastronomía peruana, patrimonio cultural de la nación.' },
+  { slug:'cultura-peruana',  nombre:'Museo Nacional de la Cultura Peruana', categoria:'peru', emoji:'🏺', wiki:'Tumi (artifact)',
+    desc:'Colección de arte popular, textiles, cerámica y expresiones culturales de todas las regiones del Perú.' },
+  { slug:'cajamarca',        nombre:'Cuarto de Rescate — Cajamarca',   categoria:'peru', emoji:'👑', wiki:'Atahualpa',
+    desc:'El lugar histórico donde el Inca Atahualpa prometió llenar una habitación de oro y plata a cambio de su libertad.' },
+  { slug:'chan-chan',         nombre:'Museo de Sitio Chan Chan',         categoria:'peru', emoji:'🏜️', wiki:'Chan Chan',
+    desc:'La ciudad de barro más grande de América precolombina, capital del Imperio Chimú en La Libertad.' },
+  { slug:'sipan',            nombre:'Museo Tumbas Reales de Sipán',     categoria:'peru', emoji:'⚰️', wiki:'Lord of Sipán',
+    desc:'El descubrimiento arqueológico más importante de América en el siglo XX: las tumbas del Señor de Sipán.' },
+  { slug:'huallamarca',      nombre:'Museo de Sitio de Huallamarca',    categoria:'peru', emoji:'🔺', wiki:'Huaca Huallamarca',
+    desc:'Pirámide prehispánica en el corazón de San Isidro, Lima, con más de 1,500 años de historia.' },
+  { slug:'muna',             nombre:'MUNA Museo Nacional del Perú',     categoria:'peru', emoji:'🇵🇪', wiki:'Machu Picchu',
+    desc:'El museo nacional más importante del Perú con colecciones que abarcan toda la historia del país.' },
+  { slug:'arqueologia-peru', nombre:'Museo Nacional de Arqueología',    categoria:'peru', emoji:'🏛️', wiki:'Moche culture',
+    desc:'La colección arqueológica más completa del Perú con piezas de todas las culturas precolombinas.' },
+  { slug:'chavin',           nombre:'Museo Nacional Chavín',            categoria:'peru', emoji:'🗿', wiki:'Chavín de Huántar',
+    desc:'La cultura Chavín, primera gran civilización andina, con sus misteriosas cabezas clavas de más de 3,000 años.' },
+  { slug:'pachacamac',       nombre:'Museo de Sitio Pachacamac',        categoria:'peru', emoji:'☀️', wiki:'Pachacamac',
+    desc:'El gran santuario y oráculo de la costa central del Perú, venerado por múltiples culturas durante más de mil años.' },
+  { slug:'tawantinsuyu',     nombre:'Museo Virtual del Tawantinsuyu',   categoria:'peru', emoji:'🌄', wiki:'Inca Empire',
+    desc:'Recorre el Imperio Inca, el más grande de América precolombina, su organización, arquitectura y legado cultural.' },
+  { slug:'tucume',           nombre:'Museo Túcume',                     categoria:'peru', emoji:'🔺', wiki:'Túcume',
+    desc:'El valle de las pirámides en Lambayeque con 26 pirámides truncas construidas por la cultura Lambayeque.' },
 ];
 
 let filtroActual = 'todos';
@@ -267,6 +171,7 @@ function filtrar(cat, btn) {
   document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderGrid();
+  cargarImagenes();
 }
 
 function renderGrid() {
@@ -277,10 +182,9 @@ function renderGrid() {
     const catLabel = m.categoria === 'peru' ? '🇵🇪 Museo peruano' : '🌍 Internacional';
     const catClass = m.categoria === 'peru' ? 'cat-peru' : 'cat-internacional';
     return `
-      <div class="card" data-cat="${m.categoria}">
-        <img class="card-img" src="${m.img}" alt="${m.nombre}"
-          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-        <div class="card-img-placeholder" style="display:none">${m.emoji}</div>
+      <div class="card" data-slug="${m.slug}" data-cat="${m.categoria}">
+        <div class="card-img-placeholder" id="ph-${m.slug}">${m.emoji}</div>
+        <img class="card-img" id="img-${m.slug}" src="" alt="${m.nombre}" style="display:none">
         <div class="card-body">
           <div class="card-cat ${catClass}">${catLabel}</div>
           <div class="card-nombre">${m.nombre}</div>
@@ -295,7 +199,29 @@ function renderGrid() {
   document.getElementById('stats').textContent = `${lista.length} museo${lista.length !== 1 ? 's' : ''} disponible${lista.length !== 1 ? 's' : ''}`;
 }
 
+async function cargarImagen(museo) {
+  try {
+    const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(museo.wiki)}`);
+    if (!r.ok) return;
+    const data = await r.json();
+    const src = data.thumbnail?.source;
+    if (!src) return;
+    const img = document.getElementById(`img-${museo.slug}`);
+    const ph  = document.getElementById(`ph-${museo.slug}`);
+    if (!img) return;
+    img.onload = () => { img.style.display = 'block'; if (ph) ph.style.display = 'none'; };
+    img.onerror = () => {};
+    img.src = src;
+  } catch(e) {}
+}
+
+function cargarImagenes() {
+  const lista = filtroActual === 'todos' ? museos : museos.filter(m => m.categoria === filtroActual);
+  lista.forEach(m => cargarImagen(m));
+}
+
 renderGrid();
+cargarImagenes();
 </script>
 </body>
 </html>
