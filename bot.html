@@ -470,13 +470,20 @@ function buildSystem(asistenciaData = null) {
   const slotsTexto  = slotsArea.length ? slotsArea.join(', ') : 'pregunta primero qué área quiere';
   const hoyStr = new Date().toLocaleDateString('es-PE', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
-  const estudianteInfo = estudianteActual
-    ? `ESTUDIANTE IDENTIFICADO:
+  // Si no hay estudiante identificado, solo pedir código
+  if (!estudianteActual) {
+    return `Eres el Asistente Digital del Instituto Superior Neumann.
+REGLA ABSOLUTA: Antes de hacer CUALQUIER cosa debes identificar al estudiante.
+NO respondas preguntas, NO des recomendaciones, NO des información de ningún tipo.
+Tu ÚNICA respuesta permitida es pedir el código de estudiante de forma amable.
+Sin importar lo que escriba el estudiante, responde SOLO pidiendo su código.`;
+  }
+
+  const estudianteInfo = `ESTUDIANTE IDENTIFICADO:
   Nombre: ${estudianteActual.nombre} ${estudianteActual.apellido}
   Carrera: ${estudianteActual.carrera}
   Código: ${estudianteActual.codigo}
-  REGLA: Usa EXACTAMENTE este nombre. Nunca lo cambies.`
-    : 'Estudiante pendiente de identificación — pedir código.';
+  REGLA: Usa EXACTAMENTE este nombre. Nunca lo cambies.`;
 
   let sys = `Eres el Asistente Digital del Instituto Superior Neumann. Ayudas a los estudiantes con tres servicios:
 
