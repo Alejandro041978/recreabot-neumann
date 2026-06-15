@@ -45,6 +45,7 @@ h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-b
 .mod-recreacion  { --acc: var(--blue)   }
 .mod-salud       { --acc: var(--green)  }
 .mod-asistencia  { --acc: #6366f1      }
+.mod-becas       { --acc: #8b5cf6      }
 
 .loading-kpi{font-size:2rem;color:var(--t3);font-weight:800}
 
@@ -100,6 +101,18 @@ h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-b
     </div>
   </a>
 
+  <!-- Becas -->
+  <a class="modulo mod-becas" href="/beca-dashboard">
+    <div class="mod-icon">🎓</div>
+    <div class="mod-titulo">Becas Asistenciales</div>
+    <div class="mod-kpi" id="kpi-becas"><span class="loading-kpi">…</span></div>
+    <div class="mod-kpi-label" id="kpi-becas-label">Becas otorgadas · semestre activo</div>
+    <div class="mod-link" style="color:#a78bfa">
+      Ver dashboard de becas
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </div>
+  </a>
+
   <!-- Asistencia -->
   <a class="modulo mod-asistencia" href="/asistencia-dashboard">
     <div class="mod-icon">🎓</div>
@@ -141,7 +154,7 @@ async function initAuth() {
   // Filtrar cards por módulos asignados
   const modulos = info.modulos || [];
   if (modulos.length > 0) {
-    const mapa = { cafeteria: '.mod-cafeteria', recreativos: '.mod-recreacion', salud: '.mod-salud', asistencia: '.mod-asistencia' };
+    const mapa = { cafeteria: '.mod-cafeteria', recreativos: '.mod-recreacion', salud: '.mod-salud', asistencia: '.mod-asistencia', becas: '.mod-becas' };
     Object.entries(mapa).forEach(([mod, sel]) => {
       if (!modulos.includes(mod)) document.querySelector(sel)?.remove();
     });
@@ -214,12 +227,29 @@ async function cargarAsistencia() {
   }
 }
 
+async function cargarBecas() {
+  try {
+    const r = await fetch('/api/beca?accion=dashboard');
+    const { postulaciones, resumen } = await r.json();
+    const otorgadas = (resumen?.aprobadas || 0);
+    const total     = (resumen?.total || 0);
+    const el        = document.getElementById('kpi-becas');
+    const label     = document.getElementById('kpi-becas-label');
+    if (el) { el.textContent = otorgadas; el.style.color = '#a78bfa'; }
+    if (label) label.textContent = `${otorgadas} otorgadas / ${total} postulaciones · semestre activo`;
+  } catch(e) {
+    const el = document.getElementById('kpi-becas');
+    if (el) el.textContent = '—';
+  }
+}
+
 initAuth().then(ok => {
   if (!ok) return;
   cargarCafeteria();
   cargarRecreacion();
   cargarSalud();
   cargarAsistencia();
+  cargarBecas();
 });
 </script>
 </body>
