@@ -386,7 +386,7 @@ async function checkAuth() {
     const r = await fetch('/api/staff-info');
     const info = await r.json();
     if (!info.email) { window.location.href = '/login'; return; }
-    if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('becas') && !info.modulos.includes('director')) {
+    if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('becas')) {
       window.location.href = '/ejecutivo'; return;
     }
   } catch(e) { window.location.href = '/login'; }
