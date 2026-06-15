@@ -351,6 +351,25 @@ function renderTabla() {
         </div>
       </div>` : '';
 
+    const declaradoId = `decl_${p.id}`;
+    const declaradoLabels = {
+      ingreso_mensual: 'Ingreso mensual', carga_familiar: 'Carga familiar',
+      tipo_domicilio: 'Tipo de domicilio', salud: 'Salud', sisfoh: 'SISFOH',
+      tiene_deuda: 'Deuda bancaria', evidencias: 'Evidencias', motivo: 'Motivo'
+    };
+    const declaradoHtml = `
+      <button class="detalle-btn" onclick="toggleDetalle('${declaradoId}')" style="margin-left:6px">ver declarado</button>
+      <div class="detalle-panel" id="${declaradoId}">
+        ${Object.entries(declaradoLabels).map(([k, label]) => {
+          let val = p[k];
+          if (val === null || val === undefined || val === '') return '';
+          if (k === 'ingreso_mensual') val = `S/ ${Number(val).toLocaleString('es-PE')}`;
+          if (k === 'tiene_deuda') val = val ? 'Sí' : 'No';
+          return `<div class="detalle-row"><span>${label}</span><span>${val}</span></div>`;
+        }).join('')}
+        ${p.motivo ? `<div class="detalle-row" style="flex-direction:column;gap:4px"><span style="color:var(--t3)">Motivo</span><span style="white-space:pre-wrap;font-size:.75rem">${p.motivo}</span></div>` : ''}
+      </div>`;
+
     return `<tr>
       <td class="rank ${esTop?'top':''}">${rankShow || '—'}</td>
       <td>
@@ -361,6 +380,7 @@ function renderTabla() {
       <td>${conPuntaje
         ? `<span class="puntaje-num">${p.puntaje}</span><span style="font-size:.72rem;color:var(--t3)"> /39</span>${detalleHtml}`
         : `<span class="puntaje-empty">Pendiente</span>`}
+        ${declaradoHtml}
       </td>
       <td style="font-size:.75rem;color:var(--t3)">${fmtFecha(p.ts)}</td>
     </tr>`;
