@@ -63,7 +63,8 @@ export default async function handler(req, res) {
         porResultado[c.resultado] = (porResultado[c.resultado] || 0) + 1;
       }
 
-      res.json({ fecha: ayer.toLocaleDateString('es-PE'), total, porResultado, conversaciones }); return;
+      const fechaLabel = new Date(ayerUTC).toLocaleDateString('es-PE', { timeZone: 'America/Lima' });
+      res.json({ fecha: fechaLabel, total, porResultado, conversaciones }); return;
     }
 
     res.status(400).json({ error: 'Acción no válida' });
