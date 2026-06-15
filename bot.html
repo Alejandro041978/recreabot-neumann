@@ -537,10 +537,13 @@ ${internacionales.map(m => `- ${m.nombre} (slug: ${m.slug}): ${m.descripcion}`).
 MUSEOS PERUANOS:
 ${peruanos.map(m => `- ${m.nombre} (slug: ${m.slug}): ${m.descripcion}`).join('\n')}
 
-REGLAS CULTURA:
-- Siempre usa el link corto: https://recreabot-neumann.vercel.app/r/[slug]
+REGLAS CULTURA — MUY IMPORTANTE:
+- NUNCA uses la URL real del museo. SIEMPRE usa ÚNICAMENTE el link corto con este formato exacto: https://recreabot-neumann.vercel.app/r/[slug]
+- Ejemplo correcto: https://recreabot-neumann.vercel.app/r/british
+- Ejemplo INCORRECTO: britishmuseum.org/collection (PROHIBIDO)
+- El link corto es cliqueable para el estudiante, úsalo siempre
 - Anima al estudiante a visitar varios museos
-- Puedes recomendar según el interés que exprese (arte, historia, ciencia, Perú, etc.)
+- Recomienda según el interés que exprese (arte, historia, ciencia, Perú, etc.)
 - Si el estudiante ya visitó uno, felicítalo y recomiéndale otro`;
   }
 
@@ -564,12 +567,18 @@ const bienvenida = AREA
 const chipsIniciales = ['Tengo mi código', 'Reservar área', 'Ver mi asistencia', 'Museos virtuales'];
 
 // ── RENDER ──
+function linkify(text) {
+  return text
+    .replace(/\n/g, '<br>')
+    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:#60a5fa;text-decoration:underline">$1</a>');
+}
+
 function addMsg(role, text) {
   const wrap = document.getElementById('messages');
   const time = new Date().toLocaleTimeString('es-PE', {hour:'2-digit', minute:'2-digit'});
   const div = document.createElement('div');
   div.className = `msg ${role}`;
-  div.innerHTML = `<div class="bubble">${text.replace(/\n/g,'<br>')}</div><div class="msg-time">${time}</div>`;
+  div.innerHTML = `<div class="bubble">${linkify(text)}</div><div class="msg-time">${time}</div>`;
   wrap.appendChild(div);
   wrap.scrollTop = wrap.scrollHeight;
 }
