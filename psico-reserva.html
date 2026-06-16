@@ -220,7 +220,8 @@ async function verificar() {
   try {
     const r = await fetch(`/api/estudiantes?codigo=${encodeURIComponent(codigo)}`);
     const data = await r.json();
-    const est = Array.isArray(data) ? data[0] : data?.estudiante;
+    // API devuelve { encontrado, codigo, nombre, ... } directamente
+    const est = data?.encontrado ? data : (Array.isArray(data) ? data[0] : null);
 
     if (!est || !est.codigo) throw new Error('Código no encontrado. Verifica e intenta de nuevo.');
     if (est.activo === false || est.activo === 0) throw new Error('Tu código está inactivo. Consulta con Secretaría.');
