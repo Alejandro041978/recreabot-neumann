@@ -1,8 +1,5 @@
 // api/otp.js — OTP para autenticación de estudiantes
 import { query } from './_supabase.js';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 function maskEmail(email) {
   if (!email) return '***@***.***';
@@ -46,22 +43,27 @@ export default async function handler(req, res) {
       });
 
       // Enviar email
-      await resend.emails.send({
-        from: process.env.EMAIL_FROM || 'Instituto Neumann <onboarding@resend.dev>',
-        to: est.email,
-        subject: 'Tu código de acceso — Instituto Neumann',
-        html: `
-          <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;background:#0f1117;color:#e2e8f0;border-radius:12px">
-            <h2 style="font-size:1.1rem;color:#a5b4fc;margin-bottom:8px">🔐 Código de acceso</h2>
-            <p style="color:#94a3b8;font-size:0.9rem;margin-bottom:24px">Hola <strong style="color:#e2e8f0">${est.nombre}</strong>, usa este código para ingresar al Portal Estudiantes:</p>
-            <div style="background:#1a2235;border:2px solid #6366f1;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px">
-              <div style="font-size:2.8rem;font-weight:800;letter-spacing:12px;color:#a5b4fc">${otpCode}</div>
-              <div style="font-size:0.75rem;color:#64748b;margin-top:8px">Válido por 5 minutos · Uso único</div>
+      const emailRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: process.env.EMAIL_FROM || 'Instituto Neumann <onboarding@resend.dev>',
+          to: est.email,
+          subject: 'Tu código de acceso — Instituto Neumann',
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;background:#0f1117;color:#e2e8f0;border-radius:12px">
+              <h2 style="font-size:1.1rem;color:#a5b4fc;margin-bottom:8px">🔐 Código de acceso</h2>
+              <p style="color:#94a3b8;font-size:0.9rem;margin-bottom:24px">Hola <strong style="color:#e2e8f0">${est.nombre}</strong>, usa este código para ingresar al Portal Estudiantes:</p>
+              <div style="background:#1a2235;border:2px solid #6366f1;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px">
+                <div style="font-size:2.8rem;font-weight:800;letter-spacing:12px;color:#a5b4fc">${otpCode}</div>
+                <div style="font-size:0.75rem;color:#64748b;margin-top:8px">Válido por 5 minutos · Uso único</div>
+              </div>
+              <p style="color:#64748b;font-size:0.78rem">Si no solicitaste este código, ignora este mensaje. Nadie del Instituto te pedirá este código.</p>
             </div>
-            <p style="color:#64748b;font-size:0.78rem">Si no solicitaste este código, ignora este mensaje. Nadie del Instituto te pedirá este código.</p>
-          </div>
-        `,
+          `,
+        }),
       });
+      if (!emailRes.ok) { const d = await emailRes.json(); throw new Error(d.message || 'Error al enviar email'); }
 
       res.json({
         ok: true,
