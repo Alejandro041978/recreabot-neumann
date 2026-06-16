@@ -15,10 +15,21 @@ export default async function handler(req, res) {
       const q = (req.query.q || '').trim();
       if (!q) { res.json([]); return; }
 
-      // Búsqueda full-text en español
-      const encoded = encodeURIComponent(q.split(/\s+/).filter(Boolean).join(' & '));
-      let resultados = await query('conocimientos', 'GET', null,
-        `?activo=eq.true&order=creado_en.asc&limit=5&or=(pregunta.ilike.*${encodeURIComponent(q)}*,respuesta.ilike.*${encodeURIComponent(q)}*,tags.ilike.*${encodeURIComponent(q)}*)`
+      // Extraer palabras significativas (más de 3 caracteres)
+      const palabras = [...new Set(
+        q.toLowerCase().split(/\s+/).filter(w => w.length > 3)
+      )].slice(0, 6);
+
+      if (!palabras.length) { res.json([]); return; }
+
+      // Buscar cada palabra en pregunta, respuesta y tags
+      const condiciones = palabras.flatMap(p => {
+        const enc = encodeURIComponent(p);
+        return [`pregunta.ilike.*${enc}*`, `respuesta.ilike.*${enc}*`, `tags.ilike.*${enc}*`];
+      }).join(',');
+
+      const resultados = await query('conocimientos', 'GET', null,
+        `?activo=eq.true&limit=4&or=(${condiciones})`
       );
       res.json(resultados || []);
       return;
