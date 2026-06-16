@@ -189,7 +189,12 @@ async function cargarDentro() {
       return;
     }
     tbody.innerHTML = dentro.map(e => {
-      const hora = new Date(e.fecha).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Lima' });
+      // e.fecha es hora Lima sin offset (ZKTeco), extraer HH:MM directo para evitar conversión UTC errónea
+      const horaRaw = e.fecha ? e.fecha.substring(11, 16) : '—';
+      const [hh, mm] = horaRaw.split(':').map(Number);
+      const ampm = hh >= 12 ? 'p.m.' : 'a.m.';
+      const hh12 = hh % 12 || 12;
+      const hora = `${hh12}:${String(mm).padStart(2,'0')} ${ampm}`;
       const nombre = `${e.nombre || ''} ${e.apellido_paterno || ''} ${e.apellido_materno || ''}`.trim();
       return `<tr>
         <td style="color:var(--t3)">${e.codigo || '—'}</td>
