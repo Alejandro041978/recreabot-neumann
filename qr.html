@@ -147,6 +147,17 @@
 <button class="btn-print no-print" onclick="window.print()">🖨️ Imprimir QR (Ctrl+P)</button>
 
 <script>
+const extras = [
+  {
+    id: 'cafeteria',
+    emoji: '☕',
+    name: 'Cafetería',
+    color: '#f59e0b',
+    desc: 'Evalúa el servicio de cafetería',
+    defaultUrl: 'https://system.neumann.edu.pe/cafeteria'
+  }
+];
+
 const areas = [
   {
     id: 'canchita-a',
@@ -244,7 +255,26 @@ function updateQR(areaId, url) {
 
 // Init
 const grid = document.getElementById('qr-grid');
+
+// Sección áreas recreativas
+const h2rec = document.createElement('h2');
+h2rec.style.cssText = 'grid-column:1/-1;font-size:1rem;color:#1e3a5f;margin-bottom:-8px;padding-bottom:4px;border-bottom:2px solid #e2e8f0';
+h2rec.textContent = '🏃 Áreas Recreativas';
+grid.appendChild(h2rec);
+
 areas.forEach(area => {
+  const card = createCard(area);
+  grid.appendChild(card);
+  setTimeout(() => generateQR(`qr-${area.id}`, area.defaultUrl), 100);
+});
+
+// Sección servicios
+const h2srv = document.createElement('h2');
+h2srv.style.cssText = 'grid-column:1/-1;font-size:1rem;color:#1e3a5f;margin-top:8px;margin-bottom:-8px;padding-bottom:4px;border-bottom:2px solid #e2e8f0';
+h2srv.textContent = '🏢 Servicios del Campus';
+grid.appendChild(h2srv);
+
+extras.forEach(area => {
   const card = createCard(area);
   grid.appendChild(card);
   setTimeout(() => generateQR(`qr-${area.id}`, area.defaultUrl), 100);
