@@ -130,7 +130,16 @@ body{padding:24px 16px 60px;max-width:560px;margin:0 auto}
       <div style="font-size:0.78rem;color:var(--t3);margin-bottom:14px;text-align:center">
         Ya tienes una sesión reservada. Cancélala para reservar otra.
       </div>
-      <button class="btn-sec" onclick="cancelarReserva()" id="btnCancelar">✕ Cancelar mi reserva</button>
+      <!-- Confirmación inline (sin confirm() nativo) -->
+      <div id="cancelConfirm" style="display:none;background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.3);border-radius:10px;padding:14px;margin-bottom:10px;text-align:center">
+        <div style="font-size:0.82rem;color:var(--red);font-weight:600;margin-bottom:10px">¿Seguro que quieres cancelar tu sesión?</div>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button onclick="confirmarCancelacion()" style="padding:7px 18px;background:var(--red);color:#fff;border:none;border-radius:7px;font-weight:700;font-size:0.82rem;cursor:pointer;font-family:'Inter',sans-serif">Sí, cancelar</button>
+          <button onclick="ocultarConfirmCancel()" style="padding:7px 18px;background:none;color:var(--t2);border:1.5px solid var(--b);border-radius:7px;font-weight:700;font-size:0.82rem;cursor:pointer;font-family:'Inter',sans-serif">No, volver</button>
+        </div>
+      </div>
+      <div class="msg-err" id="errCancelar"></div>
+      <button class="btn-sec" onclick="pedirConfirmCancelacion()" id="btnCancelar">✕ Cancelar mi reserva</button>
     </div>
 
     <!-- Slots disponibles -->
@@ -282,11 +291,24 @@ function mostrarReservaExistente() {
   document.getElementById('slotsWrap').style.display = 'none';
 }
 
-async function cancelarReserva() {
+function pedirConfirmCancelacion() {
+  document.getElementById('cancelConfirm').style.display = 'block';
+  document.getElementById('btnCancelar').style.display = 'none';
+  document.getElementById('errCancelar').style.display = 'none';
+}
+
+function ocultarConfirmCancel() {
+  document.getElementById('cancelConfirm').style.display = 'none';
+  document.getElementById('btnCancelar').style.display = 'block';
+}
+
+async function confirmarCancelacion() {
   if (!reservaActual) return;
-  if (!confirm('¿Seguro que quieres cancelar tu sesión?')) return;
+  const errEl = document.getElementById('errCancelar');
+  errEl.style.display = 'none';
+  document.getElementById('cancelConfirm').style.display = 'none';
   const btn = document.getElementById('btnCancelar');
-  btn.disabled = true; btn.textContent = 'Cancelando...';
+  btn.disabled = true; btn.textContent = 'Cancelando...'; btn.style.display = 'block';
   try {
     const r = await fetch('/api/psico-reservas', {
       method: 'POST',
@@ -294,13 +316,13 @@ async function cancelarReserva() {
       body: JSON.stringify({ accion: 'cancelar-propia', codigo: estudianteActual.codigo, id: reservaActual.id }),
     });
     const data = await r.json();
-    if (!data.ok) throw new Error(data.error);
+    if (!data.ok) throw new Error(data.error || 'No se pudo cancelar la reserva');
     reservaActual = null;
     document.getElementById('reservaExistente').style.display = 'none';
     document.getElementById('slotsWrap').style.display = 'block';
     await cargarSlots();
   } catch(e) {
-    alert('Error: ' + e.message);
+    errEl.textContent = e.message; errEl.style.display = 'block';
   } finally {
     btn.disabled = false; btn.textContent = '✕ Cancelar mi reserva';
   }
@@ -326,13 +348,14 @@ function hoyLima() {
 }
 
 async function cargarSlots() {
-  document.getElementById('spinnerSlots').style.display = 'block';
+  const spinner = document.getElementById('spinnerSlots');
+  spinner.style.display = 'block';
   document.getElementById('calGrid').innerHTML = '';
   document.getElementById('semLabel').textContent = '';
   try {
     const r = await fetch('/api/psico-reservas?accion=slots');
-    todosSlots = await r.json();
-    document.getElementById('spinnerSlots').style.display = 'none';
+    const json = await r.json();
+    todosSlots = Array.isArray(json) ? json : [];
 
     if (!todosSlots.length) {
       document.getElementById('calGrid').innerHTML =
@@ -358,9 +381,10 @@ async function cargarSlots() {
     semanaActual = 0;
     renderSemana();
   } catch(e) {
-    document.getElementById('spinnerSlots').style.display = 'none';
     document.getElementById('calGrid').innerHTML =
-      `<div class="no-slots" style="grid-column:1/-1">Error al cargar: ${e.message}</div>`;
+      `<div class="no-slots" style="grid-column:1/-1">Error al cargar horarios. Intenta nuevamente.</div>`;
+  } finally {
+    document.getElementById('spinnerSlots').style.display = 'none';
   }
 }
 
