@@ -55,6 +55,7 @@
     { "src": "/api/conversaciones",    "dest": "/api/conversaciones.js"     },
     { "src": "/charla",                 "dest": "/charla.html"               },
     { "src": "/salud-dashboard",        "dest": "/salud-dashboard.html"      },
+    { "src": "/salud-gestion",          "dest": "/salud-gestion.html"        },
     { "src": "/atencion-eval",          "dest": "/atencion-eval.html"        },
     { "src": "/asistencia-dashboard",   "dest": "/asistencia-dashboard.html" },
     { "src": "/beca",                   "dest": "/beca.html"                 },
