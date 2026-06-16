@@ -280,7 +280,7 @@ function renderTabla(entradas) {
     <tr>
       <td><span class="badge-tema">${e.tema}</span></td>
       <td class="td-pregunta">${e.pregunta}</td>
-      <td class="td-respuesta">${e.respuesta.length > 120 ? e.respuesta.slice(0,120)+'…' : e.respuesta}</td>
+      <td class="td-respuesta">${e.respuesta?.startsWith('https://') ? `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.3);border-radius:6px;font-size:0.72rem;color:var(--acc2)">📎 ${e.respuesta.split('.').pop().toUpperCase().split('?')[0]}</span>` : (e.respuesta.length > 120 ? e.respuesta.slice(0,120)+'…' : e.respuesta)}</td>
       <td class="td-tags">${e.tags || '—'}</td>
       <td><span class="${e.activo ? 'badge-activo' : 'badge-inactivo'}">${e.activo ? '● Activa' : '○ Inactiva'}</span></td>
       <td>
