@@ -66,8 +66,15 @@ body{display:flex;flex-direction:column;align-items:center;padding:24px 16px 60p
 <div class="titulo">Evalúa la Charla Psicopedagógica</div>
 <div class="subtitulo">Instituto Superior Neumann · Tu opinión mejora nuestras charlas</div>
 
+<!-- Bloqueada -->
+<div id="bloqueada" style="display:none;flex-direction:column;align-items:center;text-align:center;padding:40px 20px;max-width:440px">
+  <div style="font-size:3rem;margin-bottom:16px">🔒</div>
+  <div style="font-size:1.1rem;font-weight:800;color:var(--acc2);margin-bottom:8px">Evaluación no disponible</div>
+  <div id="bloqueadaMsg" style="font-size:0.88rem;color:var(--t3);line-height:1.6"></div>
+</div>
+
 <!-- Paso 1: identificación -->
-<div id="pasoIdentificacion">
+<div id="pasoIdentificacion" style="display:none">
   <div class="id-card">
     <div class="id-label">Ingresa tu código de estudiante</div>
     <input class="id-input" id="codigoInput" placeholder="Ej: 20230001" maxlength="20" autocomplete="off">
@@ -138,6 +145,26 @@ body{display:flex;flex-direction:column;align-items:center;padding:24px 16px 60p
 <script>
 let estudianteVerificado = null;
 const resp = {};
+let tokenSesion = null;
+
+async function validarSesion() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  if (!token) { mostrarBloqueada('Acceso no válido. Escanea el QR de la charla.'); return; }
+  tokenSesion = token;
+  try {
+    const r = await fetch(`/api/sesiones-charla?accion=validar&token=${token}`);
+    const data = await r.json();
+    if (!data.valido) { mostrarBloqueada(data.motivo || 'Esta evaluación no está disponible.'); return; }
+    document.getElementById('pasoIdentificacion').style.display = 'block';
+  } catch(e) { mostrarBloqueada('Error al validar la sesión. Intenta de nuevo.'); }
+}
+
+function mostrarBloqueada(motivo) {
+  document.getElementById('pasoIdentificacion').style.display = 'none';
+  document.getElementById('bloqueada').style.display = 'flex';
+  document.getElementById('bloqueadaMsg').textContent = motivo;
+}
 
 async function verificar() {
   const codigo = document.getElementById('codigoInput').value.trim();
@@ -175,6 +202,8 @@ async function verificar() {
 
 document.getElementById('btnVerificar').addEventListener('click', verificar);
 document.getElementById('codigoInput').addEventListener('keydown', e => { if(e.key==='Enter') verificar(); });
+
+validarSesion();
 
 document.querySelectorAll('.likert').forEach(g => {
   g.querySelectorAll('.likert-btn').forEach(btn => {

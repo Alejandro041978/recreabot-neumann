@@ -15,6 +15,7 @@
     { "src": "api/asistencia.js",        "use": "@vercel/node" },
     { "src": "api/conversaciones.js",     "use": "@vercel/node" },
     { "src": "api/psicopedagogico.js",   "use": "@vercel/node" },
+    { "src": "api/sesiones-charla.js",  "use": "@vercel/node" },
     { "src": "*.html",                   "use": "@vercel/static" }
   ],
   "crons": [
@@ -56,6 +57,7 @@
     { "src": "/cultura-dashboard",      "dest": "/cultura-dashboard.html"    },
     { "src": "/cultura",                    "dest": "/cultura.html"                    },
     { "src": "/api/psicopedagogico",        "dest": "/api/psicopedagogico.js"          },
+    { "src": "/api/sesiones-charla",        "dest": "/api/sesiones-charla.js"          },
     { "src": "/psicopedagogico-dashboard",  "dest": "/psicopedagogico-dashboard.html"  },
     { "src": "/psico-atencion-eval",        "dest": "/psico-atencion-eval.html"        },
     { "src": "/psico-charla-eval",          "dest": "/psico-charla-eval.html"          },

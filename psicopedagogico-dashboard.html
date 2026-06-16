@@ -132,6 +132,32 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<!-- Panel QR Charla -->
+<div class="seccion" style="margin-bottom:20px">
+  <div class="seccion-titulo"><span>📲 Generar QR para charla psicopedagógica</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+    <div class="form-field" style="margin:0">
+      <label>Fecha</label>
+      <input type="date" id="qFecha">
+    </div>
+    <div class="form-field" style="margin:0">
+      <label>Hora inicio</label>
+      <input type="time" id="qInicio">
+    </div>
+    <div class="form-field" style="margin:0">
+      <label>Hora fin</label>
+      <input type="time" id="qFin">
+    </div>
+  </div>
+  <button class="btn btn-acc btn-sm" onclick="generarQR()">Generar QR</button>
+  <div id="qrResult" style="display:none;margin-top:20px;text-align:center">
+    <div id="qrCanvas" style="display:inline-block;padding:12px;background:white;border-radius:10px;margin-bottom:12px"></div>
+    <div style="font-size:0.78rem;color:var(--t3);margin-bottom:8px" id="qrInfo"></div>
+    <button class="btn btn-sec btn-sm" onclick="imprimirQR()">🖨️ Imprimir QR</button>
+  </div>
+  <div class="msg-err" id="qrErr"></div>
+</div>
+
 <div class="busqueda-wrap">
   <div class="busqueda-titulo">🔍 Buscar estudiante</div>
   <div class="search-row">
@@ -498,6 +524,55 @@ function badgeTipo(t) {
 function formatFecha(iso) {
   try { return new Date(iso).toLocaleString('es-PE',{timeZone:'America/Lima',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true}); }
   catch(e){ return iso; }
+}
+
+// ── QR para charla ──
+async function generarQR() {
+  const fecha = document.getElementById('qFecha').value;
+  const inicio = document.getElementById('qInicio').value;
+  const fin = document.getElementById('qFin').value;
+  const errEl = document.getElementById('qrErr');
+  errEl.style.display = 'none';
+  if (!fecha || !inicio || !fin) {
+    errEl.textContent = 'Completa fecha, hora inicio y hora fin'; errEl.style.display = 'block'; return;
+  }
+  if (inicio >= fin) {
+    errEl.textContent = 'La hora de fin debe ser mayor que la de inicio'; errEl.style.display = 'block'; return;
+  }
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const r = await fetch('/api/sesiones-charla', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token||''}` },
+      body: JSON.stringify({ modulo: 'psicopedagogico', fecha, hora_inicio: inicio, hora_fin: fin }),
+    });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || 'Error al crear sesión');
+    const url = `${window.location.origin}/psico-charla-eval?token=${data.token}`;
+    const canvas = document.getElementById('qrCanvas');
+    canvas.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}" alt="QR charla" style="display:block">`;
+    document.getElementById('qrInfo').textContent = `Válido el ${fecha} de ${inicio} a ${fin}`;
+    document.getElementById('qrResult').style.display = 'block';
+  } catch(e) {
+    errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block';
+  }
+}
+
+function imprimirQR() {
+  const canvas = document.getElementById('qrCanvas');
+  const info = document.getElementById('qrInfo').textContent;
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>QR Charla Psicopedagógica</title>
+  <style>body{font-family:Arial,sans-serif;text-align:center;padding:40px}
+  h2{font-size:1.4rem;margin-bottom:6px}p{font-size:0.9rem;color:#555;margin-bottom:20px}
+  img{width:260px;height:260px}</style></head><body>
+  <h2>🧠 Charla Psicopedagógica — Instituto Neumann</h2>
+  <p>Escanea el QR para evaluar la charla</p>
+  ${canvas.innerHTML}
+  <p style="margin-top:16px;font-size:0.8rem;color:#888">${info}</p>
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
+  win.document.close();
 }
 
 initAuth().then(ok => { if (ok) cargarKpis(); });
