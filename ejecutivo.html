@@ -152,6 +152,8 @@ const sb = supabase.createClient(
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = '/login'; return false; }
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal.currentLevel !== 'aal2') { await sb.auth.signOut(); window.location.href = '/login'; return false; }
   const r = await fetch('/api/staff-info', {
     headers: { 'Authorization': `Bearer ${session.access_token}` }
   });

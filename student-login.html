@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Acceso Estudiantes — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#6366f1;--acc2:#a5b4fc;--text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+  --green:#10b981;--red:#ef4444;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px 16px}
+
+.card{background:var(--s);border:1px solid var(--b);border-radius:16px;padding:36px 28px;width:100%;max-width:380px}
+.logo{font-size:2rem;text-align:center;margin-bottom:8px}
+.titulo{font-size:1.2rem;font-weight:800;color:var(--acc2);text-align:center;margin-bottom:4px}
+.subtitulo{font-size:0.78rem;color:var(--t3);text-align:center;margin-bottom:28px}
+
+.step{display:none}
+.step.activo{display:block}
+
+label{display:block;font-size:0.75rem;font-weight:600;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
+.input-text{
+  width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;
+  padding:11px 14px;color:var(--text);font-size:0.9rem;font-family:'Inter',sans-serif;
+  outline:none;margin-bottom:16px;
+}
+.input-text:focus{border-color:var(--acc)}
+.input-text::placeholder{color:var(--t3)}
+
+.input-otp{
+  width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;
+  padding:14px;color:var(--text);font-size:2rem;font-family:'Inter',sans-serif;
+  outline:none;margin-bottom:16px;text-align:center;letter-spacing:10px;font-weight:700;
+}
+.input-otp:focus{border-color:var(--acc)}
+
+.btn{
+  width:100%;padding:13px;border-radius:10px;border:none;
+  background:var(--acc);color:#fff;font-size:0.95rem;font-weight:700;
+  cursor:pointer;margin-top:4px;transition:opacity .15s;font-family:'Inter',sans-serif;
+}
+.btn:hover{opacity:.85}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{background:none;border:1px solid var(--b);color:var(--t2);margin-top:10px}
+.btn-ghost:hover{border-color:var(--acc);color:var(--text);opacity:1}
+
+.msg{padding:10px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;margin-top:14px;display:none;text-align:center}
+.msg.err{background:rgba(239,68,68,.12);border:1px solid var(--red);color:var(--red)}
+.msg.ok{background:rgba(16,185,129,.12);border:1px solid var(--green);color:var(--green)}
+
+.est-card{background:rgba(99,102,241,.1);border:1px solid var(--acc);border-radius:10px;padding:12px 16px;margin-bottom:16px;text-align:center}
+.est-nombre{font-size:0.95rem;font-weight:700;color:var(--acc2)}
+.est-carrera{font-size:0.75rem;color:var(--t3);margin-top:3px}
+
+.instruccion{font-size:0.8rem;color:var(--t3);margin-bottom:16px;line-height:1.5}
+.email-hint{font-size:0.75rem;color:var(--acc2);font-weight:600;text-align:center;margin-bottom:16px}
+
+.timer{font-size:0.72rem;color:var(--t3);text-align:center;margin-top:8px}
+.timer span{color:var(--acc2);font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">🎓</div>
+  <div class="titulo">Portal Estudiantes</div>
+  <div class="subtitulo">Instituto Superior Neumann</div>
+
+  <!-- PASO 1: Código de estudiante -->
+  <div id="paso1" class="step activo">
+    <label>Tu código de estudiante</label>
+    <input class="input-text" type="text" id="codigoInput" placeholder="Ej: 20230001" maxlength="20" autocomplete="off" inputmode="numeric">
+    <button class="btn" id="btnEnviar">Enviar código de acceso</button>
+    <div class="msg" id="msg1"></div>
+  </div>
+
+  <!-- PASO 2: Ingresar OTP -->
+  <div id="paso2" class="step">
+    <div class="est-card">
+      <div class="est-nombre" id="estNombre"></div>
+      <div class="est-carrera" id="estCarrera"></div>
+    </div>
+    <div class="instruccion">Te enviamos un código de 6 dígitos a:</div>
+    <div class="email-hint" id="emailHint"></div>
+    <div class="instruccion">Ingresa el código para acceder. Válido por <strong>5 minutos</strong>.</div>
+    <label>Código de acceso</label>
+    <input class="input-otp" type="text" id="otpInput" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+    <button class="btn" id="btnVerificar">Verificar e ingresar</button>
+    <div class="timer" id="timer"></div>
+    <div class="msg" id="msg2"></div>
+    <button class="btn btn-ghost" onclick="volverPaso1()">← Cambiar código</button>
+  </div>
+
+</div>
+
+<script>
+let codigoActual = null;
+let timerInterval = null;
+let segundosRestantes = 300;
+
+function volverPaso1() {
+  clearInterval(timerInterval);
+  document.getElementById('codigoInput').value = '';
+  document.getElementById('otpInput').value = '';
+  document.getElementById('msg1').style.display = 'none';
+  document.getElementById('msg2').style.display = 'none';
+  mostrarPaso('paso1');
+  document.getElementById('codigoInput').focus();
+}
+
+function mostrarPaso(id) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('activo'));
+  document.getElementById(id).classList.add('activo');
+}
+
+function iniciarTimer() {
+  segundosRestantes = 300;
+  clearInterval(timerInterval);
+  actualizarTimer();
+  timerInterval = setInterval(() => {
+    segundosRestantes--;
+    actualizarTimer();
+    if (segundosRestantes <= 0) {
+      clearInterval(timerInterval);
+      document.getElementById('timer').textContent = 'El código expiró. Vuelve a intentarlo.';
+      document.getElementById('btnVerificar').disabled = true;
+    }
+  }, 1000);
+}
+
+function actualizarTimer() {
+  const min = Math.floor(segundosRestantes / 60);
+  const seg = segundosRestantes % 60;
+  document.getElementById('timer').innerHTML = `Expira en <span>${min}:${seg.toString().padStart(2,'0')}</span>`;
+}
+
+// ── Paso 1: Enviar OTP ──
+document.getElementById('btnEnviar').addEventListener('click', async () => {
+  const codigo = document.getElementById('codigoInput').value.trim();
+  const btn = document.getElementById('btnEnviar');
+  const msg = document.getElementById('msg1');
+  if (!codigo) { msg.textContent = 'Ingresa tu código de estudiante'; msg.className='msg err'; msg.style.display='block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Enviando...'; msg.style.display = 'none';
+
+  try {
+    const r = await fetch('/api/otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'enviar', codigo }),
+    });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || 'Error al enviar');
+
+    codigoActual = codigo;
+    document.getElementById('estNombre').textContent = data.nombre;
+    document.getElementById('estCarrera').textContent = data.carrera;
+    document.getElementById('emailHint').textContent = data.email_masked;
+    mostrarPaso('paso2');
+    iniciarTimer();
+    document.getElementById('otpInput').focus();
+
+  } catch(e) {
+    msg.textContent = e.message;
+    msg.className = 'msg err'; msg.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Enviar código de acceso';
+  }
+});
+
+// ── Paso 2: Verificar OTP ──
+document.getElementById('btnVerificar').addEventListener('click', async () => {
+  const otp = document.getElementById('otpInput').value.trim();
+  const btn = document.getElementById('btnVerificar');
+  const msg = document.getElementById('msg2');
+  if (otp.length !== 6) { msg.textContent = 'El código tiene 6 dígitos'; msg.className='msg err'; msg.style.display='block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Verificando...'; msg.style.display = 'none';
+
+  try {
+    const r = await fetch('/api/otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'verificar', codigo: codigoActual, otp }),
+    });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || 'Código incorrecto');
+
+    clearInterval(timerInterval);
+    sessionStorage.setItem('neumann_student_token', data.token);
+    sessionStorage.setItem('neumann_student_codigo', data.codigo);
+    sessionStorage.setItem('neumann_student_nombre', data.nombre);
+
+    msg.textContent = '✅ Acceso verificado. Ingresando...';
+    msg.className = 'msg ok'; msg.style.display = 'block';
+
+    const dest = sessionStorage.getItem('neumann_student_redirect') || '/portal-estudiante';
+    sessionStorage.removeItem('neumann_student_redirect');
+    setTimeout(() => window.location.href = dest, 1000);
+
+  } catch(e) {
+    msg.textContent = e.message === 'Código incorrecto o expirado' ? e.message : 'Código incorrecto. Verifica e intenta de nuevo.';
+    msg.className = 'msg err'; msg.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Verificar e ingresar';
+    document.getElementById('otpInput').value = '';
+    document.getElementById('otpInput').focus();
+  }
+});
+
+// Solo dígitos
+document.getElementById('otpInput').addEventListener('input', function() {
+  this.value = this.value.replace(/\D/g,'').slice(0,6);
+});
+
+// Enter
+document.getElementById('codigoInput').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('btnEnviar').click(); });
+document.getElementById('otpInput').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('btnVerificar').click(); });
+</script>
+</body>
+</html>

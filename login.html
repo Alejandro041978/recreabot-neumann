@@ -11,6 +11,7 @@
 :root{
   --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
   --acc:#3b82f6;--acc2:#60a5fa;--text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+  --green:#10b981;--red:#ef4444;
 }
 html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
 body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px 16px}
@@ -20,8 +21,11 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 .titulo{font-size:1.2rem;font-weight:800;color:var(--acc2);text-align:center;margin-bottom:4px}
 .subtitulo{font-size:0.78rem;color:var(--t3);text-align:center;margin-bottom:28px}
 
+.step{display:none}
+.step.activo{display:block}
+
 label{display:block;font-size:0.75rem;font-weight:600;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
-input{
+input[type=email],input[type=password],input[type=text]{
   width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;
   padding:11px 14px;color:var(--text);font-size:0.9rem;font-family:'Inter',sans-serif;
   outline:none;margin-bottom:16px;
@@ -29,16 +33,34 @@ input{
 input:focus{border-color:var(--acc)}
 input::placeholder{color:var(--t3)}
 
+.input-codigo{
+  width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;
+  padding:14px;color:var(--text);font-size:1.8rem;font-family:'Inter',sans-serif;
+  outline:none;margin-bottom:16px;text-align:center;letter-spacing:8px;font-weight:700;
+}
+.input-codigo:focus{border-color:var(--acc)}
+
 .btn{
   width:100%;padding:13px;border-radius:10px;border:none;
   background:var(--acc);color:#fff;font-size:0.95rem;font-weight:700;
-  cursor:pointer;margin-top:4px;transition:opacity .15s;
+  cursor:pointer;margin-top:4px;transition:opacity .15s;font-family:'Inter',sans-serif;
 }
 .btn:hover{opacity:.85}
 .btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{background:none;border:1px solid var(--b);color:var(--t2);margin-top:10px}
+.btn-ghost:hover{border-color:var(--acc);color:var(--text);opacity:1}
 
 .msg{padding:10px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;margin-top:14px;display:none;text-align:center}
-.msg.err{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#ef4444}
+.msg.err{background:rgba(239,68,68,.12);border:1px solid var(--red);color:var(--red)}
+.msg.ok{background:rgba(16,185,129,.12);border:1px solid var(--green);color:var(--green)}
+
+.badge-mfa{display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.1);border:1px solid var(--acc);color:var(--acc2);border-radius:20px;padding:4px 12px;font-size:0.72rem;font-weight:700;margin-bottom:20px}
+
+.qr-wrap{background:white;border-radius:12px;padding:14px;text-align:center;margin-bottom:14px}
+.qr-wrap img{width:180px;height:180px;display:block;margin:0 auto}
+.secret-box{background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:10px 14px;text-align:center;font-family:monospace;font-size:0.85rem;color:var(--acc2);letter-spacing:2px;margin-bottom:14px;word-break:break-all}
+.instruccion{font-size:0.78rem;color:var(--t3);margin-bottom:16px;line-height:1.5}
+.paso-num{font-size:0.68rem;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -48,14 +70,42 @@ input::placeholder{color:var(--t3)}
   <div class="titulo">Acceso Staff</div>
   <div class="subtitulo">Instituto Superior Neumann</div>
 
-  <label>Correo institucional</label>
-  <input type="email" id="email" placeholder="nombre@neumann.education" autocomplete="email">
+  <!-- PASO 1: Credenciales -->
+  <div id="paso1" class="step activo">
+    <label>Correo institucional</label>
+    <input type="email" id="email" placeholder="nombre@neumann.education" autocomplete="email">
+    <label>Contraseña</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+    <button class="btn" id="btnLogin">Ingresar</button>
+    <div class="msg" id="msg1"></div>
+  </div>
 
-  <label>Contraseña</label>
-  <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+  <!-- PASO 2a: Verificar MFA (ya configurado) -->
+  <div id="paso2verify" class="step">
+    <div class="badge-mfa">🔐 Verificación en dos pasos</div>
+    <div class="instruccion">Ingresa el código de 6 dígitos de tu app autenticadora (Google Authenticator, Authy, etc.)</div>
+    <label>Código de autenticación</label>
+    <input class="input-codigo" type="text" id="totpVerify" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+    <button class="btn" id="btnVerify">Verificar código</button>
+    <div class="msg" id="msg2v"></div>
+  </div>
 
-  <button class="btn" id="btnLogin">Ingresar</button>
-  <div class="msg" id="msg"></div>
+  <!-- PASO 2b: Enrolar MFA (primera vez) -->
+  <div id="paso2enroll" class="step">
+    <div class="badge-mfa">🔐 Configurar autenticación en dos pasos</div>
+    <div class="paso-num">Paso 1 — Escanea el QR</div>
+    <div class="instruccion">Abre Google Authenticator o Authy, presiona "Agregar cuenta" y escanea el código QR.</div>
+    <div class="qr-wrap"><img id="qrImg" alt="QR MFA"></div>
+    <div class="instruccion" style="margin-bottom:6px">¿No puedes escanear? Ingresa esta clave manualmente:</div>
+    <div class="secret-box" id="secretKey"></div>
+    <div class="paso-num">Paso 2 — Confirma con el código</div>
+    <div class="instruccion">Ingresa el código de 6 dígitos que aparece en tu app para confirmar la configuración.</div>
+    <label>Código de confirmación</label>
+    <input class="input-codigo" type="text" id="totpEnroll" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+    <button class="btn" id="btnEnroll">Activar autenticador</button>
+    <div class="msg" id="msg2e"></div>
+  </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -65,23 +115,51 @@ const sb = supabase.createClient(
   'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
 );
 
-// Si ya hay sesión activa, redirigir directo
-sb.auth.getSession().then(({ data: { session } }) => {
-  if (session) window.location.href = '/ejecutivo';
+let factorId = null;
+
+function mostrarPaso(id) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('activo'));
+  document.getElementById(id).classList.add('activo');
+}
+
+// Si ya hay sesión AAL2 activa, redirigir directo
+sb.auth.getSession().then(async ({ data: { session } }) => {
+  if (!session) return;
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal.currentLevel === 'aal2') redirigir();
 });
 
+async function redirigir() {
+  const { data: { session } } = await sb.auth.getSession();
+  const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
+  const info = await r.json();
+  if (!r.ok) { await sb.auth.signOut(); window.location.href = '/login'; return; }
+  const modulos = info.modulos || [];
+  if (modulos.length === 1) {
+    const dest = {
+      salud: '/salud-dashboard', cafeteria: '/cafeteria-dashboard',
+      recreativos: '/recreativos-dashboard', psicopedagogico: '/psicopedagogico-dashboard',
+      asistencia: '/asistencia-dashboard', beca: '/beca-dashboard', cultura: '/cultura-dashboard',
+    };
+    window.location.href = dest[modulos[0]] || '/ejecutivo';
+  } else {
+    window.location.href = '/ejecutivo';
+  }
+}
+
+// ── Paso 1: Credenciales ──
 document.getElementById('btnLogin').addEventListener('click', async () => {
   const email    = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   const btn = document.getElementById('btnLogin');
-  const msg = document.getElementById('msg');
+  const msg = document.getElementById('msg1');
 
   if (!email || !password) {
     msg.textContent = 'Completa todos los campos';
     msg.className = 'msg err'; msg.style.display = 'block'; return;
   }
 
-  btn.disabled = true; btn.textContent = 'Ingresando...'; msg.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Verificando...'; msg.style.display = 'none';
 
   try {
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
@@ -91,15 +169,26 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
     const r = await fetch('/api/staff-info', {
       headers: { 'Authorization': `Bearer ${data.session.access_token}` }
     });
-    const info = await r.json();
-    if (!r.ok) throw new Error(info.error || 'Sin acceso');
+    if (!r.ok) { await sb.auth.signOut(); throw new Error('Sin acceso al sistema'); }
 
-    const modulos = info.modulos || [];
-    if (modulos.length === 1) {
-      const dest = { salud: '/salud-dashboard', cafeteria: '/cafeteria-dashboard', recreativos: '/recreativos-dashboard' };
-      window.location.href = dest[modulos[0]] || '/ejecutivo';
+    // Revisar estado MFA
+    const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+
+    if (aal.nextLevel === 'aal2') {
+      // Usuario tiene MFA configurado → verificar
+      const { data: factors } = await sb.auth.mfa.listFactors();
+      factorId = factors.totp[0].id;
+      mostrarPaso('paso2verify');
+      document.getElementById('totpVerify').focus();
     } else {
-      window.location.href = '/ejecutivo';
+      // Usuario NO tiene MFA → enrolar obligatoriamente
+      const { data: enroll, error: eErr } = await sb.auth.mfa.enroll({ factorType: 'totp', issuer: 'Instituto Neumann', friendlyName: email });
+      if (eErr) throw eErr;
+      factorId = enroll.id;
+      document.getElementById('qrImg').src = enroll.totp.qr_code;
+      document.getElementById('secretKey').textContent = enroll.totp.secret;
+      mostrarPaso('paso2enroll');
+      document.getElementById('totpEnroll').focus();
     }
 
   } catch(e) {
@@ -111,8 +200,60 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
   }
 });
 
-document.getElementById('password').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('btnLogin').click();
+// ── Paso 2a: Verificar MFA ──
+document.getElementById('btnVerify').addEventListener('click', async () => {
+  const code = document.getElementById('totpVerify').value.trim();
+  const btn = document.getElementById('btnVerify');
+  const msg = document.getElementById('msg2v');
+  if (code.length !== 6) { msg.textContent = 'El código tiene 6 dígitos'; msg.className='msg err'; msg.style.display='block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Verificando...'; msg.style.display = 'none';
+  try {
+    const { error } = await sb.auth.mfa.challengeAndVerify({ factorId, code });
+    if (error) throw error;
+    await redirigir();
+  } catch(e) {
+    msg.textContent = 'Código incorrecto o expirado';
+    msg.className = 'msg err'; msg.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Verificar código';
+    document.getElementById('totpVerify').value = '';
+    document.getElementById('totpVerify').focus();
+  }
+});
+
+// ── Paso 2b: Confirmar enrolamiento ──
+document.getElementById('btnEnroll').addEventListener('click', async () => {
+  const code = document.getElementById('totpEnroll').value.trim();
+  const btn = document.getElementById('btnEnroll');
+  const msg = document.getElementById('msg2e');
+  if (code.length !== 6) { msg.textContent = 'El código tiene 6 dígitos'; msg.className='msg err'; msg.style.display='block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Activando...'; msg.style.display = 'none';
+  try {
+    const { error } = await sb.auth.mfa.challengeAndVerify({ factorId, code });
+    if (error) throw error;
+    msg.textContent = '✅ Autenticador activado. Ingresando...';
+    msg.className = 'msg ok'; msg.style.display = 'block';
+    setTimeout(redirigir, 1200);
+  } catch(e) {
+    msg.textContent = 'Código incorrecto. Verifica que tu app esté sincronizada.';
+    msg.className = 'msg err'; msg.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Activar autenticador';
+    document.getElementById('totpEnroll').value = '';
+    document.getElementById('totpEnroll').focus();
+  }
+});
+
+// Enter en campos
+document.getElementById('password').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('btnLogin').click(); });
+document.getElementById('totpVerify').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('btnVerify').click(); });
+document.getElementById('totpEnroll').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('btnEnroll').click(); });
+
+// Solo dígitos en campos TOTP
+['totpVerify','totpEnroll'].forEach(id => {
+  document.getElementById(id).addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g,'').slice(0,6);
+  });
 });
 </script>
 </body>
