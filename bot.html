@@ -441,6 +441,24 @@ async function enviarEmailEvaluacion(estudiante, reserva) {
   } catch(e) { console.warn('Email eval:', e.message); }
 }
 
+// ── CREAR TICKET DE SOPORTE (Zoho Desk) ──
+async function crearTicketSoporte(descripcion) {
+  try {
+    const r = await fetch('/api/zoho-ticket', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        codigo: estudianteActual?.codigo || null,
+        nombre: estudianteActual ? `${estudianteActual.nombre} ${estudianteActual.apellido || ''}`.trim() : 'Estudiante sin identificar',
+        email: estudianteActual?.email || null,
+        descripcion,
+        modulo,
+      }),
+    });
+    return await r.json();
+  } catch(e) { return { error: e.message }; }
+}
+
 // ── GUARDAR RESERVA ──
 async function guardarEnSheets(reg) {
   try {
@@ -520,7 +538,11 @@ MÓDULO ACTIVO: ${modulo === 'asistencia' ? 'Consulta de asistencia' : modulo ==
 REGLAS GENERALES:
 - Respuestas cortas — máximo 3 líneas — estamos en móvil
 - No uses markdown, asteriscos ni guiones
-- El estudiante ya fue verificado — no le pidas su código de nuevo`;
+- El estudiante ya fue verificado — no le pidas su código de nuevo
+
+ESCALAMIENTO A SOPORTE:
+Si el estudiante pide algo que no puedes resolver (no es reserva, asistencia ni cultura, o es una queja/problema que requiere atención humana), ofrécele crear un ticket de soporte. Si acepta, responde EXACTAMENTE con este formato (nada más en el mensaje):
+[CREAR_TICKET] descripción breve y clara del problema o solicitud del estudiante`;
 
   if (!modulo && estudianteActual) {
     sys += `\n\nSi el estudiante quiere reservar un área, guíalo por el flujo de reservas.
@@ -728,7 +750,20 @@ async function send() {
     const reply = await callClaude(buildSystem(asistenciaData));
     removeTyping();
 
-    if (reply) {
+    if (reply && reply.includes('[CREAR_TICKET]')) {
+      history.push({ role: 'assistant', content: reply });
+      const descripcionTicket = reply.split('[CREAR_TICKET]')[1]?.trim() || text;
+      addTyping();
+      const resultadoTicket = await crearTicketSoporte(descripcionTicket);
+      removeTyping();
+      if (resultadoTicket && resultadoTicket.ok && resultadoTicket.ticketNumber) {
+        addMsg('bot', `He registrado tu consulta en nuestro sistema de soporte. 🎫\n\nNúmero de ticket: ${resultadoTicket.ticketNumber}\n\nUn miembro del equipo te contactará pronto.`);
+        guardarConversacion('ticket_creado');
+      } else {
+        addMsg('bot', '⚠️ No pude crear el ticket en este momento. Por favor acércate a Secretaría o intenta más tarde.');
+      }
+      setChips(['📅 Reservar área', '📊 Ver mi asistencia']);
+    } else if (reply) {
       history.push({ role: 'assistant', content: reply });
       addMsg('bot', reply);
       updateChips(reply);

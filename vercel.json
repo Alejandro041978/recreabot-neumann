@@ -17,6 +17,7 @@
     { "src": "api/psicopedagogico.js",   "use": "@vercel/node" },
     { "src": "api/sesiones-charla.js",  "use": "@vercel/node" },
     { "src": "api/otp.js",              "use": "@vercel/node" },
+    { "src": "api/zoho-ticket.js",      "use": "@vercel/node" },
     { "src": "*.html",                   "use": "@vercel/static" }
   ],
   "crons": [
@@ -60,6 +61,7 @@
     { "src": "/api/psicopedagogico",        "dest": "/api/psicopedagogico.js"          },
     { "src": "/api/sesiones-charla",        "dest": "/api/sesiones-charla.js"          },
     { "src": "/api/otp",                    "dest": "/api/otp.js"                      },
+    { "src": "/api/zoho-ticket",            "dest": "/api/zoho-ticket.js"              },
     { "src": "/student-login",              "dest": "/student-login.html"              },
     { "src": "/portal-estudiante",          "dest": "/portal-estudiante.html"          },
     { "src": "/psicopedagogico-dashboard",  "dest": "/psicopedagogico-dashboard.html"  },
