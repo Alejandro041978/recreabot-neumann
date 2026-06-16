@@ -228,9 +228,9 @@ body{display:flex;flex-direction:column}
       <div style="font-size:0.75rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Formulario de solicitud</div>
       <div style="font-size:0.88rem;color:var(--text);font-weight:600">Comparte este enlace con los estudiantes para que postulen a la beca asistencial</div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
-        <code id="linkBeca" style="font-size:0.8rem;color:var(--acc2);background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);border-radius:6px;padding:5px 12px">recreabot-neumann.vercel.app/beca</code>
+        <code id="linkBeca" style="font-size:0.8rem;color:var(--acc2);background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);border-radius:6px;padding:5px 12px">system.neumann.edu.pe/beca</code>
         <button onclick="copiarLink()" style="font-size:0.75rem;font-weight:700;color:var(--t3);background:none;border:1.5px solid var(--b);border-radius:6px;padding:5px 12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s" onmouseover="this.style.borderColor='var(--acc2)';this.style.color='var(--acc2)'" onmouseout="this.style.borderColor='var(--b)';this.style.color='var(--t3)'" id="btnCopiar">📋 Copiar</button>
-        <a href="/beca" target="_blank" style="font-size:0.75rem;font-weight:700;color:var(--t3);border:1.5px solid var(--b);border-radius:6px;padding:5px 12px;text-decoration:none;transition:all .15s" onmouseover="this.style.borderColor='var(--acc2)';this.style.color='var(--acc2)'" onmouseout="this.style.borderColor='var(--b)';this.style.color='var(--t3)'">↗ Abrir</a>
+        <a href="https://system.neumann.edu.pe/beca" target="_blank" style="font-size:0.75rem;font-weight:700;color:var(--t3);border:1.5px solid var(--b);border-radius:6px;padding:5px 12px;text-decoration:none;transition:all .15s" onmouseover="this.style.borderColor='var(--acc2)';this.style.color='var(--acc2)'" onmouseout="this.style.borderColor='var(--b)';this.style.color='var(--t3)'">↗ Abrir</a>
       </div>
     </div>
     <div style="font-size:2.2rem">🎓</div>
@@ -438,7 +438,7 @@ async function checkAuth() {
 }
 
 function copiarLink() {
-  navigator.clipboard.writeText('https://recreabot-neumann.vercel.app/beca').then(() => {
+  navigator.clipboard.writeText('https://system.neumann.edu.pe/beca').then(() => {
     const btn = document.getElementById('btnCopiar');
     btn.textContent = '✅ Copiado';
     setTimeout(() => btn.textContent = '📋 Copiar', 2000);
