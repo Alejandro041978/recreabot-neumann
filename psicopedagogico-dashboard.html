@@ -149,6 +149,7 @@ tbody tr:last-child td{border-bottom:none}
       <input type="time" id="qFin">
     </div>
   </div>
+  <div style="font-size:0.75rem;color:var(--t3);margin-bottom:12px">⏱️ El período entre hora inicio y hora fin no puede superar <strong>1 hora</strong>.</div>
   <button class="btn btn-acc btn-sm" onclick="generarQR()">Generar QR</button>
   <div id="qrResult" style="display:none;margin-top:20px;text-align:center">
     <div id="qrCanvas" style="display:inline-block;padding:12px;background:white;border-radius:10px;margin-bottom:12px"></div>
@@ -538,6 +539,11 @@ async function generarQR() {
   }
   if (inicio >= fin) {
     errEl.textContent = 'La hora de fin debe ser mayor que la de inicio'; errEl.style.display = 'block'; return;
+  }
+  const [hi, hm] = inicio.split(':').map(Number);
+  const [fi, fm] = fin.split(':').map(Number);
+  if ((fi * 60 + fm) - (hi * 60 + hm) > 60) {
+    errEl.textContent = 'El período máximo es 1 hora'; errEl.style.display = 'block'; return;
   }
   try {
     const { data: { session } } = await sb.auth.getSession();
