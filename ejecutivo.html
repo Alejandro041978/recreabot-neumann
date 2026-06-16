@@ -102,6 +102,18 @@ h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-b
     </div>
   </a>
 
+  <!-- Psicopedagógico -->
+  <a class="modulo" href="/psicopedagogico-dashboard" style="--acc:#f97316">
+    <div class="mod-icon">🧠</div>
+    <div class="mod-titulo" style="color:#fb923c">Apoyo Psicopedagógico</div>
+    <div class="mod-kpi" id="kpi-psico" style="color:#f97316"><span class="loading-kpi">…</span></div>
+    <div class="mod-kpi-label">Atenciones registradas · últimas 10 semanas</div>
+    <div class="mod-link" style="color:#f97316">
+      Ver dashboard psicopedagógico
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </div>
+  </a>
+
   <!-- Cultura -->
   <a class="modulo mod-cultura" href="/cultura-dashboard">
     <div class="mod-icon">🏛️</div>
@@ -295,6 +307,18 @@ async function cargarConocimientos() {
   }
 }
 
+async function cargarPsico() {
+  try {
+    const r = await fetch('/api/psicopedagogico?accion=kpis');
+    const data = await r.json();
+    const el = document.getElementById('kpi-psico');
+    if (el) { el.textContent = data.total_atenciones ?? '—'; }
+  } catch(e) {
+    const el = document.getElementById('kpi-psico');
+    if (el) el.textContent = '—';
+  }
+}
+
 initAuth().then(ok => {
   if (!ok) return;
   cargarCafeteria();
@@ -304,6 +328,7 @@ initAuth().then(ok => {
   cargarBecas();
   cargarCultura();
   cargarConocimientos();
+  cargarPsico();
 });
 </script>
 </body>
