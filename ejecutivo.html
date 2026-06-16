@@ -103,7 +103,7 @@ h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-b
   </a>
 
   <!-- Psicopedagógico -->
-  <a class="modulo" href="/psicopedagogico-dashboard" style="--acc:#f97316">
+  <a class="modulo mod-psico" href="/psicopedagogico-dashboard" style="--acc:#f97316">
     <div class="mod-icon">🧠</div>
     <div class="mod-titulo" style="color:#fb923c">Apoyo Psicopedagógico</div>
     <div class="mod-kpi" id="kpi-psico" style="color:#f97316"><span class="loading-kpi">…</span></div>
@@ -193,7 +193,7 @@ async function initAuth() {
   // Filtrar cards por módulos asignados
   const modulos = info.modulos || [];
   if (modulos.length > 0) {
-    const mapa = { cafeteria: '.mod-cafeteria', recreativos: '.mod-recreacion', salud: '.mod-salud', asistencia: '.mod-asistencia', becas: '.mod-becas', cultura: '.mod-cultura' };
+    const mapa = { cafeteria: '.mod-cafeteria', recreativos: '.mod-recreacion', salud: '.mod-salud', asistencia: '.mod-asistencia', becas: '.mod-becas', cultura: '.mod-cultura', psicopedagogico: '.mod-psico' };
     Object.entries(mapa).forEach(([mod, sel]) => {
       if (!modulos.includes(mod)) document.querySelector(sel)?.remove();
     });
