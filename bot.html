@@ -774,9 +774,9 @@ async function send() {
     actualizarRegistro(text);
   }
 
-  // ── PASO 4: Buscar en base de conocimientos si no es un módulo específico ──
+  // ── PASO 4: Buscar en base de conocimientos (siempre, si hay estudiante identificado) ──
   let conocimientosData = null;
-  if (estudianteActual && modulo !== 'reserva' && modulo !== 'asistencia' && modulo !== 'cultura') {
+  if (estudianteActual) {
     conocimientosData = await buscarEnConocimientos(text);
   }
 
