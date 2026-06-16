@@ -61,6 +61,7 @@
     { "src": "/api/sesiones-charla",        "dest": "/api/sesiones-charla.js"          },
     { "src": "/api/otp",                    "dest": "/api/otp.js"                      },
     { "src": "/student-login",              "dest": "/student-login.html"              },
+    { "src": "/portal-estudiante",          "dest": "/portal-estudiante.html"          },
     { "src": "/psicopedagogico-dashboard",  "dest": "/psicopedagogico-dashboard.html"  },
     { "src": "/psico-atencion-eval",        "dest": "/psico-atencion-eval.html"        },
     { "src": "/psico-charla-eval",          "dest": "/psico-charla-eval.html"          },
