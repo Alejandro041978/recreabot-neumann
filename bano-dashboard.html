@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Dashboard Servicios Higiénicos — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#6366f1;--acc2:#a5b4fc;--green:#10b981;--yellow:#f59e0b;--red:#ef4444;
+  --text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{padding:24px 16px 60px;max-width:900px;margin:0 auto}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:10px 16px;background:var(--s);border:1px solid var(--b);border-radius:10px}
+.topbar-user{font-size:0.78rem;color:var(--t2)}.topbar-user strong{color:var(--text)}
+.topbar-actions{display:flex;gap:8px}
+.btn-volver{font-size:0.75rem;font-weight:600;color:var(--t3);background:none;border:1px solid var(--b);border-radius:6px;padding:5px 12px;text-decoration:none}
+.btn-volver:hover{border-color:var(--acc);color:var(--acc2)}
+.btn-logout{font-size:0.75rem;font-weight:600;color:var(--t3);background:none;border:1px solid var(--b);border-radius:6px;padding:5px 12px;cursor:pointer}
+.btn-logout:hover{border-color:var(--red);color:var(--red)}
+
+header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.header-icon{font-size:2rem}
+.header-titulo{font-size:1.4rem;font-weight:800;color:var(--acc2)}
+.header-sub{font-size:0.8rem;color:var(--t3);margin-top:2px}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:28px}
+.kpi{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:18px 16px;text-align:center}
+.kpi-val{font-size:2.4rem;font-weight:800;line-height:1;color:var(--acc2)}
+.kpi-label{font-size:0.72rem;color:var(--t3);margin-top:6px;text-transform:uppercase;letter-spacing:.6px}
+
+.seccion{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:24px;margin-bottom:20px}
+.seccion-titulo{font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.seccion-sub{font-size:0.72rem;color:var(--t3);margin-left:auto}
+
+/* Gráfico de barras */
+.bars-wrap{display:flex;flex-direction:column;gap:14px}
+.bar-row{display:grid;grid-template-columns:130px 1fr 80px;align-items:center;gap:12px}
+.bar-label{font-size:0.8rem;color:var(--t2);font-weight:600;text-align:right}
+.bar-track{background:var(--s2);border-radius:6px;height:28px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:6px;transition:width .8s ease;display:flex;align-items:center;padding-left:10px}
+.bar-val{font-size:0.78rem;font-weight:800;color:white}
+.bar-count{font-size:0.78rem;color:var(--t3);text-align:right}
+.bar-count strong{color:var(--text);display:block;font-size:0.85rem}
+
+.loading{text-align:center;color:var(--t3);padding:40px;font-size:0.88rem}
+.nota{font-size:0.72rem;color:var(--t3);margin-top:16px;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar" style="display:none">
+  <div class="topbar-user" id="topbar-user"></div>
+  <div class="topbar-actions">
+    <a href="/ejecutivo" class="btn-volver">← Volver</a>
+    <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
+  </div>
+</div>
+
+<header>
+  <div class="header-icon">🚻</div>
+  <div>
+    <div class="header-titulo">Servicios Higiénicos</div>
+    <div class="header-sub">Evaluación de satisfacción · Instituto Superior Neumann</div>
+  </div>
+</header>
+
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="kpi-val" id="kpi-total">—</div>
+    <div class="kpi-label">Encuestas completadas</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-val" id="kpi-prom">—</div>
+    <div class="kpi-label">Promedio general / 5</div>
+  </div>
+</div>
+
+<div class="seccion">
+  <div class="seccion-titulo">
+    📊 Calificación por baño
+    <span class="seccion-sub">Últimos 3 meses</span>
+  </div>
+  <div class="bars-wrap" id="bars">
+    <div class="loading">Cargando datos...</div>
+  </div>
+  <div class="nota">Las barras reflejan el promedio de las 3 preguntas de evaluación (escala 1–5)</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const sb = supabase.createClient(
+  'https://exjaxhrylfdwehzjfjut.supabase.co',
+  'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
+);
+
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/login'; return false; }
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal.currentLevel !== 'aal2') { await sb.auth.signOut(); window.location.href = '/login'; return false; }
+  const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
+  if (!r.ok) { window.location.href = '/login'; return false; }
+  const info = await r.json();
+  document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong>`;
+  document.getElementById('topbar').style.display = 'flex';
+  document.getElementById('btnLogout').addEventListener('click', async () => {
+    await sb.auth.signOut(); window.location.href = '/login';
+  });
+  return true;
+}
+
+function colorBarra(prom) {
+  if (prom >= 4) return '#10b981';
+  if (prom >= 3) return '#f59e0b';
+  return '#ef4444';
+}
+
+async function cargarDatos() {
+  try {
+    const r = await fetch('/api/banos?accion=dashboard');
+    const { total, promGlobal, porBano } = await r.json();
+
+    const kpiTotal = document.getElementById('kpi-total');
+    const kpiProm  = document.getElementById('kpi-prom');
+    kpiTotal.textContent = total;
+    kpiProm.textContent  = promGlobal + '/5';
+    kpiProm.style.color  = colorBarra(promGlobal);
+
+    const barsEl = document.getElementById('bars');
+    if (!porBano || porBano.length === 0) {
+      barsEl.innerHTML = '<div class="loading">Sin datos aún.</div>';
+      return;
+    }
+
+    const maxProm = 5;
+    barsEl.innerHTML = porBano.map(b => {
+      const pct = Math.round((b.prom / maxProm) * 100);
+      const color = colorBarra(b.prom);
+      return `
+        <div class="bar-row">
+          <div class="bar-label">${b.nombre}</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${pct}%;background:${color}">
+              <span class="bar-val">${b.prom > 0 ? b.prom + '/5' : ''}</span>
+            </div>
+          </div>
+          <div class="bar-count">
+            <strong>${b.n}</strong>
+            encuestas
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('bars').innerHTML = '<div class="loading">Error al cargar datos.</div>';
+  }
+}
+
+initAuth().then(ok => { if (ok) cargarDatos(); });
+</script>
+</body>
+</html>

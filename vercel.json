@@ -19,12 +19,14 @@
     { "src": "api/otp.js",              "use": "@vercel/node" },
     { "src": "api/zoho-ticket.js",      "use": "@vercel/node" },
     { "src": "api/conocimientos.js",    "use": "@vercel/node" },
+    { "src": "api/banos.js",            "use": "@vercel/node" },
     { "src": "*.html",                   "use": "@vercel/static" }
   ],
   "crons": [
     { "path": "/api/reporte",                    "schedule": "0 13 * * 1" },
     { "path": "/api/cafeteria?accion=reporte",   "schedule": "0 13 * * 1" },
-    { "path": "/api/cultura?accion=healthcheck", "schedule": "0 14 1 * *" }
+    { "path": "/api/cultura?accion=healthcheck", "schedule": "0 14 1 * *" },
+    { "path": "/api/banos?accion=reporte",       "schedule": "0 13 * * 1" }
   ],
   "routes": [
     { "src": "/api/chat",               "dest": "/api/chat.js"               },
@@ -65,6 +67,9 @@
     { "src": "/api/zoho-ticket",            "dest": "/api/zoho-ticket.js"              },
     { "src": "/api/conocimientos",          "dest": "/api/conocimientos.js"            },
     { "src": "/conocimientos",              "dest": "/conocimientos.html"              },
+    { "src": "/api/banos",                  "dest": "/api/banos.js"                    },
+    { "src": "/bano",                       "dest": "/bano.html"                       },
+    { "src": "/bano-dashboard",             "dest": "/bano-dashboard.html"             },
     { "src": "/student-login",              "dest": "/student-login.html"              },
     { "src": "/portal-estudiante",          "dest": "/portal-estudiante.html"          },
     { "src": "/psicopedagogico-dashboard",  "dest": "/psicopedagogico-dashboard.html"  },

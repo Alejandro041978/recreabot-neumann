@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Evalúa el Servicio Higiénico — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#6366f1;--acc2:#a5b4fc;--green:#10b981;--text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{display:flex;flex-direction:column;align-items:center;padding:24px 16px 60px}
+
+.logo{font-size:2.2rem;margin-bottom:6px;text-align:center}
+.titulo{font-size:1.25rem;font-weight:800;color:var(--acc2);text-align:center;margin-bottom:4px}
+.bano-badge{display:inline-block;margin:0 auto 6px;padding:4px 14px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);border-radius:20px;font-size:0.8rem;font-weight:700;color:var(--acc2);text-align:center}
+.subtitulo{font-size:0.8rem;color:var(--t3);text-align:center;margin-bottom:28px}
+
+.pregunta{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px 16px;width:100%;max-width:440px;margin-bottom:14px}
+.pregunta-num{font-size:0.65rem;font-weight:800;color:var(--acc2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.pregunta-txt{font-size:0.88rem;color:var(--t2);margin-bottom:16px;line-height:1.45}
+
+.estrellas{display:flex;justify-content:center;gap:10px}
+.estrella{font-size:2rem;cursor:pointer;opacity:.3;transition:opacity .15s,transform .15s;user-select:none}
+.estrella.activa{opacity:1;transform:scale(1.15)}
+.estrella:hover{opacity:.8}
+
+.labels{display:flex;justify-content:space-between;margin-top:8px;padding:0 4px}
+.label{font-size:0.65rem;color:var(--t3)}
+
+.btn-enviar{
+  width:100%;max-width:440px;margin-top:8px;
+  padding:14px;background:var(--acc);color:white;
+  border:none;border-radius:12px;font-size:1rem;font-weight:700;
+  cursor:pointer;transition:background .15s;
+}
+.btn-enviar:hover{background:#4f46e5}
+.btn-enviar:disabled{opacity:.4;cursor:default}
+
+.gracias{display:none;text-align:center;padding:40px 20px;max-width:440px}
+.gracias-icon{font-size:3.5rem;margin-bottom:16px}
+.gracias-titulo{font-size:1.3rem;font-weight:800;color:var(--green);margin-bottom:8px}
+.gracias-sub{font-size:0.85rem;color:var(--t3);line-height:1.5}
+
+.error-bano{text-align:center;padding:60px 20px;max-width:440px}
+.error-bano-icon{font-size:3rem;margin-bottom:12px}
+.error-bano-txt{font-size:0.88rem;color:var(--t3)}
+</style>
+</head>
+<body>
+
+<div id="error-bano" class="error-bano" style="display:none">
+  <div class="error-bano-icon">⚠️</div>
+  <div class="error-bano-txt">QR inválido. Por favor escanea el código QR del baño correspondiente.</div>
+</div>
+
+<div id="form-wrap" style="display:none;width:100%;display:flex;flex-direction:column;align-items:center">
+  <div class="logo">🚻</div>
+  <div class="titulo">Evalúa el Servicio Higiénico</div>
+  <div class="bano-badge" id="bano-nombre"></div>
+  <div class="subtitulo">Instituto Superior Neumann · Solo 20 segundos</div>
+
+  <!-- P1 -->
+  <div class="pregunta">
+    <div class="pregunta-num">Pregunta 1 de 3</div>
+    <div class="pregunta-txt">¿Cómo calificarías la <strong>limpieza general</strong> del baño?</div>
+    <div class="estrellas" id="stars-1">
+      <span class="estrella" data-q="1" data-v="1">★</span>
+      <span class="estrella" data-q="1" data-v="2">★</span>
+      <span class="estrella" data-q="1" data-v="3">★</span>
+      <span class="estrella" data-q="1" data-v="4">★</span>
+      <span class="estrella" data-q="1" data-v="5">★</span>
+    </div>
+    <div class="labels"><span class="label">Muy malo</span><span class="label">Excelente</span></div>
+  </div>
+
+  <!-- P2 -->
+  <div class="pregunta">
+    <div class="pregunta-num">Pregunta 2 de 3</div>
+    <div class="pregunta-txt">¿Los <strong>insumos básicos</strong> (papel, jabón) estaban disponibles?</div>
+    <div class="estrellas" id="stars-2">
+      <span class="estrella" data-q="2" data-v="1">★</span>
+      <span class="estrella" data-q="2" data-v="2">★</span>
+      <span class="estrella" data-q="2" data-v="3">★</span>
+      <span class="estrella" data-q="2" data-v="4">★</span>
+      <span class="estrella" data-q="2" data-v="5">★</span>
+    </div>
+    <div class="labels"><span class="label">Muy malo</span><span class="label">Excelente</span></div>
+  </div>
+
+  <!-- P3 -->
+  <div class="pregunta">
+    <div class="pregunta-num">Pregunta 3 de 3</div>
+    <div class="pregunta-txt">¿Cómo estaba el <strong>estado de los artefactos</strong> (grifos, inodoros, secador)?</div>
+    <div class="estrellas" id="stars-3">
+      <span class="estrella" data-q="3" data-v="1">★</span>
+      <span class="estrella" data-q="3" data-v="2">★</span>
+      <span class="estrella" data-q="3" data-v="3">★</span>
+      <span class="estrella" data-q="3" data-v="4">★</span>
+      <span class="estrella" data-q="3" data-v="5">★</span>
+    </div>
+    <div class="labels"><span class="label">Muy malo</span><span class="label">Excelente</span></div>
+  </div>
+
+  <button class="btn-enviar" id="btn-enviar" onclick="enviar()" disabled>Enviar evaluación</button>
+</div>
+
+<div class="gracias" id="gracias">
+  <div class="gracias-icon">✅</div>
+  <div class="gracias-titulo">¡Gracias por tu evaluación!</div>
+  <div class="gracias-sub">Tu opinión nos ayuda a mejorar los servicios del Instituto Neumann.</div>
+</div>
+
+<script>
+const NOMBRES = {
+  BH1: 'Baño Hombres 1', BH2: 'Baño Hombres 2', BH3: 'Baño Hombres 3',
+  BM1: 'Baño Mujeres 1', BM2: 'Baño Mujeres 2', BM3: 'Baño Mujeres 3',
+};
+
+const params = new URLSearchParams(window.location.search);
+const bano   = params.get('b');
+
+if (!bano || !NOMBRES[bano]) {
+  document.getElementById('error-bano').style.display = 'block';
+} else {
+  document.getElementById('form-wrap').style.display = 'flex';
+  document.getElementById('bano-nombre').textContent = NOMBRES[bano];
+}
+
+const respuestas = { 1: 0, 2: 0, 3: 0 };
+
+document.querySelectorAll('.estrella').forEach(el => {
+  el.addEventListener('click', () => {
+    const q = Number(el.dataset.q);
+    const v = Number(el.dataset.v);
+    respuestas[q] = v;
+    document.querySelectorAll(`.estrella[data-q="${q}"]`).forEach(s => {
+      s.classList.toggle('activa', Number(s.dataset.v) <= v);
+    });
+    const completo = respuestas[1] > 0 && respuestas[2] > 0 && respuestas[3] > 0;
+    document.getElementById('btn-enviar').disabled = !completo;
+  });
+});
+
+async function enviar() {
+  const btn = document.getElementById('btn-enviar');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  try {
+    const r = await fetch('/api/banos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'guardar', bano, p1: respuestas[1], p2: respuestas[2], p3: respuestas[3] }),
+    });
+    const data = await r.json();
+    if (data.ok) {
+      document.getElementById('form-wrap').style.display = 'none';
+      document.getElementById('gracias').style.display = 'block';
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Enviar evaluación';
+      alert('Error al enviar. Intenta de nuevo.');
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Enviar evaluación';
+    alert('Sin conexión. Intenta de nuevo.');
+  }
+}
+</script>
+</body>
+</html>

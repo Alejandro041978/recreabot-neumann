@@ -150,6 +150,18 @@ h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-b
     </div>
   </a>
 
+  <!-- Servicios Higiénicos -->
+  <a class="modulo mod-banos" href="/bano-dashboard" style="--acc:#6366f1">
+    <div class="mod-icon">🚻</div>
+    <div class="mod-titulo" style="color:#a5b4fc">Servicios Higiénicos</div>
+    <div class="mod-kpi" id="kpi-banos" style="color:#6366f1"><span class="loading-kpi">…</span></div>
+    <div class="mod-kpi-label">Encuestas completadas · últimos 3 meses</div>
+    <div class="mod-link" style="color:#6366f1">
+      Ver dashboard de baños
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </div>
+  </a>
+
   <!-- Base de Conocimientos -->
   <a class="modulo" href="/conocimientos" style="--acc:#14b8a6;border-style:dashed">
     <div class="mod-icon">📚</div>
@@ -294,6 +306,18 @@ async function cargarBecas() {
   }
 }
 
+async function cargarBanos() {
+  try {
+    const r = await fetch('/api/banos?accion=kpis');
+    const { total } = await r.json();
+    const el = document.getElementById('kpi-banos');
+    if (el) { el.textContent = total ?? '—'; }
+  } catch(e) {
+    const el = document.getElementById('kpi-banos');
+    if (el) el.textContent = '—';
+  }
+}
+
 async function cargarConocimientos() {
   try {
     const r = await fetch('/api/conocimientos');
@@ -329,6 +353,7 @@ initAuth().then(ok => {
   cargarCultura();
   cargarConocimientos();
   cargarPsico();
+  cargarBanos();
 });
 </script>
 </body>
