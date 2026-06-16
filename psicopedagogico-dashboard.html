@@ -105,6 +105,7 @@ tbody tr:last-child td{border-bottom:none}
   </div>
   <div style="display:flex;align-items:center;gap:12px">
     <div class="topbar-user" id="topbar-user"></div>
+    <a href="/psico-gestion" style="font-size:0.75rem;font-weight:600;color:var(--acc2);background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.3);border-radius:6px;padding:5px 12px;text-decoration:none">⚙️ Gestión</a>
     <a href="/ejecutivo" style="font-size:0.75rem;font-weight:600;color:var(--t3);border:1px solid var(--b);border-radius:6px;padding:5px 12px;text-decoration:none">← Volver</a>
     <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
   </div>
@@ -133,171 +134,11 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- Panel QR Charla -->
-<div class="seccion" style="margin-bottom:20px">
-  <div class="seccion-titulo"><span>📲 Generar QR para charla psicopedagógica</span></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
-    <div class="form-field" style="margin:0">
-      <label>Fecha</label>
-      <input type="date" id="qFecha">
-    </div>
-    <div class="form-field" style="margin:0">
-      <label>Hora inicio</label>
-      <input type="time" id="qInicio">
-    </div>
-    <div class="form-field" style="margin:0">
-      <label>Hora fin</label>
-      <input type="time" id="qFin">
-    </div>
-  </div>
-  <div style="font-size:0.75rem;color:var(--t3);margin-bottom:12px">⏱️ El período entre hora inicio y hora fin no puede superar <strong>1 hora</strong>.</div>
-  <button class="btn btn-acc btn-sm" onclick="generarQR()">Generar QR</button>
-  <div id="qrResult" style="display:none;margin-top:20px;text-align:center">
-    <div id="qrCanvas" style="display:inline-block;padding:12px;background:white;border-radius:10px;margin-bottom:12px"></div>
-    <div style="font-size:0.78rem;color:var(--t3);margin-bottom:8px" id="qrInfo"></div>
-    <button class="btn btn-sec btn-sm" onclick="imprimirQR()">🖨️ Imprimir QR</button>
-  </div>
-  <div class="msg-err" id="qrErr"></div>
-</div>
-
-<div class="busqueda-wrap">
-  <div class="busqueda-titulo">🔍 Buscar estudiante</div>
-  <div class="search-row">
-    <input class="search-input" id="searchInput" placeholder="Código o nombre del estudiante..." autocomplete="off">
-    <button class="btn btn-acc" onclick="buscar()">Buscar</button>
-  </div>
-  <div class="resultados-busqueda" id="resultados"></div>
-</div>
-
-<div id="panelEstudiante" style="display:none">
-  <div class="main-grid">
-
-    <!-- Ficha psicopedagógica -->
-    <div class="panel">
-      <div class="panel-titulo">📋 Ficha psicopedagógica</div>
-      <div class="est-card" id="estCard"></div>
-      <div class="ficha-grid">
-        <div class="ficha-field">
-          <label>Derivado por</label>
-          <select id="fDerivado">
-            <option value="">—</option>
-            <option>Docente</option>
-            <option>Administración</option>
-            <option>Iniciativa propia</option>
-            <option>Familia</option>
-          </select>
-        </div>
-        <div class="ficha-field">
-          <label>Situación académica</label>
-          <select id="fSituacion">
-            <option value="">—</option>
-            <option>Regular</option>
-            <option>En riesgo</option>
-            <option>Observado</option>
-          </select>
-        </div>
-        <div class="ficha-field full">
-          <label>Observaciones generales</label>
-          <textarea id="fObservaciones" rows="3" placeholder="Contexto general del estudiante..."></textarea>
-        </div>
-      </div>
-      <button class="btn btn-acc btn-sm" onclick="guardarFicha()">Guardar ficha</button>
-      <div class="msg-ok" id="fichaOk">✅ Ficha guardada</div>
-      <div class="msg-err" id="fichaErr"></div>
-    </div>
-
-    <!-- Registrar atención -->
-    <div class="panel">
-      <div class="panel-titulo">➕ Registrar atención</div>
-      <div class="form-row">
-        <div class="form-field">
-          <label>Fecha</label>
-          <input type="date" id="aFecha">
-        </div>
-        <div class="form-field">
-          <label>Hora</label>
-          <input type="time" id="aHora">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-field">
-          <label>Tipo de atención</label>
-          <select id="aTipo">
-            <option value="">Selecciona...</option>
-            <option>Primera atención</option>
-            <option>Seguimiento</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Canal</label>
-          <select id="aCanal">
-            <option value="">Selecciona...</option>
-            <option>Presencial</option>
-            <option>Virtual</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-field">
-        <label>Área afectada</label>
-        <select id="aArea">
-          <option value="">Selecciona...</option>
-          <option>Académica</option>
-          <option>Personal</option>
-          <option>Familiar</option>
-          <option>Social</option>
-          <option>Económica</option>
-          <option>Salud emocional</option>
-          <option>Vocacional</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label>Acción realizada</label>
-        <select id="aAccion">
-          <option value="">Selecciona...</option>
-          <option>Orientación psicológica</option>
-          <option>Contención emocional</option>
-          <option>Consejería breve</option>
-          <option>Evaluación inicial</option>
-          <option>Otros</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label>Resultado de la atención</label>
-        <select id="aResultado">
-          <option value="">Selecciona...</option>
-          <option>Resuelto en sesión</option>
-          <option>Requiere seguimiento</option>
-          <option>Derivado externamente</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label>Notas (confidencial)</label>
-        <textarea id="aNotas" rows="2" placeholder="Observaciones opcionales..."></textarea>
-      </div>
-      <button class="btn btn-acc" style="width:100%" onclick="registrarAtencion()">Registrar atención</button>
-      <div class="msg-ok" id="atencionOk">✅ Atención registrada — se enviará email de evaluación</div>
-      <div class="msg-err" id="atencionErr"></div>
-    </div>
-
-  </div>
-
-  <!-- Historial del estudiante -->
-  <div class="seccion">
-    <div class="seccion-titulo">
-      <span>🕐 Historial de atenciones</span>
-      <span id="historial-nombre" style="font-size:0.78rem;color:var(--t3);font-weight:400"></span>
-    </div>
-    <div style="overflow-x:auto">
-      <table>
-        <thead><tr>
-          <th>Fecha</th><th>Tipo</th><th>Canal</th><th>Área</th><th>Acción</th><th>Resultado</th><th>Notas</th>
-        </tr></thead>
-        <tbody id="tbodyHistorial">
-          <tr><td colspan="7" style="text-align:center;color:var(--t3);padding:20px">Sin atenciones registradas</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+<!-- Acceso a gestión -->
+<div style="text-align:center;margin-top:8px">
+  <a href="/psico-gestion" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--acc);color:#fff;font-weight:700;font-size:0.88rem;border-radius:10px;text-decoration:none;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+    ⚙️ Gestionar atenciones y charlas
+  </a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -306,8 +147,6 @@ const sb = supabase.createClient(
   'https://exjaxhrylfdwehzjfjut.supabase.co',
   'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
 );
-
-let estudianteActual = null;
 
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
@@ -382,133 +221,6 @@ async function cargarKpis() {
   }
 }
 
-async function buscar() {
-  const q = document.getElementById('searchInput').value.trim();
-  if (!q) return;
-  const r = await fetch(`/api/psicopedagogico?accion=buscar&q=${encodeURIComponent(q)}`);
-  const { estudiantes } = await r.json();
-  const div = document.getElementById('resultados');
-  div.style.display = 'block';
-  if (!estudiantes.length) {
-    div.innerHTML = '<div style="font-size:0.83rem;color:var(--t3);padding:10px">Sin resultados</div>'; return;
-  }
-  div.innerHTML = estudiantes.map(e => `
-    <div class="res-item" onclick="seleccionarEstudiante(${JSON.stringify(e).replace(/"/g,'&quot;')})">
-      <div class="res-nombre">${e.nombre} ${e.apellido||''}</div>
-      <div class="res-sub">${e.codigo} · ${e.carrera}</div>
-    </div>`).join('');
-}
-
-document.getElementById('searchInput').addEventListener('keydown', e => { if(e.key==='Enter') buscar(); });
-
-async function seleccionarEstudiante(est) {
-  estudianteActual = est;
-  document.getElementById('resultados').style.display = 'none';
-  document.getElementById('searchInput').value = `${est.nombre} ${est.apellido||''} (${est.codigo})`;
-
-  document.getElementById('estCard').innerHTML = `
-    <div class="est-nombre">${est.nombre} ${est.apellido||''}</div>
-    <div class="est-carrera">${est.carrera}</div>
-    <div class="est-meta">Código: ${est.codigo} · Email: ${est.email||'—'}</div>`;
-
-  const ahora = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Lima'}));
-  document.getElementById('aFecha').value = ahora.toISOString().split('T')[0];
-  document.getElementById('aHora').value  = ahora.toTimeString().slice(0,5);
-
-  const fr = await fetch(`/api/psicopedagogico?accion=ficha&codigo=${est.codigo}`);
-  const { ficha } = await fr.json();
-  if (ficha) {
-    document.getElementById('fDerivado').value     = ficha.derivado_por || '';
-    document.getElementById('fSituacion').value    = ficha.situacion_academica || '';
-    document.getElementById('fObservaciones').value= ficha.observaciones || '';
-  } else {
-    ['fDerivado','fSituacion','fObservaciones'].forEach(id => document.getElementById(id).value='');
-  }
-
-  document.getElementById('historial-nombre').textContent = `${est.nombre} ${est.apellido||''}`;
-  await cargarHistorial(est.codigo);
-
-  document.getElementById('panelEstudiante').style.display = 'block';
-  document.getElementById('panelEstudiante').scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-async function cargarHistorial(codigo) {
-  const r = await fetch(`/api/psicopedagogico?accion=atenciones&codigo=${codigo}`);
-  const { atenciones } = await r.json();
-  document.getElementById('tbodyHistorial').innerHTML = atenciones.length
-    ? atenciones.map(a=>`<tr>
-        <td style="color:var(--text)">${a.fecha_atencion}</td>
-        <td>${badgeTipo(a.tipo_atencion)}</td>
-        <td><span style="font-size:0.75rem;color:var(--t2)">${a.canal||'—'}</span></td>
-        <td><span style="font-size:0.75rem;color:var(--t2)">${a.area_afectada||'—'}</span></td>
-        <td><span style="font-size:0.75rem;color:var(--t2)">${a.accion_realizada||'—'}</span></td>
-        <td>${badgeResultado(a.resultado)}</td>
-        <td style="max-width:180px;font-size:0.75rem">${a.notas||'—'}</td>
-      </tr>`).join('')
-    : '<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:16px">Sin atenciones registradas</td></tr>';
-}
-
-async function registrarAtencion() {
-  if (!estudianteActual) return;
-  const ok = document.getElementById('atencionOk');
-  const err = document.getElementById('atencionErr');
-  ok.style.display='none'; err.style.display='none';
-
-  const body = {
-    accion: 'atencion',
-    codigo: estudianteActual.codigo,
-    nombre: `${estudianteActual.nombre} ${estudianteActual.apellido||''}`.trim(),
-    fecha_atencion:  document.getElementById('aFecha').value,
-    hora_atencion:   document.getElementById('aHora').value,
-    tipo_atencion:   document.getElementById('aTipo').value,
-    canal:           document.getElementById('aCanal').value,
-    area_afectada:   document.getElementById('aArea').value,
-    accion_realizada:document.getElementById('aAccion').value,
-    resultado:       document.getElementById('aResultado').value,
-    notas:           document.getElementById('aNotas').value.trim(),
-  };
-
-  if (!body.fecha_atencion||!body.hora_atencion||!body.tipo_atencion||!body.canal||!body.area_afectada||!body.accion_realizada||!body.resultado) {
-    err.textContent='Completa todos los campos obligatorios'; err.style.display='block'; return;
-  }
-
-  try {
-    const r = await fetch('/api/psicopedagogico', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
-    const data = await r.json();
-    if (data.ok) {
-      ok.style.display='block';
-      ['aTipo','aCanal','aArea','aAccion','aResultado'].forEach(id => document.getElementById(id).value='');
-      document.getElementById('aNotas').value='';
-      await cargarHistorial(estudianteActual.codigo);
-      await cargarKpis();
-      setTimeout(()=>ok.style.display='none',4000);
-    } else throw new Error(data.error);
-  } catch(e) {
-    err.textContent='Error: '+e.message; err.style.display='block';
-  }
-}
-
-async function guardarFicha() {
-  if (!estudianteActual) return;
-  const ok = document.getElementById('fichaOk');
-  const err = document.getElementById('fichaErr');
-  ok.style.display='none'; err.style.display='none';
-  const body = {
-    accion: 'ficha', codigo: estudianteActual.codigo,
-    derivado_por:       document.getElementById('fDerivado').value||null,
-    situacion_academica:document.getElementById('fSituacion').value||null,
-    observaciones:      document.getElementById('fObservaciones').value||null,
-  };
-  try {
-    const r = await fetch('/api/psicopedagogico', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
-    const data = await r.json();
-    if (data.ok) { ok.style.display='block'; setTimeout(()=>ok.style.display='none',3000); }
-    else throw new Error(data.error);
-  } catch(e) {
-    err.textContent='Error: '+e.message; err.style.display='block';
-  }
-}
-
 function badgeResultado(r) {
   const map = {
     'Resuelto en sesión':    ['badge-green','Resuelto'],
@@ -528,60 +240,6 @@ function badgeTipo(t) {
 function formatFecha(iso) {
   try { return new Date(iso).toLocaleString('es-PE',{timeZone:'America/Lima',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',hour12:true}); }
   catch(e){ return iso; }
-}
-
-// ── QR para charla ──
-async function generarQR() {
-  const fecha = document.getElementById('qFecha').value;
-  const inicio = document.getElementById('qInicio').value;
-  const fin = document.getElementById('qFin').value;
-  const errEl = document.getElementById('qrErr');
-  errEl.style.display = 'none';
-  if (!fecha || !inicio || !fin) {
-    errEl.textContent = 'Completa fecha, hora inicio y hora fin'; errEl.style.display = 'block'; return;
-  }
-  if (inicio >= fin) {
-    errEl.textContent = 'La hora de fin debe ser mayor que la de inicio'; errEl.style.display = 'block'; return;
-  }
-  const [hi, hm] = inicio.split(':').map(Number);
-  const [fi, fm] = fin.split(':').map(Number);
-  if ((fi * 60 + fm) - (hi * 60 + hm) > 60) {
-    errEl.textContent = 'El período máximo es 1 hora'; errEl.style.display = 'block'; return;
-  }
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const r = await fetch('/api/sesiones-charla', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token||''}` },
-      body: JSON.stringify({ modulo: 'psicopedagogico', fecha, hora_inicio: inicio, hora_fin: fin }),
-    });
-    const data = await r.json();
-    if (!data.ok) throw new Error(data.error || 'Error al crear sesión');
-    const url = `${window.location.origin}/psico-charla-eval?token=${data.token}`;
-    const canvas = document.getElementById('qrCanvas');
-    canvas.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}" alt="QR charla" style="display:block">`;
-    document.getElementById('qrInfo').textContent = `Válido el ${fecha} de ${inicio} a ${fin}`;
-    document.getElementById('qrResult').style.display = 'block';
-  } catch(e) {
-    errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block';
-  }
-}
-
-function imprimirQR() {
-  const canvas = document.getElementById('qrCanvas');
-  const info = document.getElementById('qrInfo').textContent;
-  const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html><head><title>QR Charla Psicopedagógica</title>
-  <style>body{font-family:Arial,sans-serif;text-align:center;padding:40px}
-  h2{font-size:1.4rem;margin-bottom:6px}p{font-size:0.9rem;color:#555;margin-bottom:20px}
-  img{width:260px;height:260px}</style></head><body>
-  <h2>🧠 Charla Psicopedagógica — Instituto Neumann</h2>
-  <p>Escanea el QR para evaluar la charla</p>
-  ${canvas.innerHTML}
-  <p style="margin-top:16px;font-size:0.8rem;color:#888">${info}</p>
-  <script>window.onload=()=>window.print()<\/script>
-  </body></html>`);
-  win.document.close();
 }
 
 initAuth().then(ok => { if (ok) cargarKpis(); });
