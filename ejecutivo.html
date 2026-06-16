@@ -138,6 +138,18 @@ h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-b
     </div>
   </a>
 
+  <!-- Base de Conocimientos -->
+  <a class="modulo" href="/conocimientos" style="--acc:#14b8a6;border-style:dashed">
+    <div class="mod-icon">📚</div>
+    <div class="mod-titulo" style="color:#5eead4">Base de Conocimientos</div>
+    <div class="mod-kpi" id="kpi-conocimientos" style="color:#14b8a6"><span class="loading-kpi">…</span></div>
+    <div class="mod-kpi-label">Entradas activas disponibles para el bot</div>
+    <div class="mod-link" style="color:#14b8a6">
+      Gestionar entradas
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </div>
+  </a>
+
 </div>
 
 <div class="footer">Instituto Superior Neumann · recreabot-neumann.vercel.app</div>
@@ -270,6 +282,19 @@ async function cargarBecas() {
   }
 }
 
+async function cargarConocimientos() {
+  try {
+    const r = await fetch('/api/conocimientos');
+    const data = await r.json();
+    const activas = Array.isArray(data) ? data.filter(e => e.activo).length : 0;
+    const el = document.getElementById('kpi-conocimientos');
+    if (el) { el.textContent = activas; }
+  } catch(e) {
+    const el = document.getElementById('kpi-conocimientos');
+    if (el) el.textContent = '—';
+  }
+}
+
 initAuth().then(ok => {
   if (!ok) return;
   cargarCafeteria();
@@ -278,6 +303,7 @@ initAuth().then(ok => {
   cargarAsistencia();
   cargarBecas();
   cargarCultura();
+  cargarConocimientos();
 });
 </script>
 </body>
