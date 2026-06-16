@@ -26,6 +26,37 @@ body{padding:20px 16px 60px;max-width:980px;margin:0 auto}
 .btn-logout{font-size:0.75rem;font-weight:600;color:var(--t3);background:none;border:1px solid var(--b);border-radius:6px;padding:5px 12px;cursor:pointer;transition:all .15s}
 .btn-logout:hover{border-color:var(--red);color:var(--red)}
 
+/* Secciones */
+.seccion{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px;margin-bottom:16px}
+.seccion-titulo{font-size:0.85rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.seccion-sub{font-size:0.72rem;color:var(--t3);font-weight:400}
+
+/* Tabla de reservas */
+table{width:100%;border-collapse:collapse;font-size:0.78rem}
+thead th{padding:8px 10px;color:var(--t3);font-weight:600;text-align:left;border-bottom:1px solid var(--b)}
+tbody td{padding:9px 10px;border-bottom:1px solid rgba(42,58,82,.4);color:var(--t2);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700}
+.badge-green{background:rgba(16,185,129,.15);color:var(--green)}
+.badge-yellow{background:rgba(245,158,11,.15);color:var(--yellow)}
+.badge-blue{background:rgba(59,130,246,.15);color:var(--blue)}
+.badge-red{background:rgba(239,68,68,.12);color:var(--red)}
+.badge-purple{background:rgba(99,102,241,.15);color:var(--acc2)}
+
+.btn-iniciar{padding:4px 12px;background:var(--acc);color:#fff;border:none;border-radius:6px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s}
+.btn-iniciar:hover{opacity:.85}
+.btn-cancelar-r{padding:4px 10px;background:none;color:var(--red);border:1.5px solid var(--red);border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s;margin-left:6px}
+.btn-cancelar-r:hover{opacity:.7}
+
+/* Chip de contexto de reserva */
+.reserva-ctx{display:none;background:rgba(99,102,241,.1);border:1.5px solid rgba(99,102,241,.35);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:0.8rem;color:var(--acc2);display:flex;align-items:center;gap:10px}
+.reserva-ctx-icon{font-size:1.1rem}
+.reserva-ctx-text{flex:1}
+.reserva-ctx-text strong{display:block;font-weight:700}
+.reserva-ctx-text span{font-size:0.72rem;color:var(--t3)}
+
+/* Búsqueda */
 .busqueda-wrap{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px;margin-bottom:20px}
 .busqueda-titulo{font-size:0.85rem;font-weight:700;margin-bottom:12px}
 .search-row{display:flex;gap:10px}
@@ -43,6 +74,7 @@ body{padding:20px 16px 60px;max-width:980px;margin:0 auto}
 .res-nombre{font-size:0.88rem;font-weight:600}
 .res-sub{font-size:0.75rem;color:var(--t3);margin-top:2px}
 
+/* Panel estudiante */
 .main-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
 @media(max-width:640px){.main-grid{grid-template-columns:1fr}}
 
@@ -68,21 +100,10 @@ body{padding:20px 16px 60px;max-width:980px;margin:0 auto}
 .form-field select option{background:var(--s2)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-.seccion{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px;margin-bottom:16px}
-.seccion-titulo{font-size:0.85rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
-table{width:100%;border-collapse:collapse;font-size:0.78rem}
-thead th{padding:8px 10px;color:var(--t3);font-weight:600;text-align:left;border-bottom:1px solid var(--b)}
-tbody td{padding:9px 10px;border-bottom:1px solid rgba(42,58,82,.4);color:var(--t2);vertical-align:top}
-tbody tr:last-child td{border-bottom:none}
-.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700}
-.badge-green{background:rgba(16,185,129,.15);color:var(--green)}
-.badge-yellow{background:rgba(245,158,11,.15);color:var(--yellow)}
-.badge-blue{background:rgba(59,130,246,.15);color:var(--blue)}
-.badge-red{background:rgba(239,68,68,.12);color:var(--red)}
-.badge-purple{background:rgba(99,102,241,.15);color:var(--acc2)}
-
 .msg-ok{background:rgba(99,102,241,.12);border:1px solid var(--acc);color:var(--acc2);padding:10px 14px;border-radius:8px;font-size:0.83rem;font-weight:600;margin-top:10px;display:none;text-align:center}
 .msg-err{background:rgba(239,68,68,.12);border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:0.83rem;font-weight:600;margin-top:10px;display:none;text-align:center}
+
+.empty-row{text-align:center;padding:20px;color:var(--t3);font-size:0.82rem}
 </style>
 </head>
 <body>
@@ -94,28 +115,20 @@ tbody tr:last-child td{border-bottom:none}
   </div>
   <div style="display:flex;align-items:center;gap:8px">
     <div class="topbar-user" id="topbar-user"></div>
+    <a href="/psico-disponibilidad" class="btn-link">⏰ Disponibilidad</a>
     <a href="/psicopedagogico-dashboard" class="btn-link">📊 Dashboard</a>
     <a href="/ejecutivo" class="btn-link">← Volver</a>
     <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
   </div>
 </div>
 
-<!-- Panel QR Charla -->
+<!-- QR para charla -->
 <div class="seccion">
   <div class="seccion-titulo"><span>📲 Generar QR para charla psicopedagógica</span></div>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
-    <div class="form-field" style="margin:0">
-      <label>Fecha</label>
-      <input type="date" id="qFecha">
-    </div>
-    <div class="form-field" style="margin:0">
-      <label>Hora inicio</label>
-      <input type="time" id="qInicio">
-    </div>
-    <div class="form-field" style="margin:0">
-      <label>Hora fin</label>
-      <input type="time" id="qFin">
-    </div>
+    <div class="form-field" style="margin:0"><label>Fecha</label><input type="date" id="qFecha"></div>
+    <div class="form-field" style="margin:0"><label>Hora inicio</label><input type="time" id="qInicio"></div>
+    <div class="form-field" style="margin:0"><label>Hora fin</label><input type="time" id="qFin"></div>
   </div>
   <div style="font-size:0.75rem;color:var(--t3);margin-bottom:12px">⏱️ El período entre hora inicio y hora fin no puede superar <strong>1 hora</strong>.</div>
   <button class="btn btn-acc btn-sm" onclick="generarQR()">Generar QR</button>
@@ -127,9 +140,27 @@ tbody tr:last-child td{border-bottom:none}
   <div class="msg-err" id="qrErr"></div>
 </div>
 
-<!-- Búsqueda de estudiante -->
+<!-- Sesiones reservadas por estudiantes -->
+<div class="seccion">
+  <div class="seccion-titulo">
+    <span>📅 Sesiones reservadas</span>
+    <span class="seccion-sub" id="reservas-sub"></span>
+  </div>
+  <div style="overflow-x:auto">
+    <table>
+      <thead>
+        <tr><th>Fecha</th><th>Horario</th><th>Estudiante</th><th>Código</th><th>Estado</th><th></th></tr>
+      </thead>
+      <tbody id="tbodyReservas">
+        <tr><td colspan="6" class="empty-row">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Búsqueda directa de estudiante (walk-in / llamada directa) -->
 <div class="busqueda-wrap">
-  <div class="busqueda-titulo">🔍 Buscar estudiante</div>
+  <div class="busqueda-titulo">🔍 Buscar estudiante (atención directa)</div>
   <div class="search-row">
     <input class="search-input" id="searchInput" placeholder="Código o nombre del estudiante..." autocomplete="off">
     <button class="btn btn-acc" onclick="buscar()">Buscar</button>
@@ -139,6 +170,13 @@ tbody tr:last-child td{border-bottom:none}
 
 <!-- Panel principal (visible cuando hay estudiante seleccionado) -->
 <div id="panelEstudiante" style="display:none">
+
+  <!-- Chip de contexto cuando viene de una reserva -->
+  <div id="reservaCtx" style="display:none;background:rgba(99,102,241,.1);border:1.5px solid rgba(99,102,241,.3);border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
+    <span style="font-size:1.1rem">📅</span>
+    <div style="flex:1;font-size:0.8rem;color:var(--acc2)" id="reservaCtxTexto"></div>
+  </div>
+
   <div class="main-grid">
 
     <!-- Ficha psicopedagógica -->
@@ -150,19 +188,15 @@ tbody tr:last-child td{border-bottom:none}
           <label>Derivado por</label>
           <select id="fDerivado">
             <option value="">—</option>
-            <option>Docente</option>
-            <option>Administración</option>
-            <option>Iniciativa propia</option>
-            <option>Familia</option>
+            <option>Docente</option><option>Administración</option>
+            <option>Iniciativa propia</option><option>Familia</option>
           </select>
         </div>
         <div class="ficha-field">
           <label>Situación académica</label>
           <select id="fSituacion">
             <option value="">—</option>
-            <option>Regular</option>
-            <option>En riesgo</option>
-            <option>Observado</option>
+            <option>Regular</option><option>En riesgo</option><option>Observado</option>
           </select>
         </div>
         <div class="ficha-field full">
@@ -179,30 +213,22 @@ tbody tr:last-child td{border-bottom:none}
     <div class="panel">
       <div class="panel-titulo">➕ Registrar atención</div>
       <div class="form-row">
-        <div class="form-field">
-          <label>Fecha</label>
-          <input type="date" id="aFecha">
-        </div>
-        <div class="form-field">
-          <label>Hora</label>
-          <input type="time" id="aHora">
-        </div>
+        <div class="form-field"><label>Fecha</label><input type="date" id="aFecha"></div>
+        <div class="form-field"><label>Hora</label><input type="time" id="aHora"></div>
       </div>
       <div class="form-row">
         <div class="form-field">
           <label>Tipo de atención</label>
           <select id="aTipo">
             <option value="">Selecciona...</option>
-            <option>Primera atención</option>
-            <option>Seguimiento</option>
+            <option>Primera atención</option><option>Seguimiento</option>
           </select>
         </div>
         <div class="form-field">
           <label>Canal</label>
           <select id="aCanal">
             <option value="">Selecciona...</option>
-            <option>Presencial</option>
-            <option>Virtual</option>
+            <option>Presencial</option><option>Virtual</option>
           </select>
         </div>
       </div>
@@ -210,24 +236,17 @@ tbody tr:last-child td{border-bottom:none}
         <label>Área afectada</label>
         <select id="aArea">
           <option value="">Selecciona...</option>
-          <option>Académica</option>
-          <option>Personal</option>
-          <option>Familiar</option>
-          <option>Social</option>
-          <option>Económica</option>
-          <option>Salud emocional</option>
-          <option>Vocacional</option>
+          <option>Académica</option><option>Personal</option><option>Familiar</option>
+          <option>Social</option><option>Económica</option>
+          <option>Salud emocional</option><option>Vocacional</option>
         </select>
       </div>
       <div class="form-field">
         <label>Acción realizada</label>
         <select id="aAccion">
           <option value="">Selecciona...</option>
-          <option>Orientación psicológica</option>
-          <option>Contención emocional</option>
-          <option>Consejería breve</option>
-          <option>Evaluación inicial</option>
-          <option>Otros</option>
+          <option>Orientación psicológica</option><option>Contención emocional</option>
+          <option>Consejería breve</option><option>Evaluación inicial</option><option>Otros</option>
         </select>
       </div>
       <div class="form-field">
@@ -244,7 +263,7 @@ tbody tr:last-child td{border-bottom:none}
         <textarea id="aNotas" rows="2" placeholder="Observaciones opcionales..."></textarea>
       </div>
       <button class="btn btn-acc" style="width:100%" onclick="registrarAtencion()">Registrar atención</button>
-      <div class="msg-ok" id="atencionOk">✅ Atención registrada — se enviará email de evaluación</div>
+      <div class="msg-ok" id="atencionOk">✅ Atención registrada</div>
       <div class="msg-err" id="atencionErr"></div>
     </div>
 
@@ -277,7 +296,25 @@ const sb = supabase.createClient(
 );
 
 let estudianteActual = null;
+let reservaActivaId  = null; // id de la reserva que originó la sesión actual
 
+// ── Helpers de fecha/hora ──
+const DIAS_ES   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MESES_ES  = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+function formatFechaCorta(fechaStr) {
+  const [y,m,d] = fechaStr.split('-').map(Number);
+  const f = new Date(y, m-1, d);
+  return `${DIAS_ES[f.getDay()]} ${d} ${MESES_ES[m-1]}`;
+}
+
+function formatHora(t) {
+  if (!t) return '—';
+  const [h, min] = t.substring(0,5).split(':').map(Number);
+  return `${h%12||12}:${String(min).padStart(2,'0')} ${h>=12?'pm':'am'}`;
+}
+
+// ── Auth ──
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = '/login'; return false; }
@@ -289,11 +326,94 @@ async function initAuth() {
   if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('psicopedagogico')) {
     window.location.href = '/ejecutivo'; return false;
   }
-  document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
-  document.getElementById('btnLogout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = '/login'; });
+  document.getElementById('topbar-user').innerHTML =
+    `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
+  document.getElementById('btnLogout').addEventListener('click', async () => {
+    await sb.auth.signOut(); window.location.href = '/login';
+  });
   return true;
 }
 
+// ── Reservas: cargar y renderizar ──
+async function cargarReservas() {
+  try {
+    const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Lima' });
+    const r = await fetch(`/api/psico-reservas?accion=lista&desde=${hoy}`);
+    const reservas = await r.json();
+
+    const pendientes = reservas.filter(r => r.estado === 'pendiente' || r.estado === 'confirmada');
+    document.getElementById('reservas-sub').textContent =
+      pendientes.length ? `${pendientes.length} pendiente${pendientes.length>1?'s':''}` : 'Sin sesiones próximas';
+
+    const tbody = document.getElementById('tbodyReservas');
+    if (!reservas.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Sin sesiones reservadas</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = reservas.map(rv => {
+      const badgeCls = { pendiente:'badge-yellow', confirmada:'badge-green', cancelada:'badge-red', completada:'badge-purple' }[rv.estado] || '';
+      const badgeTxt = { pendiente:'Pendiente', confirmada:'Confirmada', cancelada:'Cancelada', completada:'Completada' }[rv.estado] || rv.estado;
+      const acciones = (rv.estado === 'pendiente' || rv.estado === 'confirmada') ? `
+        <button class="btn-iniciar" onclick="iniciarDesdeReserva(${JSON.stringify(rv).replace(/"/g,'&quot;')})">▶ Iniciar</button>
+        <button class="btn-cancelar-r" onclick="cancelarReserva('${rv.id}')">✕</button>
+      ` : '—';
+      return `<tr>
+        <td style="color:var(--text);font-weight:600">${formatFechaCorta(rv.fecha)}</td>
+        <td>${formatHora(rv.hora_inicio)} – ${formatHora(rv.hora_fin)}</td>
+        <td style="color:var(--text)">${rv.nombre||'—'}</td>
+        <td style="color:var(--t3);font-size:0.75rem">${rv.codigo}</td>
+        <td><span class="badge ${badgeCls}">${badgeTxt}</span></td>
+        <td>${acciones}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('tbodyReservas').innerHTML =
+      `<tr><td colspan="6" class="empty-row">Error al cargar reservas</td></tr>`;
+  }
+}
+
+async function cancelarReserva(id) {
+  if (!confirm('¿Cancelar esta reserva?')) return;
+  await fetch('/api/psico-reservas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ accion: 'estado', id, estado: 'cancelada' }),
+  });
+  cargarReservas();
+}
+
+async function iniciarDesdeReserva(rv) {
+  reservaActivaId = rv.id;
+
+  // Marcar como confirmada si estaba pendiente
+  if (rv.estado === 'pendiente') {
+    fetch('/api/psico-reservas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'estado', id: rv.id, estado: 'confirmada' }),
+    });
+  }
+
+  // Buscar datos del estudiante
+  const r = await fetch(`/api/psicopedagogico?accion=buscar&q=${encodeURIComponent(rv.codigo)}`);
+  const { estudiantes } = await r.json();
+  const est = estudiantes.find(e => e.codigo === rv.codigo) || {
+    codigo: rv.codigo, nombre: rv.nombre || rv.codigo, apellido: '', carrera: '', email: rv.email || ''
+  };
+
+  // Pre-llenar fecha/hora desde la reserva
+  await seleccionarEstudiante(est, rv.fecha, rv.hora_inicio);
+
+  // Mostrar chip de contexto
+  const ctx = document.getElementById('reservaCtx');
+  document.getElementById('reservaCtxTexto').innerHTML =
+    `<strong>Sesión reservada · ${formatFechaCorta(rv.fecha)}</strong>
+     <span>${formatHora(rv.hora_inicio)} – ${formatHora(rv.hora_fin)} · Al registrar la atención, la reserva se marcará como completada</span>`;
+  ctx.style.display = 'flex';
+}
+
+// ── Búsqueda directa ──
 async function buscar() {
   const q = document.getElementById('searchInput').value.trim();
   if (!q) return;
@@ -313,20 +433,34 @@ async function buscar() {
 
 document.getElementById('searchInput').addEventListener('keydown', e => { if(e.key==='Enter') buscar(); });
 
-async function seleccionarEstudiante(est) {
+// ── Seleccionar estudiante (desde búsqueda o desde reserva) ──
+async function seleccionarEstudiante(est, fechaPreset, horaPreset) {
+  // Si viene de búsqueda directa, limpiar contexto de reserva
+  if (!fechaPreset) {
+    reservaActivaId = null;
+    document.getElementById('reservaCtx').style.display = 'none';
+  }
+
   estudianteActual = est;
   document.getElementById('resultados').style.display = 'none';
   document.getElementById('searchInput').value = `${est.nombre} ${est.apellido||''} (${est.codigo})`;
 
   document.getElementById('estCard').innerHTML = `
     <div class="est-nombre">${est.nombre} ${est.apellido||''}</div>
-    <div class="est-carrera">${est.carrera}</div>
+    <div class="est-carrera">${est.carrera||''}</div>
     <div class="est-meta">Código: ${est.codigo} · Email: ${est.email||'—'}</div>`;
 
-  const ahora = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Lima'}));
-  document.getElementById('aFecha').value = ahora.toISOString().split('T')[0];
-  document.getElementById('aHora').value  = ahora.toTimeString().slice(0,5);
+  // Fecha/hora: desde la reserva o la hora actual Lima
+  if (fechaPreset && horaPreset) {
+    document.getElementById('aFecha').value = fechaPreset;
+    document.getElementById('aHora').value  = horaPreset.substring(0,5);
+  } else {
+    const ahora = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Lima'}));
+    document.getElementById('aFecha').value = ahora.toISOString().split('T')[0];
+    document.getElementById('aHora').value  = ahora.toTimeString().slice(0,5);
+  }
 
+  // Cargar ficha
   const fr = await fetch(`/api/psicopedagogico?accion=ficha&codigo=${est.codigo}`);
   const { ficha } = await fr.json();
   if (ficha) {
@@ -344,6 +478,7 @@ async function seleccionarEstudiante(est) {
   document.getElementById('panelEstudiante').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+// ── Historial ──
 async function cargarHistorial(codigo) {
   const r = await fetch(`/api/psicopedagogico?accion=atenciones&codigo=${codigo}`);
   const { atenciones } = await r.json();
@@ -360,6 +495,7 @@ async function cargarHistorial(codigo) {
     : '<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:16px">Sin atenciones registradas</td></tr>';
 }
 
+// ── Registrar atención ──
 async function registrarAtencion() {
   if (!estudianteActual) return;
   const ok = document.getElementById('atencionOk');
@@ -380,25 +516,42 @@ async function registrarAtencion() {
     notas:            document.getElementById('aNotas').value.trim(),
   };
 
-  if (!body.fecha_atencion||!body.hora_atencion||!body.tipo_atencion||!body.canal||!body.area_afectada||!body.accion_realizada||!body.resultado) {
+  if (!body.fecha_atencion||!body.hora_atencion||!body.tipo_atencion||!body.canal||
+      !body.area_afectada||!body.accion_realizada||!body.resultado) {
     err.textContent='Completa todos los campos obligatorios'; err.style.display='block'; return;
   }
 
   try {
-    const r = await fetch('/api/psicopedagogico', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const r = await fetch('/api/psicopedagogico', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+    });
     const data = await r.json();
-    if (data.ok) {
-      ok.style.display='block';
-      ['aTipo','aCanal','aArea','aAccion','aResultado'].forEach(id => document.getElementById(id).value='');
-      document.getElementById('aNotas').value='';
-      await cargarHistorial(estudianteActual.codigo);
-      setTimeout(()=>ok.style.display='none',4000);
-    } else throw new Error(data.error);
+    if (!data.ok) throw new Error(data.error);
+
+    ok.style.display='block';
+    ['aTipo','aCanal','aArea','aAccion','aResultado'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('aNotas').value='';
+    await cargarHistorial(estudianteActual.codigo);
+
+    // Si venía de una reserva, marcarla como completada
+    if (reservaActivaId) {
+      await fetch('/api/psico-reservas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accion: 'estado', id: reservaActivaId, estado: 'completada' }),
+      });
+      reservaActivaId = null;
+      document.getElementById('reservaCtx').style.display = 'none';
+      cargarReservas();
+    }
+
+    setTimeout(()=>ok.style.display='none',4000);
   } catch(e) {
     err.textContent='Error: '+e.message; err.style.display='block';
   }
 }
 
+// ── Guardar ficha ──
 async function guardarFicha() {
   if (!estudianteActual) return;
   const ok = document.getElementById('fichaOk');
@@ -411,7 +564,9 @@ async function guardarFicha() {
     observaciones:       document.getElementById('fObservaciones').value||null,
   };
   try {
-    const r = await fetch('/api/psicopedagogico', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const r = await fetch('/api/psicopedagogico', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+    });
     const data = await r.json();
     if (data.ok) { ok.style.display='block'; setTimeout(()=>ok.style.display='none',3000); }
     else throw new Error(data.error);
@@ -420,11 +575,12 @@ async function guardarFicha() {
   }
 }
 
+// ── Helpers de badges ──
 function badgeResultado(r) {
   const map = {
-    'Resuelto en sesión':    ['badge-green','Resuelto'],
-    'Requiere seguimiento':  ['badge-yellow','Seguimiento'],
-    'Derivado externamente': ['badge-red','Derivado'],
+    'Resuelto en sesión':   ['badge-green','Resuelto'],
+    'Requiere seguimiento': ['badge-yellow','Seguimiento'],
+    'Derivado externamente':['badge-red','Derivado'],
   };
   const [cls,txt] = map[r]||['badge-purple', r||'—'];
   return `<span class="badge ${cls}">${txt}</span>`;
@@ -436,46 +592,41 @@ function badgeTipo(t) {
   return `<span style="font-size:0.75rem;color:var(--t3)">${t||'—'}</span>`;
 }
 
+// ── QR para charla ──
 async function generarQR() {
-  const fecha = document.getElementById('qFecha').value;
+  const fecha  = document.getElementById('qFecha').value;
   const inicio = document.getElementById('qInicio').value;
-  const fin = document.getElementById('qFin').value;
-  const errEl = document.getElementById('qrErr');
+  const fin    = document.getElementById('qFin').value;
+  const errEl  = document.getElementById('qrErr');
   errEl.style.display = 'none';
-  if (!fecha || !inicio || !fin) {
-    errEl.textContent = 'Completa fecha, hora inicio y hora fin'; errEl.style.display = 'block'; return;
-  }
-  if (inicio >= fin) {
-    errEl.textContent = 'La hora de fin debe ser mayor que la de inicio'; errEl.style.display = 'block'; return;
-  }
-  const [hi, hm] = inicio.split(':').map(Number);
-  const [fi, fm] = fin.split(':').map(Number);
-  if ((fi * 60 + fm) - (hi * 60 + hm) > 60) {
-    errEl.textContent = 'El período máximo es 1 hora'; errEl.style.display = 'block'; return;
-  }
+  if (!fecha||!inicio||!fin) { errEl.textContent='Completa fecha, hora inicio y hora fin'; errEl.style.display='block'; return; }
+  if (inicio >= fin) { errEl.textContent='La hora de fin debe ser mayor que la de inicio'; errEl.style.display='block'; return; }
+  const [hi,hm] = inicio.split(':').map(Number);
+  const [fi,fm] = fin.split(':').map(Number);
+  if ((fi*60+fm)-(hi*60+hm) > 60) { errEl.textContent='El período máximo es 1 hora'; errEl.style.display='block'; return; }
   try {
     const { data: { session } } = await sb.auth.getSession();
     const r = await fetch('/api/sesiones-charla', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token||''}` },
-      body: JSON.stringify({ modulo: 'psicopedagogico', fecha, hora_inicio: inicio, hora_fin: fin }),
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${session?.access_token||''}`},
+      body: JSON.stringify({ modulo:'psicopedagogico', fecha, hora_inicio:inicio, hora_fin:fin }),
     });
     const data = await r.json();
-    if (!data.ok) throw new Error(data.error || 'Error al crear sesión');
+    if (!data.ok) throw new Error(data.error||'Error al crear sesión');
     const url = `${window.location.origin}/psico-charla-eval?token=${data.token}`;
-    const canvas = document.getElementById('qrCanvas');
-    canvas.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}" alt="QR charla" style="display:block">`;
+    document.getElementById('qrCanvas').innerHTML =
+      `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}" alt="QR charla" style="display:block">`;
     document.getElementById('qrInfo').textContent = `Válido el ${fecha} de ${inicio} a ${fin}`;
     document.getElementById('qrResult').style.display = 'block';
   } catch(e) {
-    errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block';
+    errEl.textContent='Error: '+e.message; errEl.style.display='block';
   }
 }
 
 function imprimirQR() {
   const canvas = document.getElementById('qrCanvas');
-  const info = document.getElementById('qrInfo').textContent;
-  const win = window.open('', '_blank');
+  const info   = document.getElementById('qrInfo').textContent;
+  const win = window.open('','_blank');
   win.document.write(`<!DOCTYPE html><html><head><title>QR Charla Psicopedagógica</title>
   <style>body{font-family:Arial,sans-serif;text-align:center;padding:40px}
   h2{font-size:1.4rem;margin-bottom:6px}p{font-size:0.9rem;color:#555;margin-bottom:20px}
@@ -484,12 +635,12 @@ function imprimirQR() {
   <p>Escanea el QR para evaluar la charla</p>
   ${canvas.innerHTML}
   <p style="margin-top:16px;font-size:0.8rem;color:#888">${info}</p>
-  <script>window.onload=()=>window.print()<\/script>
-  </body></html>`);
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
   win.document.close();
 }
 
-initAuth();
+// ── Init ──
+initAuth().then(ok => { if (ok) cargarReservas(); });
 </script>
 </body>
 </html>

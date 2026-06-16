@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reservar Sesión Psicopedagógica — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#6366f1;--acc2:#a5b4fc;--red:#ef4444;--green:#10b981;--yellow:#f59e0b;
+  --text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{padding:24px 16px 60px;max-width:560px;margin:0 auto}
+
+/* Header */
+.header{text-align:center;margin-bottom:32px}
+.header-icon{font-size:2.8rem;margin-bottom:12px}
+.header-titulo{font-size:1.4rem;font-weight:800;color:var(--acc2);margin-bottom:4px}
+.header-sub{font-size:0.82rem;color:var(--t3)}
+
+/* Card */
+.card{background:var(--s);border:1px solid var(--b);border-radius:16px;padding:24px;margin-bottom:16px}
+.card-titulo{font-size:0.88rem;font-weight:700;margin-bottom:16px;color:var(--text)}
+
+/* Step: identificación */
+.step{display:none}
+.step.activo{display:block}
+
+.field label{font-size:0.7rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px}
+.field input{width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:9px;padding:12px 14px;color:var(--text);font-size:1rem;font-family:'Inter',sans-serif;outline:none;text-align:center;letter-spacing:2px}
+.field input:focus{border-color:var(--acc)}
+.field input::placeholder{color:var(--t3);letter-spacing:0}
+
+.btn-primary{width:100%;margin-top:14px;padding:13px;background:var(--acc);color:#fff;font-weight:700;font-size:0.95rem;border:none;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+
+.btn-sec{width:100%;margin-top:10px;padding:11px;background:none;color:var(--t2);font-weight:600;font-size:0.85rem;border:1.5px solid var(--b);border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-sec:hover{border-color:var(--acc);color:var(--acc2)}
+
+/* Estudiante identificado */
+.est-chip{background:var(--s2);border:1px solid var(--b);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.est-avatar{width:38px;height:38px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:#fff;flex-shrink:0}
+.est-nombre{font-size:0.9rem;font-weight:700}
+.est-codigo{font-size:0.72rem;color:var(--t3)}
+
+/* Reserva existente */
+.reserva-card{background:rgba(99,102,241,.08);border:1.5px solid rgba(99,102,241,.3);border-radius:12px;padding:18px;margin-bottom:14px}
+.reserva-titulo{font-size:0.8rem;font-weight:700;color:var(--acc2);margin-bottom:8px}
+.reserva-fecha{font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:2px}
+.reserva-hora{font-size:0.88rem;color:var(--t2)}
+.badge-estado{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;margin-top:8px}
+.b-pendiente{background:rgba(245,158,11,.15);color:var(--yellow)}
+.b-confirmada{background:rgba(16,185,129,.15);color:var(--green)}
+
+/* Calendario de slots */
+.semana{margin-bottom:20px}
+.semana-titulo{font-size:0.72rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--b)}
+.dia-group{margin-bottom:14px}
+.dia-nombre{font-size:0.78rem;font-weight:700;color:var(--t2);margin-bottom:8px}
+.slots-row{display:flex;flex-wrap:wrap;gap:8px}
+.slot-btn{padding:8px 14px;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;color:var(--text);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+.slot-btn:hover{border-color:var(--acc);background:rgba(99,102,241,.12);color:var(--acc2)}
+.slot-btn.seleccionado{border-color:var(--acc);background:var(--acc);color:#fff}
+
+.no-slots{text-align:center;padding:32px 16px;color:var(--t3);font-size:0.85rem}
+.no-slots-icon{font-size:2rem;margin-bottom:8px}
+
+/* Confirmación de slot */
+.confirm-slot{background:rgba(99,102,241,.08);border:1.5px solid rgba(99,102,241,.35);border-radius:12px;padding:18px;margin-bottom:16px;text-align:center}
+.confirm-fecha{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:4px}
+.confirm-hora{font-size:1rem;color:var(--acc2);font-weight:600}
+
+/* Éxito */
+.success-icon{font-size:3rem;text-align:center;margin-bottom:12px}
+.success-titulo{font-size:1.2rem;font-weight:800;text-align:center;color:var(--green);margin-bottom:6px}
+.success-sub{font-size:0.82rem;color:var(--t3);text-align:center}
+.success-box{background:rgba(16,185,129,.08);border:1.5px solid rgba(16,185,129,.25);border-radius:12px;padding:18px;margin:16px 0;text-align:center}
+.success-fecha{font-size:1.2rem;font-weight:800;color:var(--text);margin-bottom:4px}
+.success-hora{font-size:0.88rem;color:var(--t2)}
+
+.msg-err{background:rgba(239,68,68,.12);border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;margin-top:10px;display:none;text-align:center}
+.spinner{display:none;text-align:center;padding:32px;color:var(--t3);font-size:0.85rem}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">🧠</div>
+  <div class="header-titulo">Apoyo Psicopedagógico</div>
+  <div class="header-sub">Reserva tu sesión — Instituto Superior Neumann</div>
+</div>
+
+<!-- PASO 1: Identificación -->
+<div class="step activo" id="paso1">
+  <div class="card">
+    <div class="card-titulo">👤 Ingresa tu código de estudiante</div>
+    <div class="field">
+      <label>Código</label>
+      <input type="text" id="codigoInput" placeholder="Ej: 2024001"
+             maxlength="20" autocomplete="off"
+             onkeydown="if(event.key==='Enter') verificar()">
+    </div>
+    <button class="btn-primary" onclick="verificar()" id="btnVerificar">Continuar</button>
+    <div class="msg-err" id="errPaso1"></div>
+  </div>
+</div>
+
+<!-- PASO 2: Seleccionar slot -->
+<div class="step" id="paso2">
+  <div class="card">
+    <div class="card-titulo">📅 Elige un horario disponible</div>
+    <div class="est-chip" id="estChip"></div>
+
+    <!-- Reserva existente (si la tiene) -->
+    <div id="reservaExistente" style="display:none">
+      <div class="reserva-card" id="reservaCard"></div>
+      <div style="font-size:0.78rem;color:var(--t3);margin-bottom:14px;text-align:center">
+        Ya tienes una sesión reservada. Cancélala para reservar otra.
+      </div>
+      <button class="btn-sec" onclick="cancelarReserva()" id="btnCancelar">✕ Cancelar mi reserva</button>
+    </div>
+
+    <!-- Slots disponibles -->
+    <div id="slotsWrap">
+      <div class="spinner" id="spinnerSlots">Buscando horarios disponibles...</div>
+      <div id="calendario"></div>
+    </div>
+    <div class="msg-err" id="errPaso2"></div>
+  </div>
+  <button class="btn-sec" onclick="reiniciar()">← Cambiar código</button>
+</div>
+
+<!-- PASO 3: Confirmar reserva -->
+<div class="step" id="paso3">
+  <div class="card">
+    <div class="card-titulo">✅ Confirmar reserva</div>
+    <div class="est-chip" id="estChip3"></div>
+    <div class="confirm-slot">
+      <div class="confirm-fecha" id="confirmFecha"></div>
+      <div class="confirm-hora" id="confirmHora"></div>
+      <div style="font-size:0.78rem;color:var(--t3);margin-top:6px">Duración: 1 hora</div>
+    </div>
+    <p style="font-size:0.8rem;color:var(--t3);text-align:center;margin-bottom:14px">
+      Al confirmar, esta sesión quedará registrada y no podrás hacer otra reserva hasta que sea atendida o cancelada.
+    </p>
+    <button class="btn-primary" onclick="confirmarReserva()" id="btnConfirmar">Confirmar reserva</button>
+    <button class="btn-sec" onclick="volverAlCalendario()">← Elegir otro horario</button>
+    <div class="msg-err" id="errPaso3"></div>
+  </div>
+</div>
+
+<!-- PASO 4: Éxito -->
+<div class="step" id="paso4">
+  <div class="card">
+    <div class="success-icon">🎉</div>
+    <div class="success-titulo">¡Reserva confirmada!</div>
+    <div class="success-sub">Tu sesión ha sido registrada exitosamente</div>
+    <div class="success-box">
+      <div class="success-fecha" id="successFecha"></div>
+      <div class="success-hora" id="successHora"></div>
+      <div style="font-size:0.75rem;color:var(--t3);margin-top:6px">Duración: 1 hora · Apoyo Psicopedagógico</div>
+    </div>
+    <p style="font-size:0.78rem;color:var(--t3);text-align:center;line-height:1.6">
+      Preséntate puntualmente. Si no puedes asistir, avisa con anticipación para liberar el horario.
+    </p>
+    <button class="btn-sec" style="margin-top:20px" onclick="reiniciar()">Reservar para otro estudiante</button>
+  </div>
+</div>
+
+<script>
+const DIAS_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+let estudianteActual = null;
+let slotSeleccionado = null;
+let reservaActual = null;
+
+function irPaso(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('activo'));
+  document.getElementById(`paso${n}`).classList.add('activo');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function formatFechaLarga(fechaStr) {
+  const [y, m, d] = fechaStr.split('-').map(Number);
+  const fecha = new Date(y, m - 1, d);
+  return `${DIAS_ES[fecha.getDay()]} ${d} de ${MESES_ES[m-1]} ${y}`;
+}
+
+function formatHora(t) {
+  if (!t) return '—';
+  const [h, min] = t.substring(0, 5).split(':').map(Number);
+  const ampm = h >= 12 ? 'pm' : 'am';
+  return `${h % 12 || 12}:${String(min).padStart(2,'0')} ${ampm}`;
+}
+
+function estChipHTML(est) {
+  const inicial = (est.nombre || '?')[0].toUpperCase();
+  return `
+    <div class="est-avatar">${inicial}</div>
+    <div>
+      <div class="est-nombre">${est.nombre} ${est.apellido || ''}</div>
+      <div class="est-codigo">${est.codigo} · ${est.carrera || ''}</div>
+    </div>`;
+}
+
+async function verificar() {
+  const codigo = document.getElementById('codigoInput').value.trim();
+  const err = document.getElementById('errPaso1');
+  err.style.display = 'none';
+  if (!codigo) { err.textContent = 'Ingresa tu código de estudiante'; err.style.display = 'block'; return; }
+
+  const btn = document.getElementById('btnVerificar');
+  btn.disabled = true; btn.textContent = 'Verificando...';
+
+  try {
+    const r = await fetch(`/api/estudiantes?codigo=${encodeURIComponent(codigo)}`);
+    const data = await r.json();
+    const est = Array.isArray(data) ? data[0] : data?.estudiante;
+
+    if (!est || !est.codigo) throw new Error('Código no encontrado. Verifica e intenta de nuevo.');
+    if (est.activo === false || est.activo === 0) throw new Error('Tu código está inactivo. Consulta con Secretaría.');
+
+    estudianteActual = est;
+
+    // Mostrar chip en pasos 2 y 3
+    document.getElementById('estChip').innerHTML = estChipHTML(est);
+    document.getElementById('estChip3').innerHTML = estChipHTML(est);
+
+    // Verificar si tiene reserva activa
+    const mr = await fetch(`/api/psico-reservas?accion=mis-reservas&codigo=${encodeURIComponent(codigo)}`);
+    const mrData = await mr.json();
+    reservaActual = mrData.reserva || null;
+
+    if (reservaActual) {
+      mostrarReservaExistente();
+    } else {
+      await cargarSlots();
+    }
+
+    irPaso(2);
+  } catch(e) {
+    err.textContent = e.message; err.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Continuar';
+  }
+}
+
+function mostrarReservaExistente() {
+  const wrap = document.getElementById('reservaExistente');
+  const card = document.getElementById('reservaCard');
+  const r = reservaActual;
+  const badgeCls = r.estado === 'confirmada' ? 'b-confirmada' : 'b-pendiente';
+  const badgeTxt = r.estado === 'confirmada' ? 'Confirmada' : 'Pendiente';
+  card.innerHTML = `
+    <div class="reserva-titulo">📅 Tu sesión reservada</div>
+    <div class="reserva-fecha">${formatFechaLarga(r.fecha)}</div>
+    <div class="reserva-hora">${formatHora(r.hora_inicio)} – ${formatHora(r.hora_fin)}</div>
+    <span class="badge-estado ${badgeCls}">${badgeTxt}</span>`;
+  wrap.style.display = 'block';
+  document.getElementById('slotsWrap').style.display = 'none';
+}
+
+async function cancelarReserva() {
+  if (!reservaActual) return;
+  if (!confirm('¿Seguro que quieres cancelar tu sesión?')) return;
+  const btn = document.getElementById('btnCancelar');
+  btn.disabled = true; btn.textContent = 'Cancelando...';
+  try {
+    const r = await fetch('/api/psico-reservas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'cancelar-propia', codigo: estudianteActual.codigo, id: reservaActual.id }),
+    });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error);
+    reservaActual = null;
+    document.getElementById('reservaExistente').style.display = 'none';
+    document.getElementById('slotsWrap').style.display = 'block';
+    await cargarSlots();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = '✕ Cancelar mi reserva';
+  }
+}
+
+async function cargarSlots() {
+  const spinner = document.getElementById('spinnerSlots');
+  const cal = document.getElementById('calendario');
+  spinner.style.display = 'block';
+  cal.innerHTML = '';
+  try {
+    const r = await fetch('/api/psico-reservas?accion=slots');
+    const slots = await r.json();
+    spinner.style.display = 'none';
+
+    if (!slots.length) {
+      cal.innerHTML = `<div class="no-slots"><div class="no-slots-icon">📭</div>No hay horarios disponibles en las próximas 4 semanas. Consulta con el área psicopedagógica.</div>`;
+      return;
+    }
+
+    // Agrupar por semana y día
+    const semanas = {};
+    slots.forEach(s => {
+      const [y, m, d] = s.fecha.split('-').map(Number);
+      const fecha = new Date(y, m - 1, d);
+      // Número de semana relativo (lunes de la semana)
+      const lunes = new Date(fecha);
+      lunes.setDate(fecha.getDate() - (fecha.getDay() === 0 ? 6 : fecha.getDay() - 1));
+      const semKey = lunes.toISOString().split('T')[0];
+      if (!semanas[semKey]) semanas[semKey] = {};
+      if (!semanas[semKey][s.fecha]) semanas[semKey][s.fecha] = [];
+      semanas[semKey][s.fecha].push(s);
+    });
+
+    let html = '';
+    Object.keys(semanas).sort().forEach((semKey, si) => {
+      const [sy, sm, sd] = semKey.split('-').map(Number);
+      const lunes = new Date(sy, sm - 1, sd);
+      const viernesDate = new Date(lunes); viernesDate.setDate(lunes.getDate() + 6);
+      const semLabel = `Semana del ${sd} al ${viernesDate.getDate()} de ${MESES_ES[viernesDate.getMonth()]}`;
+      html += `<div class="semana"><div class="semana-titulo">${semLabel}</div>`;
+      Object.keys(semanas[semKey]).sort().forEach(fechaStr => {
+        const [fy, fm, fd] = fechaStr.split('-').map(Number);
+        const fObj = new Date(fy, fm - 1, fd);
+        const diaNombre = `${DIAS_ES[fObj.getDay()]} ${fd} de ${MESES_ES[fm-1]}`;
+        html += `<div class="dia-group"><div class="dia-nombre">${diaNombre}</div><div class="slots-row">`;
+        semanas[semKey][fechaStr].forEach(s => {
+          const id = `slot_${s.fecha}_${s.hora_inicio}`;
+          html += `<button class="slot-btn" id="${id}"
+            onclick="seleccionarSlot(${JSON.stringify(s).replace(/"/g,'&quot;')}, '${id}')">
+            ${formatHora(s.hora_inicio)} – ${formatHora(s.hora_fin)}
+          </button>`;
+        });
+        html += `</div></div>`;
+      });
+      html += `</div>`;
+    });
+    cal.innerHTML = html;
+  } catch(e) {
+    spinner.style.display = 'none';
+    cal.innerHTML = `<div class="no-slots">Error al cargar horarios: ${e.message}</div>`;
+  }
+}
+
+function seleccionarSlot(slot, btnId) {
+  // Quitar selección previa
+  document.querySelectorAll('.slot-btn.seleccionado').forEach(b => b.classList.remove('seleccionado'));
+  document.getElementById(btnId).classList.add('seleccionado');
+  slotSeleccionado = slot;
+
+  // Pasar a confirmación
+  document.getElementById('confirmFecha').textContent = formatFechaLarga(slot.fecha);
+  document.getElementById('confirmHora').textContent = `${formatHora(slot.hora_inicio)} – ${formatHora(slot.hora_fin)}`;
+  irPaso(3);
+}
+
+function volverAlCalendario() { irPaso(2); }
+
+async function confirmarReserva() {
+  const err = document.getElementById('errPaso3');
+  err.style.display = 'none';
+  const btn = document.getElementById('btnConfirmar');
+  btn.disabled = true; btn.textContent = 'Reservando...';
+
+  try {
+    const r = await fetch('/api/psico-reservas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        accion: 'reservar',
+        codigo:      estudianteActual.codigo,
+        nombre:      `${estudianteActual.nombre} ${estudianteActual.apellido || ''}`.trim(),
+        email:       estudianteActual.email || null,
+        fecha:       slotSeleccionado.fecha,
+        hora_inicio: slotSeleccionado.hora_inicio,
+        hora_fin:    slotSeleccionado.hora_fin,
+      }),
+    });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error);
+
+    // Éxito
+    document.getElementById('successFecha').textContent = formatFechaLarga(slotSeleccionado.fecha);
+    document.getElementById('successHora').textContent  = `${formatHora(slotSeleccionado.hora_inicio)} – ${formatHora(slotSeleccionado.hora_fin)}`;
+    irPaso(4);
+  } catch(e) {
+    err.textContent = e.message; err.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Confirmar reserva';
+  }
+}
+
+function reiniciar() {
+  estudianteActual = null;
+  slotSeleccionado = null;
+  reservaActual = null;
+  document.getElementById('codigoInput').value = '';
+  document.getElementById('errPaso1').style.display = 'none';
+  document.getElementById('calendario').innerHTML = '';
+  document.getElementById('reservaExistente').style.display = 'none';
+  document.getElementById('slotsWrap').style.display = 'block';
+  irPaso(1);
+}
+</script>
+</body>
+</html>
