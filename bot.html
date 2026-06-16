@@ -488,6 +488,15 @@ function esConsultaReserva(texto) {
   return keywords.some(k => tl.includes(k));
 }
 
+async function buscarEnConocimientos(texto) {
+  try {
+    const r = await fetch(`/api/conocimientos?accion=buscar&q=${encodeURIComponent(texto)}`);
+    const data = await r.json();
+    if (!Array.isArray(data) || data.length === 0) return null;
+    return data.map(d => `[${d.tema}] ${d.pregunta}\n${d.respuesta}`).join('\n\n');
+  } catch(e) { return null; }
+}
+
 function esConsultaCultura(texto) {
   const tl = texto.toLowerCase();
   // Keywords generales
@@ -503,7 +512,7 @@ function esConsultaCultura(texto) {
 }
 
 // ── SYSTEM PROMPT ──
-function buildSystem(asistenciaData = null) {
+function buildSystem(asistenciaData = null, conocimientosData = null) {
   const areaActual  = AREA || registro.area || '';
   const slotsArea   = areaActual ? getSlotsParaArea(areaActual) : [];
   const slotsTexto  = slotsArea.length ? slotsArea.join(', ') : 'pregunta primero qué área quiere';
@@ -582,6 +591,15 @@ DATOS DE ASISTENCIA DEL ESTUDIANTE (usa esto para responder):
 ${asistenciaData}
 
 Presenta estos datos de forma conversacional y amigable. Resalta el total de días presentes y los registros más recientes. Si el estudiante pregunta algo específico (ej: "¿vine el lunes?"), búscalo en los registros y responde directamente.`;
+  }
+
+  if (conocimientosData) {
+    sys += `
+
+INFORMACIÓN DEL INSTITUTO (usa esto para responder la consulta del estudiante):
+${conocimientosData}
+
+Responde usando esta información de forma natural y conversacional. Si la información no responde exactamente lo que pregunta el estudiante, di lo que puedas y ofrécele crear un ticket para que alguien del equipo le responda con detalle.`;
   }
 
   return sys;
@@ -745,9 +763,15 @@ async function send() {
     actualizarRegistro(text);
   }
 
+  // ── PASO 4: Buscar en base de conocimientos si no es un módulo específico ──
+  let conocimientosData = null;
+  if (estudianteActual && modulo !== 'reserva' && modulo !== 'asistencia' && modulo !== 'cultura') {
+    conocimientosData = await buscarEnConocimientos(text);
+  }
+
   addTyping();
   try {
-    const reply = await callClaude(buildSystem(asistenciaData));
+    const reply = await callClaude(buildSystem(asistenciaData, conocimientosData));
     removeTyping();
 
     if (reply && reply.includes('[CREAR_TICKET]')) {

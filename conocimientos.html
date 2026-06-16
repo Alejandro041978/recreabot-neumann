@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base de Conocimientos — Instituto Neumann</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#6366f1;--acc2:#a5b4fc;--text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+  --green:#10b981;--red:#ef4444;--yellow:#f59e0b;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px 20px 60px}
+.container{max-width:900px;margin:0 auto}
+
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.header h1{font-size:1.3rem;font-weight:700;color:var(--acc2)}
+.header p{font-size:0.78rem;color:var(--t3);margin-top:3px}
+.btn-volver{font-size:0.78rem;color:var(--t3);background:none;border:1px solid var(--b);border-radius:6px;padding:6px 14px;cursor:pointer;text-decoration:none}
+.btn-volver:hover{border-color:var(--acc);color:var(--acc2)}
+
+.form-card{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:24px;margin-bottom:28px}
+.form-card h2{font-size:0.9rem;font-weight:700;color:var(--acc2);margin-bottom:18px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+label{font-size:0.75rem;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.5px}
+input,textarea,select{background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:10px 12px;color:var(--text);font-size:0.88rem;font-family:'Inter',sans-serif;outline:none;width:100%}
+input:focus,textarea:focus,select:focus{border-color:var(--acc)}
+textarea{resize:vertical;min-height:80px;line-height:1.5}
+.hint{font-size:0.7rem;color:var(--t3)}
+
+.form-actions{display:flex;gap:10px;margin-top:18px}
+.btn-primary{padding:10px 22px;background:var(--acc);color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer}
+.btn-primary:hover{background:#4f46e5}
+.btn-secondary{padding:10px 22px;background:none;color:var(--t2);border:1px solid var(--b);border-radius:8px;font-size:0.85rem;cursor:pointer}
+.btn-secondary:hover{border-color:var(--t2)}
+
+.stats{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.stat{background:var(--s);border:1px solid var(--b);border-radius:10px;padding:12px 18px;font-size:0.78rem;color:var(--t3)}
+.stat strong{display:block;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:2px}
+
+.search-bar{display:flex;gap:10px;margin-bottom:16px}
+.search-bar input{flex:1}
+.filter-select{background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:10px 12px;color:var(--text);font-size:0.85rem;cursor:pointer}
+
+.table-wrap{background:var(--s);border:1px solid var(--b);border-radius:14px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{padding:12px 16px;font-size:0.72rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;text-align:left;border-bottom:1px solid var(--b);background:var(--s2)}
+td{padding:12px 16px;font-size:0.83rem;border-bottom:1px solid rgba(42,58,82,.5);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+.badge-tema{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;background:rgba(99,102,241,.15);color:var(--acc2);border:1px solid rgba(99,102,241,.3);white-space:nowrap}
+.badge-activo{color:var(--green);font-size:0.75rem;font-weight:600}
+.badge-inactivo{color:var(--t3);font-size:0.75rem;font-weight:600}
+
+.td-pregunta{max-width:220px;font-weight:600;color:var(--text)}
+.td-respuesta{max-width:300px;color:var(--t2);font-size:0.78rem;line-height:1.5}
+.td-tags{color:var(--t3);font-size:0.72rem;font-style:italic}
+
+.acciones{display:flex;gap:6px;flex-wrap:wrap}
+.btn-edit{padding:5px 12px;font-size:0.73rem;background:none;border:1px solid var(--b);border-radius:6px;color:var(--t2);cursor:pointer}
+.btn-edit:hover{border-color:var(--acc);color:var(--acc2)}
+.btn-toggle{padding:5px 12px;font-size:0.73rem;background:none;border:1px solid var(--b);border-radius:6px;color:var(--t3);cursor:pointer}
+.btn-toggle:hover{border-color:var(--yellow);color:var(--yellow)}
+.btn-del{padding:5px 12px;font-size:0.73rem;background:none;border:1px solid var(--b);border-radius:6px;color:var(--t3);cursor:pointer}
+.btn-del:hover{border-color:var(--red);color:var(--red)}
+
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:0.83rem;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.ok{background:#065f46;color:#6ee7b7;border:1px solid #10b981}
+.toast.err{background:#7f1d1d;color:#fca5a5;border:1px solid #ef4444}
+.toast.show{opacity:1}
+
+.empty{text-align:center;padding:48px 24px;color:var(--t3);font-size:0.88rem}
+
+#auth-wall{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.auth-box{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:32px;max-width:360px;width:100%;text-align:center}
+.auth-box h2{font-size:1rem;font-weight:700;color:var(--acc2);margin-bottom:8px}
+.auth-box p{font-size:0.82rem;color:var(--t3);margin-bottom:20px}
+</style>
+</head>
+<body>
+
+<div id="auth-wall" style="display:none">
+  <div class="auth-box">
+    <div style="font-size:2rem;margin-bottom:12px">🔐</div>
+    <h2>Acceso restringido</h2>
+    <p>Esta sección es solo para staff del Instituto Neumann.</p>
+    <button class="btn-primary" style="width:100%" onclick="window.location.href='/login'">Ir al Login</button>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+<div class="container">
+
+  <div class="header">
+    <div>
+      <h1>📚 Base de Conocimientos</h1>
+      <p>Información que el bot usa para responder a los estudiantes</p>
+    </div>
+    <a href="/ejecutivo" class="btn-volver">← Volver</a>
+  </div>
+
+  <div class="form-card">
+    <h2 id="form-titulo">+ Nueva entrada</h2>
+    <input type="hidden" id="edit-id">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Tema</label>
+        <input type="text" id="f-tema" placeholder="Ej: Horarios, Reglamento, Profesores">
+      </div>
+      <div class="form-group">
+        <label>Tags (palabras clave)</label>
+        <input type="text" id="f-tags" placeholder="Ej: bus, transporte, horario">
+        <span class="hint">Separados por coma — ayudan al bot a encontrar esta info</span>
+      </div>
+      <div class="form-group full">
+        <label>Pregunta o título</label>
+        <input type="text" id="f-pregunta" placeholder="Ej: ¿Cuáles son los horarios del bus universitario?">
+      </div>
+      <div class="form-group full">
+        <label>Respuesta</label>
+        <textarea id="f-respuesta" placeholder="Escribe la respuesta completa que el bot dará al estudiante..."></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="guardar()">Guardar</button>
+      <button class="btn-secondary" id="btn-cancelar" onclick="cancelarEdicion()" style="display:none">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><strong id="stat-total">—</strong>Entradas totales</div>
+    <div class="stat"><strong id="stat-activas">—</strong>Activas</div>
+    <div class="stat"><strong id="stat-temas">—</strong>Temas distintos</div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="buscador" placeholder="Filtrar entradas..." oninput="filtrar()">
+    <select class="filter-select" id="filtro-tema" onchange="filtrar()">
+      <option value="">Todos los temas</option>
+    </select>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tema</th>
+          <th>Pregunta</th>
+          <th>Respuesta</th>
+          <th>Tags</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty" style="display:none">No hay entradas. Agrega la primera arriba.</div>
+  </div>
+
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL = 'https://exjaxhrylfdwehzjfjut.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4amF4aHJ5bGZkd2Voempmam91dCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzQ5OTM3MDQxLCJleHAiOjIwNjU1MTMwNDF9.bsMN4sMc4dywxGIPzNVzKLZ37eTt5oBDJx3WEaEuJ5Y';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+let todasLasEntradas = [];
+
+// ── AUTH ──
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { document.getElementById('auth-wall').style.display = 'flex'; return false; }
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal.currentLevel !== 'aal2') { await sb.auth.signOut(); window.location.href = '/login'; return false; }
+  document.getElementById('app').style.display = 'block';
+  return true;
+}
+
+// ── CARGAR ──
+async function cargar() {
+  const r = await fetch('/api/conocimientos');
+  todasLasEntradas = await r.json();
+  renderTabla(todasLasEntradas);
+  actualizarStats();
+  actualizarFiltroTemas();
+}
+
+function actualizarStats() {
+  const activas = todasLasEntradas.filter(e => e.activo);
+  const temas = new Set(todasLasEntradas.map(e => e.tema)).size;
+  document.getElementById('stat-total').textContent = todasLasEntradas.length;
+  document.getElementById('stat-activas').textContent = activas.length;
+  document.getElementById('stat-temas').textContent = temas;
+}
+
+function actualizarFiltroTemas() {
+  const temas = [...new Set(todasLasEntradas.map(e => e.tema))].sort();
+  const sel = document.getElementById('filtro-tema');
+  const actual = sel.value;
+  sel.innerHTML = '<option value="">Todos los temas</option>' +
+    temas.map(t => `<option value="${t}" ${t === actual ? 'selected' : ''}>${t}</option>`).join('');
+}
+
+function filtrar() {
+  const q = document.getElementById('buscador').value.toLowerCase();
+  const tema = document.getElementById('filtro-tema').value;
+  const filtradas = todasLasEntradas.filter(e => {
+    const matchTema = !tema || e.tema === tema;
+    const matchQ = !q || e.pregunta.toLowerCase().includes(q) || e.respuesta.toLowerCase().includes(q) || (e.tags||'').toLowerCase().includes(q);
+    return matchTema && matchQ;
+  });
+  renderTabla(filtradas);
+}
+
+function renderTabla(entradas) {
+  const tbody = document.getElementById('tbody');
+  const empty = document.getElementById('empty');
+  if (!entradas.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = entradas.map(e => `
+    <tr>
+      <td><span class="badge-tema">${e.tema}</span></td>
+      <td class="td-pregunta">${e.pregunta}</td>
+      <td class="td-respuesta">${e.respuesta.length > 120 ? e.respuesta.slice(0,120)+'…' : e.respuesta}</td>
+      <td class="td-tags">${e.tags || '—'}</td>
+      <td><span class="${e.activo ? 'badge-activo' : 'badge-inactivo'}">${e.activo ? '● Activa' : '○ Inactiva'}</span></td>
+      <td>
+        <div class="acciones">
+          <button class="btn-edit" onclick="editar('${e.id}')">Editar</button>
+          <button class="btn-toggle" onclick="toggleActivo('${e.id}', ${e.activo})">${e.activo ? 'Desactivar' : 'Activar'}</button>
+          <button class="btn-del" onclick="eliminar('${e.id}')">Eliminar</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── GUARDAR ──
+async function guardar() {
+  const id       = document.getElementById('edit-id').value;
+  const tema     = document.getElementById('f-tema').value.trim();
+  const pregunta = document.getElementById('f-pregunta').value.trim();
+  const respuesta= document.getElementById('f-respuesta').value.trim();
+  const tags     = document.getElementById('f-tags').value.trim();
+
+  if (!tema || !pregunta || !respuesta) { toast('Completa tema, pregunta y respuesta', 'err'); return; }
+
+  const method = id ? 'PATCH' : 'POST';
+  const body   = id ? { id, tema, pregunta, respuesta, tags } : { tema, pregunta, respuesta, tags };
+
+  const r = await fetch('/api/conocimientos', {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await r.json();
+  if (!data.ok) { toast('Error al guardar', 'err'); return; }
+
+  toast(id ? 'Entrada actualizada' : 'Entrada creada', 'ok');
+  cancelarEdicion();
+  await cargar();
+}
+
+// ── EDITAR ──
+function editar(id) {
+  const e = todasLasEntradas.find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('edit-id').value     = e.id;
+  document.getElementById('f-tema').value      = e.tema;
+  document.getElementById('f-pregunta').value  = e.pregunta;
+  document.getElementById('f-respuesta').value = e.respuesta;
+  document.getElementById('f-tags').value      = e.tags || '';
+  document.getElementById('form-titulo').textContent = '✏️ Editando entrada';
+  document.getElementById('btn-cancelar').style.display = 'inline-block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function cancelarEdicion() {
+  document.getElementById('edit-id').value = '';
+  document.getElementById('f-tema').value = '';
+  document.getElementById('f-pregunta').value = '';
+  document.getElementById('f-respuesta').value = '';
+  document.getElementById('f-tags').value = '';
+  document.getElementById('form-titulo').textContent = '+ Nueva entrada';
+  document.getElementById('btn-cancelar').style.display = 'none';
+}
+
+// ── TOGGLE ACTIVO ──
+async function toggleActivo(id, activo) {
+  const r = await fetch('/api/conocimientos', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, activo: !activo }),
+  });
+  const data = await r.json();
+  if (data.ok) { toast(activo ? 'Entrada desactivada' : 'Entrada activada', 'ok'); await cargar(); }
+}
+
+// ── ELIMINAR ──
+async function eliminar(id) {
+  if (!confirm('¿Eliminar esta entrada permanentemente?')) return;
+  const r = await fetch(`/api/conocimientos?id=${id}`, { method: 'DELETE' });
+  const data = await r.json();
+  if (data.ok) { toast('Entrada eliminada', 'ok'); await cargar(); }
+}
+
+// ── TOAST ──
+function toast(msg, tipo = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${tipo} show`;
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── INIT ──
+window.addEventListener('load', async () => {
+  const ok = await initAuth();
+  if (ok) await cargar();
+});
+</script>
+</body>
+</html>
