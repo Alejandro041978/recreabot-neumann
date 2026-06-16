@@ -71,6 +71,9 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .btn-del{padding:5px 12px;font-size:0.73rem;background:none;border:1px solid var(--b);border-radius:6px;color:var(--t3);cursor:pointer}
 .btn-del:hover{border-color:var(--red);color:var(--red)}
 
+.btn-upload{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--s2);border:1px solid var(--b);border-radius:8px;font-size:0.78rem;font-weight:600;color:var(--t2);cursor:pointer;transition:all .15s}
+.btn-upload:hover{border-color:var(--acc);color:var(--acc2)}
+
 .toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:0.83rem;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
 .toast.ok{background:#065f46;color:#6ee7b7;border:1px solid #10b981}
 .toast.err{background:#7f1d1d;color:#fca5a5;border:1px solid #ef4444}
@@ -124,8 +127,16 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <input type="text" id="f-pregunta" placeholder="Ej: ¿Cuáles son los horarios del bus universitario?">
       </div>
       <div class="form-group full">
-        <label>Respuesta</label>
-        <textarea id="f-respuesta" placeholder="Escribe la respuesta completa que el bot dará al estudiante..."></textarea>
+        <label>Respuesta <span style="color:var(--t3);font-weight:400;text-transform:none">(texto o URL de archivo)</span></label>
+        <textarea id="f-respuesta" placeholder="Escribe la respuesta, o sube un archivo y se completará automáticamente..."></textarea>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+          <label class="btn-upload" for="file-input" id="btn-upload-label">
+            📎 Subir PDF o imagen
+          </label>
+          <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" onchange="subirArchivo(this)">
+          <span id="upload-status" style="font-size:0.75rem;color:var(--t3)"></span>
+        </div>
+        <span class="hint">Si subes un archivo, el bot compartirá el enlace directo al estudiante.</span>
       </div>
     </div>
     <div class="form-actions">
@@ -184,6 +195,40 @@ async function initAuth() {
   if (aal.currentLevel !== 'aal2') { await sb.auth.signOut(); window.location.href = '/login'; return false; }
   document.getElementById('app').style.display = 'block';
   return true;
+}
+
+// ── SUBIR ARCHIVO ──
+async function subirArchivo(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const status = document.getElementById('upload-status');
+  const label  = document.getElementById('btn-upload-label');
+  status.textContent = 'Subiendo...';
+  label.style.opacity = '0.5';
+
+  try {
+    const ext      = file.name.split('.').pop();
+    const nombre   = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await sb.storage.from('documentos-bot').upload(nombre, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type,
+    });
+
+    if (error) throw error;
+
+    const { data: urlData } = sb.storage.from('documentos-bot').getPublicUrl(nombre);
+    document.getElementById('f-respuesta').value = urlData.publicUrl;
+    status.textContent = '✅ Archivo subido';
+    status.style.color = 'var(--green)';
+  } catch(e) {
+    status.textContent = '❌ Error: ' + e.message;
+    status.style.color = 'var(--red)';
+  } finally {
+    label.style.opacity = '1';
+    input.value = '';
+  }
 }
 
 // ── CARGAR ──

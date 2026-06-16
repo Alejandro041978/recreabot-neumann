@@ -31,7 +31,13 @@ export default async function handler(req, res) {
       const resultados = await query('conocimientos', 'GET', null,
         `?activo=eq.true&limit=4&or=(${condiciones})`
       );
-      res.json(resultados || []);
+
+      // Marcar entradas que son archivos (URL) vs texto
+      const formateados = (resultados || []).map(d => ({
+        ...d,
+        es_archivo: d.respuesta?.startsWith('https://'),
+      }));
+      res.json(formateados);
       return;
     }
 

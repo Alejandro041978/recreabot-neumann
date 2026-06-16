@@ -493,7 +493,12 @@ async function buscarEnConocimientos(texto) {
     const r = await fetch(`/api/conocimientos?accion=buscar&q=${encodeURIComponent(texto)}`);
     const data = await r.json();
     if (!Array.isArray(data) || data.length === 0) return null;
-    return data.map(d => `[${d.tema}] ${d.pregunta}\n${d.respuesta}`).join('\n\n');
+    return data.map(d => {
+      if (d.es_archivo) {
+        return `[${d.tema}] ${d.pregunta}\nRespuesta: Comparte este enlace directo al estudiante sin agregar texto adicional: ${d.respuesta}`;
+      }
+      return `[${d.tema}] ${d.pregunta}\n${d.respuesta}`;
+    }).join('\n\n');
   } catch(e) { return null; }
 }
 
