@@ -22,6 +22,7 @@
     { "src": "api/zoho-ticket.js",      "use": "@vercel/node" },
     { "src": "api/conocimientos.js",    "use": "@vercel/node" },
     { "src": "api/banos.js",            "use": "@vercel/node" },
+    { "src": "api/calidad.js",          "use": "@vercel/node" },
     { "src": "*.html",                   "use": "@vercel/static" }
   ],
   "crons": [
@@ -85,6 +86,9 @@
     { "src": "/admin-usuarios",             "dest": "/admin-usuarios.html"             },
     { "src": "/psico-atencion-eval",        "dest": "/psico-atencion-eval.html"        },
     { "src": "/psico-charla-eval",          "dest": "/psico-charla-eval.html"          },
+    { "src": "/api/calidad",              "dest": "/api/calidad.js"                },
+    { "src": "/calidad-config",           "dest": "/calidad-config.html"           },
+    { "src": "/calidad-dashboard",        "dest": "/calidad-dashboard.html"        },
     { "src": "/bot.html",                   "dest": "/bot.html"                        },
     { "src": "/",                       "dest": "/login.html"                },
     { "src": "/(.*)",                   "dest": "/index.html"                }
