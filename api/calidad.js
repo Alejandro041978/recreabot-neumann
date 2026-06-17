@@ -54,12 +54,12 @@ async function calcularKpi(fuente, staffId, fechaInicio, fechaFin) {
         return (charlasS || []).length;
 
       case 'salud_satisfaccion':
-        // Promedio de evaluaciones de atención de salud
+        // Promedio de evaluaciones de atención de salud (campos p1, p2, p3 de 1-5)
         const evalSalud = await query('evaluaciones_atencion', 'GET', null,
-          `?ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=calificacion`);
+          `?ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=p1,p2,p3`);
         if (!evalSalud?.length) return 0;
-        const sum = evalSalud.reduce((acc, e) => acc + (Number(e.calificacion) || 0), 0);
-        return Math.round((sum / evalSalud.length) * 10) / 10;
+        const sum = evalSalud.reduce((acc, e) => acc + ((Number(e.p1)+Number(e.p2)+Number(e.p3))/3), 0);
+        return Math.round((sum / evalSalud.length) * 100) / 100;
 
       case 'salud_charlas_participantes':
         // Nº de encuestas de charlas de salud respondidas (= participantes)
@@ -68,12 +68,12 @@ async function calcularKpi(fuente, staffId, fechaInicio, fechaFin) {
         return (partCharlaS || []).length;
 
       case 'salud_charlas_satisfaccion':
-        // Promedio de evaluaciones de charlas de salud
+        // Promedio de evaluaciones de charlas de salud (campos p1, p2, p3 de 1-5)
         const evalCharlaS = await query('evaluaciones_charla', 'GET', null,
-          `?ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=calificacion`);
+          `?ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=p1,p2,p3`);
         if (!evalCharlaS?.length) return 0;
-        const sumCS = evalCharlaS.reduce((acc, e) => acc + (Number(e.calificacion) || 0), 0);
-        return Math.round((sumCS / evalCharlaS.length) * 10) / 10;
+        const sumCS = evalCharlaS.reduce((acc, e) => acc + ((Number(e.p1)+Number(e.p2)+Number(e.p3))/3), 0);
+        return Math.round((sumCS / evalCharlaS.length) * 100) / 100;
 
       case 'psico_sesiones':
         // Nº de sesiones psicopedagógicas completadas
