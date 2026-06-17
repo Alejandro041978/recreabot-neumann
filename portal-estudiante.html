@@ -101,18 +101,45 @@ body{padding:20px 16px 60px;max-width:640px;margin:0 auto}
     <div class="badge-prox">Próximamente</div>
   </div>
 
-  <div class="modulo-card proximamente">
+  <a class="modulo-card" href="/psico-reserva">
     <div class="modulo-icon">🧠</div>
     <div class="modulo-nombre">Apoyo Psicopedagógico</div>
-    <div class="modulo-desc">Solicita orientación y seguimiento académico.</div>
-    <div class="badge-prox">Próximamente</div>
-  </div>
+    <div class="modulo-desc">Reserva tu sesión con la psicóloga en línea.</div>
+    <div class="badge-nuevo">Disponible</div>
+  </a>
+
+  <a class="modulo-card" href="/beca" id="cardBeca">
+    <div class="modulo-icon">🎓</div>
+    <div class="modulo-nombre">Beca Asistencial</div>
+    <div class="modulo-desc">Solicita una beca de 25% o 50% de descuento.</div>
+    <div class="badge-nuevo">Disponible</div>
+  </a>
+
+  <a class="modulo-card" id="cardAsistencia" href="#" onclick="irAsistencia(event)">
+    <div class="modulo-icon">📋</div>
+    <div class="modulo-nombre">Mi Asistencia</div>
+    <div class="modulo-desc">Consulta tu reporte personal de asistencia.</div>
+    <div class="badge-nuevo">Disponible</div>
+  </a>
+
+  <a class="modulo-card" href="/bot">
+    <div class="modulo-icon">🤖</div>
+    <div class="modulo-nombre">Asistente Virtual</div>
+    <div class="modulo-desc">Reserva espacios y consulta información del campus.</div>
+    <div class="badge-nuevo">Disponible</div>
+  </a>
 
 </div>
 
 <div class="sesion-info">Sesión activa por <strong>8 horas</strong> · Acceso verificado con código OTP</div>
 
 <script>
+function irAsistencia(e) {
+  e.preventDefault();
+  const cod = sessionStorage.getItem('neumann_student_codigo');
+  window.location.href = `/asistencia-dashboard?codigo=${encodeURIComponent(cod || '')}`;
+}
+
 function cerrarSesion() {
   sessionStorage.removeItem('neumann_student_token');
   sessionStorage.removeItem('neumann_student_codigo');
