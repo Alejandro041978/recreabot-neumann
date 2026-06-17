@@ -192,7 +192,8 @@ tbody tr:last-child td{border-bottom:none}
           <option value="">Selecciona...</option>
           <optgroup label="── Salud / Tópico ──">
             <option value="salud_atenciones">Atenciones de salud</option>
-            <option value="salud_charlas">Charlas de salud</option>
+            <option value="salud_charlas">Charlas de salud (cantidad impartidas)</option>
+            <option value="salud_charlas_participantes">Participantes en charlas de salud</option>
             <option value="salud_satisfaccion">Satisfacción atenciones (promedio)</option>
             <option value="salud_charlas_satisfaccion">Satisfacción charlas salud (promedio)</option>
           </optgroup>
@@ -240,7 +241,8 @@ let editandoKpiId = null;
 
 const FUENTE_DESC = {
   salud_atenciones:          'Cuenta automáticamente las atenciones registradas en el módulo de Salud durante el periodo.',
-  salud_charlas:             'Cuenta automáticamente las charlas de salud realizadas durante el periodo.',
+  salud_charlas:             'Cuenta automáticamente las charlas de salud impartidas (QRs generados) durante el periodo.',
+  salud_charlas_participantes:'Cuenta las encuestas respondidas en charlas de salud — equivale al nº de participantes.',
   salud_satisfaccion:        'Calcula el promedio de calificaciones de evaluaciones de atención de salud.',
   salud_charlas_satisfaccion:'Calcula el promedio de calificaciones de evaluaciones de charlas de salud.',
   psico_sesiones:            'Cuenta automáticamente las sesiones psicopedagógicas con estado "completada" durante el periodo.',
@@ -375,7 +377,7 @@ async function cargarKpis() {
 }
 
 const FUENTE_LABEL = {
-  salud_atenciones:'Atenciones salud', salud_charlas:'Charlas salud',
+  salud_atenciones:'Atenciones salud', salud_charlas:'Charlas impartidas', salud_charlas_participantes:'Participantes charlas',
   salud_satisfaccion:'Satisfacción atenc.', salud_charlas_satisfaccion:'Satisfacción charlas salud',
   psico_sesiones:'Sesiones psico', psico_charlas:'Charlas psico',
   psico_charlas_satisfaccion:'Satisfacción charlas psico', manual:'Manual',

@@ -61,6 +61,12 @@ async function calcularKpi(fuente, staffId, fechaInicio, fechaFin) {
         const sum = evalSalud.reduce((acc, e) => acc + (Number(e.calificacion) || 0), 0);
         return Math.round((sum / evalSalud.length) * 10) / 10;
 
+      case 'salud_charlas_participantes':
+        // Nº de encuestas de charlas de salud respondidas (= participantes)
+        const partCharlaS = await query('evaluaciones_charla', 'GET', null,
+          `?modulo=eq.salud&ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=id`);
+        return (partCharlaS || []).length;
+
       case 'salud_charlas_satisfaccion':
         // Promedio de evaluaciones de charlas de salud
         const evalCharlaS = await query('evaluaciones_charla', 'GET', null,
