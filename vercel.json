@@ -74,6 +74,7 @@
     { "src": "/bano",                       "dest": "/bano.html"                       },
     { "src": "/bano-dashboard",             "dest": "/bano-dashboard.html"             },
     { "src": "/student-login",              "dest": "/student-login.html"              },
+    { "src": "/mi-asistencia",             "dest": "/mi-asistencia.html"             },
     { "src": "/portal-estudiante",          "dest": "/portal-estudiante.html"          },
     { "src": "/psicopedagogico-dashboard",  "dest": "/psicopedagogico-dashboard.html"  },
     { "src": "/psico-gestion",              "dest": "/psico-gestion.html"              },

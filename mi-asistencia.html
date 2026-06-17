@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Mi Asistencia — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#6366f1;--acc2:#a5b4fc;--text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+  --green:#10b981;--red:#ef4444;--yellow:#f59e0b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{padding:20px 16px 60px;max-width:560px;margin:0 auto}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding:12px 16px;background:var(--s);border:1px solid var(--b);border-radius:12px}
+.topbar-nombre{font-size:0.88rem;font-weight:700}
+.topbar-codigo{font-size:0.72rem;color:var(--t3);margin-top:2px}
+.btn-volver{font-size:0.75rem;font-weight:600;color:var(--t3);background:none;border:1px solid var(--b);border-radius:6px;padding:5px 12px;cursor:pointer;text-decoration:none;transition:all .15s}
+.btn-volver:hover{border-color:var(--acc);color:var(--acc2)}
+
+.header{text-align:center;margin-bottom:24px}
+.header-titulo{font-size:1.2rem;font-weight:800;color:var(--acc2);margin-bottom:4px}
+.header-sub{font-size:0.78rem;color:var(--t3)}
+
+/* KPIs */
+.kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.kpi{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:14px 10px;text-align:center}
+.kpi-val{font-size:1.6rem;font-weight:800;line-height:1}
+.kpi-label{font-size:0.65rem;color:var(--t3);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+
+/* Semanas */
+.semana-bloque{margin-bottom:20px}
+.semana-titulo{font-size:0.7rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--b)}
+
+/* Fila por día */
+.dia-row{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--s);border:1px solid var(--b);border-radius:10px;margin-bottom:8px}
+.dia-fecha{min-width:80px}
+.dia-nombre{font-size:0.8rem;font-weight:700;color:var(--text)}
+.dia-num{font-size:0.7rem;color:var(--t3)}
+.dia-horas{flex:1;display:flex;gap:12px;align-items:center}
+.hora-item{display:flex;align-items:center;gap:5px;font-size:0.8rem}
+.hora-icon{font-size:0.85rem}
+.hora-val{font-weight:600;color:var(--text)}
+.hora-label{font-size:0.65rem;color:var(--t3)}
+.dia-badge{font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:20px}
+.badge-presente{background:rgba(16,185,129,.12);color:var(--green)}
+.badge-parcial{background:rgba(245,158,11,.12);color:var(--yellow)}
+.badge-sin{background:rgba(42,58,82,.5);color:var(--t3)}
+
+/* Día sin registro */
+.dia-row.ausente{opacity:.45}
+
+.loading{text-align:center;padding:40px;color:var(--t3);font-size:0.85rem}
+.error-msg{background:rgba(239,68,68,.1);border:1px solid var(--red);color:var(--red);padding:14px;border-radius:10px;font-size:0.83rem;text-align:center}
+.empty{text-align:center;padding:32px;color:var(--t3);font-size:0.85rem}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-nombre" id="topbarNombre">Cargando...</div>
+    <div class="topbar-codigo" id="topbarCodigo"></div>
+  </div>
+  <a href="/portal-estudiante" class="btn-volver">← Portal</a>
+</div>
+
+<div class="header">
+  <div class="header-titulo">📋 Mi Asistencia</div>
+  <div class="header-sub">Registro de las últimas 2 semanas</div>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi">
+    <div class="kpi-val" style="color:var(--green)" id="kDias">—</div>
+    <div class="kpi-label">Días asistidos</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-val" style="color:var(--acc2)" id="kEntradas">—</div>
+    <div class="kpi-label">Con entrada</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-val" style="color:var(--yellow)" id="kSinSalida">—</div>
+    <div class="kpi-label">Sin salida reg.</div>
+  </div>
+</div>
+
+<div id="contenido"><div class="loading">Cargando registros...</div></div>
+
+<script>
+const DIAS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MESES_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+function formatFecha(fechaStr) {
+  const [y, m, d] = fechaStr.split('-').map(Number);
+  const f = new Date(y, m - 1, d);
+  return { nombre: DIAS_ES[f.getDay()], num: `${d} ${MESES_ES[m-1]}` };
+}
+
+function lunesDe(fechaStr) {
+  const [y, m, d] = fechaStr.split('-').map(Number);
+  const f = new Date(y, m - 1, d);
+  const dow = f.getDay();
+  f.setDate(f.getDate() - (dow === 0 ? 6 : dow - 1));
+  return f.toISOString().split('T')[0];
+}
+
+function hoyLima() {
+  return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Lima' });
+}
+
+function hace14() {
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
+  d.setDate(d.getDate() - 13);
+  return d.toISOString().split('T')[0];
+}
+
+async function cargar(codigo) {
+  const r = await fetch(`/api/asistencia?accion=alumno&codigo=${encodeURIComponent(codigo)}`);
+  if (!r.ok) throw new Error('No se pudo cargar el reporte');
+  const data = await r.json();
+
+  // Filtrar últimas 2 semanas
+  const desde = hace14();
+  const dias = (data.dias || []).filter(d => d.fecha >= desde);
+
+  // KPIs
+  const conEntrada  = dias.filter(d => d.entrada).length;
+  const sinSalida   = dias.filter(d => d.entrada && !d.salida).length;
+  document.getElementById('kDias').textContent     = dias.length;
+  document.getElementById('kEntradas').textContent = conEntrada;
+  document.getElementById('kSinSalida').textContent= sinSalida;
+
+  if (!dias.length) {
+    document.getElementById('contenido').innerHTML =
+      `<div class="empty">Sin registros en las últimas 2 semanas.</div>`;
+    return;
+  }
+
+  // Agrupar por semana (lunes)
+  const semanas = {};
+  dias.forEach(d => {
+    const lunes = lunesDe(d.fecha);
+    if (!semanas[lunes]) semanas[lunes] = [];
+    semanas[lunes].push(d);
+  });
+
+  let html = '';
+  Object.keys(semanas).sort().reverse().forEach(lunes => {
+    const [y, m, d] = lunes.split('-').map(Number);
+    const lObj = new Date(y, m - 1, d);
+    const sabado = new Date(lObj); sabado.setDate(lObj.getDate() + 5);
+    const label = `Semana del ${lObj.getDate()} al ${sabado.getDate()} de ${MESES_ES[sabado.getMonth()]}`;
+    html += `<div class="semana-bloque"><div class="semana-titulo">${label}</div>`;
+
+    semanas[lunes].sort((a, b) => b.fecha.localeCompare(a.fecha)).forEach(d => {
+      const { nombre, num } = formatFecha(d.fecha);
+      const tieneEntrada = !!d.entrada;
+      const tieneSalida  = !!d.salida;
+
+      let badge, badgeCls;
+      if (tieneEntrada && tieneSalida) { badge = 'Completo'; badgeCls = 'badge-presente'; }
+      else if (tieneEntrada)            { badge = 'Sin salida'; badgeCls = 'badge-parcial'; }
+      else                              { badge = 'Sin registro'; badgeCls = 'badge-sin'; }
+
+      html += `
+        <div class="dia-row${!tieneEntrada?' ausente':''}">
+          <div class="dia-fecha">
+            <div class="dia-nombre">${nombre}</div>
+            <div class="dia-num">${num}</div>
+          </div>
+          <div class="dia-horas">
+            <div class="hora-item">
+              <span class="hora-icon">🟢</span>
+              <div>
+                <div class="hora-val">${d.entrada || '—'}</div>
+                <div class="hora-label">Entrada</div>
+              </div>
+            </div>
+            <div class="hora-item">
+              <span class="hora-icon">🔴</span>
+              <div>
+                <div class="hora-val">${d.salida || '—'}</div>
+                <div class="hora-label">Salida</div>
+              </div>
+            </div>
+          </div>
+          <span class="dia-badge ${badgeCls}">${badge}</span>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+
+  document.getElementById('contenido').innerHTML = html;
+}
+
+// Verificar sesión
+const token  = sessionStorage.getItem('neumann_student_token');
+const nombre = sessionStorage.getItem('neumann_student_nombre');
+const codigo = sessionStorage.getItem('neumann_student_codigo');
+
+if (!token) {
+  sessionStorage.setItem('neumann_student_redirect', '/mi-asistencia');
+  window.location.href = '/student-login';
+} else {
+  document.getElementById('topbarNombre').textContent = nombre || codigo;
+  document.getElementById('topbarCodigo').textContent = codigo ? `Código: ${codigo}` : '';
+  cargar(codigo).catch(e => {
+    document.getElementById('contenido').innerHTML =
+      `<div class="error-msg">${e.message}</div>`;
+  });
+}
+</script>
+</body>
+</html>

@@ -115,7 +115,7 @@ body{padding:20px 16px 60px;max-width:640px;margin:0 auto}
     <div class="badge-nuevo">Disponible</div>
   </a>
 
-  <a class="modulo-card" id="cardAsistencia" href="#" onclick="irAsistencia(event)">
+  <a class="modulo-card" href="/mi-asistencia">
     <div class="modulo-icon">📋</div>
     <div class="modulo-nombre">Mi Asistencia</div>
     <div class="modulo-desc">Consulta tu reporte personal de asistencia.</div>
@@ -134,12 +134,6 @@ body{padding:20px 16px 60px;max-width:640px;margin:0 auto}
 <div class="sesion-info">Sesión activa por <strong>8 horas</strong> · Acceso verificado con código OTP</div>
 
 <script>
-function irAsistencia(e) {
-  e.preventDefault();
-  const cod = sessionStorage.getItem('neumann_student_codigo');
-  window.location.href = `/asistencia-dashboard?codigo=${encodeURIComponent(cod || '')}`;
-}
-
 function cerrarSesion() {
   sessionStorage.removeItem('neumann_student_token');
   sessionStorage.removeItem('neumann_student_codigo');
