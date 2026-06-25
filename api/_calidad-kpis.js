@@ -39,7 +39,7 @@ const _agentIdCache = {};
 async function zohoAgentId(email) {
   if (_agentIdCache[email]) return _agentIdCache[email];
   const data = await zohoGet(`/agents?limit=50`);
-  (data?.data || []).forEach(a => { _agentIdCache[a.email] = a.id; });
+  (data?.data || []).forEach(a => { const em = a.emailId || a.email; if (em) _agentIdCache[em] = a.id; });
   return _agentIdCache[email] || null;
 }
 
