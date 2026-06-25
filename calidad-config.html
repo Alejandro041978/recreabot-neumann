@@ -236,6 +236,11 @@ const sb = supabase.createClient(
 );
 
 let token = null;
+async function getToken() {
+  const { data: { session } } = await sb.auth.getSession();
+  token = session?.access_token || token;
+  return token;
+}
 let periodos = [];
 let kpisActuales = [];
 let editandoPeriodoId = null;
@@ -268,7 +273,7 @@ async function initAuth() {
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal.currentLevel !== 'aal2') { await sb.auth.signOut(); window.location.href = '/login'; return; }
   token = session.access_token;
-  const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${token}` } });
+  const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${await getToken()}` } });
   if (!r.ok) { window.location.href = '/login'; return; }
   const info = await r.json();
   if (info.rol !== 'director') { window.location.href = '/ejecutivo'; return; }
@@ -287,7 +292,7 @@ function cambiarTab(tab, btn) {
 
 // ── PERIODOS ──
 async function cargarPeriodos() {
-  const r = await fetch('/api/calidad?accion=periodos', { headers: { 'Authorization': `Bearer ${token}` } });
+  const r = await fetch('/api/calidad?accion=periodos', { headers: { 'Authorization': `Bearer ${await getToken()}` } });
   periodos = await r.json();
   renderPeriodos();
 }
@@ -326,7 +331,7 @@ function abrirModalPeriodo(id) {
 async function activarPeriodo(id) {
   await fetch('/api/calidad', {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${await getToken()}` },
     body: JSON.stringify({ accion: 'periodo', id, activo: true }),
   });
   await cargarPeriodos();
@@ -348,7 +353,7 @@ async function guardarPeriodo() {
     ? { accion: 'periodo', id: editandoPeriodoId, nombre, fecha_inicio, fecha_fin, activo }
     : { accion: 'periodo', nombre, fecha_inicio, fecha_fin, activo };
   const r = await fetch('/api/calidad', {
-    method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${await getToken()}` },
     body: JSON.stringify(body),
   });
   const data = await r.json();
@@ -361,7 +366,7 @@ async function guardarPeriodo() {
 
 // ── KPIs ──
 async function cargarStaff() {
-  const r = await fetch('/api/calidad?accion=staff', { headers: { 'Authorization': `Bearer ${token}` } });
+  const r = await fetch('/api/calidad?accion=staff', { headers: { 'Authorization': `Bearer ${await getToken()}` } });
   const staff = await r.json();
   const sel = document.getElementById('selectStaff');
   sel.innerHTML = '<option value="">Selecciona un trabajador...</option>' +
@@ -375,7 +380,7 @@ async function cargarKpis() {
     document.getElementById('tbodyKpis').innerHTML = '<tr><td colspan="6" class="empty">Selecciona un trabajador</td></tr>';
     return;
   }
-  const r = await fetch(`/api/calidad?accion=kpis&staff_id=${staffId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+  const r = await fetch(`/api/calidad?accion=kpis&staff_id=${staffId}`, { headers: { 'Authorization': `Bearer ${await getToken()}` } });
   kpisActuales = await r.json();
   renderKpis();
 }
@@ -412,7 +417,7 @@ function renderKpis() {
 async function toggleKpi(id, activo) {
   await fetch('/api/calidad', {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${await getToken()}` },
     body: JSON.stringify({ accion: 'kpi', id, activo }),
   });
 }
@@ -457,7 +462,7 @@ async function guardarKpi() {
     ? { accion: 'kpi', id: editandoKpiId, nombre_kpi, descripcion, fuente, meta_valor, unidad }
     : { accion: 'kpi', staff_id: staffId, nombre_kpi, descripcion, fuente, meta_valor, unidad };
   const r = await fetch('/api/calidad', {
-    method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${await getToken()}` },
     body: JSON.stringify(body),
   });
   const data = await r.json();
@@ -471,7 +476,7 @@ async function guardarKpi() {
 async function eliminarKpi(id) {
   if (!confirm('¿Eliminar este KPI?')) return;
   await fetch(`/api/calidad?accion=kpi&id=${id}`, {
-    method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` },
+    method: 'DELETE', headers: { 'Authorization': `Bearer ${await getToken()}` },
   });
   await cargarKpis();
 }
