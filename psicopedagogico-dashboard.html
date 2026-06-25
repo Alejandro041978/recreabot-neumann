@@ -121,7 +121,7 @@ tbody tr:last-child td{border-bottom:none}
     <div class="seccion-titulo"><span>📋 Últimas atenciones</span></div>
     <div style="overflow-x:auto">
       <table>
-        <thead><tr><th>Estudiante</th><th>Tipo</th><th>Área</th><th>Resultado</th></tr></thead>
+        <thead><tr><th>Estudiante</th><th>Fecha</th><th>Sesión</th><th>Estado</th></tr></thead>
         <tbody id="tbodyRecientes">
           <tr><td colspan="4" style="text-align:center;color:var(--t3);padding:20px">Cargando...</td></tr>
         </tbody>
@@ -168,36 +168,40 @@ async function initAuth() {
 async function cargarKpis() {
   try {
     const r = await fetch('/api/psicopedagogico?accion=kpis');
-    const { atenciones, charlas, eval_atenciones } = await r.json();
+    const { atenciones, reservas, charlas, eval_atenciones } = await r.json();
 
-    const corte10 = new Date(); corte10.setDate(corte10.getDate()-70);
-    const at10 = atenciones.filter(a => new Date(a.ts) >= corte10);
+    // KPIs basados en psico_reservas (fuente principal con histórico)
+    const corte10 = new Date(); corte10.setDate(corte10.getDate() - 70);
+    const completadas  = reservas.filter(r => r.estado === 'completada');
+    const ultimas10    = completadas.filter(r => new Date(r.fecha) >= corte10);
+    const noAsistio    = reservas.filter(r => r.estado === 'no_asistio');
+    const pendientes   = reservas.filter(r => r.estado === 'pendiente' || r.estado === 'confirmada');
 
     const promCharla = charlas.length
       ? (charlas.reduce((s,c)=>s+(c.p1+c.p2+c.p3)/3,0)/charlas.length).toFixed(2) : '—';
     const promEval = eval_atenciones.length
       ? (eval_atenciones.reduce((s,e)=>s+(e.p1+e.p2+e.p3)/3,0)/eval_atenciones.length).toFixed(2) : '—';
 
-    const cnt = k => atenciones.filter(a=>a.resultado===k).length;
-
     document.getElementById('kpis').innerHTML = `
-      <div class="kpi"><div class="kpi-val">${atenciones.length}</div><div class="kpi-label">Atenciones totales</div></div>
-      <div class="kpi"><div class="kpi-val" style="color:var(--blue)">${at10.length}</div><div class="kpi-label">Últimas 10 semanas</div></div>
-      <div class="kpi"><div class="kpi-val" style="color:var(--green)">${cnt('Resuelto en sesión')}</div><div class="kpi-label">Resueltos</div></div>
-      <div class="kpi"><div class="kpi-val" style="color:var(--yellow)">${cnt('Requiere seguimiento')}</div><div class="kpi-label">En seguimiento</div></div>
-      <div class="kpi"><div class="kpi-val" style="color:var(--red)">${cnt('Derivado externamente')}</div><div class="kpi-label">Derivados</div></div>
+      <div class="kpi"><div class="kpi-val">${completadas.length}</div><div class="kpi-label">Sesiones completadas</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:var(--blue)">${ultimas10.length}</div><div class="kpi-label">Últimas 10 semanas</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:var(--yellow)">${pendientes.length}</div><div class="kpi-label">Pendientes / Confirmadas</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:var(--red)">${noAsistio.length}</div><div class="kpi-label">No asistió</div></div>
+      <div class="kpi"><div class="kpi-val">${reservas.length}</div><div class="kpi-label">Total registros</div></div>
       <div class="kpi"><div class="kpi-val" style="color:var(--acc2)">${promCharla}</div><div class="kpi-label">Prom. charlas / 5</div></div>
       <div class="kpi"><div class="kpi-val" style="color:var(--acc2)">${promEval}</div><div class="kpi-label">Satisfacción / 5</div></div>
       <div class="kpi"><div class="kpi-val">${eval_atenciones.length}</div><div class="kpi-label">Eval. recibidas</div></div>
     `;
 
-    document.getElementById('tbodyRecientes').innerHTML = atenciones.slice(0,10).map(a => `
+    // Tabla: últimas sesiones de psico_reservas
+    const recientes = reservas.slice(0, 10);
+    document.getElementById('tbodyRecientes').innerHTML = recientes.map(a => `
       <tr>
         <td style="color:var(--text)">${a.nombre||a.codigo}</td>
-        <td>${badgeTipo(a.tipo_atencion)}</td>
-        <td><span style="font-size:0.75rem;color:var(--t2)">${a.area_afectada||'—'}</span></td>
-        <td>${badgeResultado(a.resultado)}</td>
-      </tr>`).join('') || `<tr><td colspan="4" style="text-align:center;color:var(--t3);padding:16px">Sin atenciones</td></tr>`;
+        <td><span style="font-size:0.75rem;color:var(--t2)">${a.fecha||'—'}</span></td>
+        <td><span style="font-size:0.75rem;color:var(--t2)">${a.n_sesion ? 'Sesión '+a.n_sesion : '—'}</span></td>
+        <td>${badgeEstado(a.estado)}</td>
+      </tr>`).join('') || `<tr><td colspan="4" style="text-align:center;color:var(--t3);padding:16px">Sin registros</td></tr>`;
 
     if (!charlas.length) {
       document.getElementById('charlasPanel').innerHTML = '<div style="text-align:center;color:var(--t3);padding:20px;font-size:0.85rem">Sin evaluaciones aún</div>';
@@ -220,6 +224,19 @@ async function cargarKpis() {
   } catch(e) {
     document.getElementById('kpis').innerHTML = `<div style="color:var(--red);font-size:0.82rem">Error: ${e.message}</div>`;
   }
+}
+
+function badgeEstado(e) {
+  const map = {
+    'completada':  ['badge-green',  'Completada'],
+    'no_asistio':  ['badge-red',    'No asistió'],
+    'pendiente':   ['badge-blue',   'Pendiente'],
+    'confirmada':  ['badge-purple', 'Confirmada'],
+    'cancelada':   ['badge-yellow', 'Cancelada'],
+    'reprogramada':['badge-yellow', 'Reprogramada'],
+  };
+  const [cls, txt] = map[e] || ['badge-purple', e || '—'];
+  return `<span class="badge ${cls}">${txt}</span>`;
 }
 
 function badgeResultado(r) {
