@@ -76,15 +76,12 @@ export default async function handler(req, res) {
     const agentRaw = (agents?.data || []).find(a => (a.emailId || a.email) === email);
     const agentId = agentRaw?.id || null;
 
-    // Probar distintos status y ver qué devuelve Zoho
-    const t1 = await zh(`/tickets?limit=3`);
-    const t2 = await zh(`/tickets?status=Resolved&limit=3`);
-    const t3 = await zh(`/tickets?status=Closed&limit=3`);
-    const t4 = await zh(`/tickets?limit=3&sortBy=closedTime&order=desc`);
-    const t5 = await zh(`/tickets?limit=3&sortBy=createdTime&order=desc`);
-    // Ver los status únicos de los primeros tickets
-    const statuses = (t1?.data || []).map(t => ({ status: t.status, statusType: t.statusType, assigneeId: t.assigneeId }));
-    res.json({ agentId, statuses, t2_resolved: { count: t2?.data?.length, err: t2?.errorCode }, t3_closed: { count: t3?.data?.length, err: t3?.errorCode }, t4_sortClosedTime: { count: t4?.data?.length, err: t4?.errorCode }, t5_sortCreated: { count: t5?.data?.length, err: t5?.errorCode } });
+    const [t1, t2] = await Promise.all([
+      zh(`/tickets?limit=5`),
+      zh(`/tickets?status=Resolved&limit=5`),
+    ]);
+    const statuses = (t1?.data || []).map(t => ({ status: t.status, statusType: t.statusType, assigneeId: t.assigneeId, closedTime: t.closedTime }));
+    res.json({ agentId, t1_any: statuses, t2_resolved: { count: t2?.data?.length, err: t2?.errorCode, sample: (t2?.data||[]).slice(0,2).map(t=>({status:t.status,assigneeId:t.assigneeId,closedTime:t.closedTime})) } });
     return;
   }
 
