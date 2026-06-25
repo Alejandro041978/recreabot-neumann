@@ -76,10 +76,15 @@ export default async function handler(req, res) {
     const agentRaw = (agents?.data || []).find(a => (a.emailId || a.email) === email);
     const agentId = agentRaw?.id || null;
 
-    const tickets = agentId ? await zh(`/tickets?assigneeId=${agentId}&status=Closed&from=${from}T00:00:00.000Z&to=${to}T23:59:59.000Z&limit=5`) : null;
-    const summary = agentId ? await zh(`/reports/agentSummary?from=${from}T00:00:00.000Z&to=${to}T23:59:59.000Z`) : null;
+    const fromMs = new Date(`${from}T00:00:00.000Z`).getTime();
+    const toMs   = new Date(`${to}T23:59:59.000Z`).getTime();
+    // Probar distintos filtros de fecha
+    const ticketsNoFilter  = agentId ? await zh(`/tickets?assigneeId=${agentId}&status=Closed&limit=5`) : null;
+    const ticketsClosedMs  = agentId ? await zh(`/tickets?assigneeId=${agentId}&status=Closed&closedTime=${fromMs},${toMs}&limit=5`) : null;
+    const ticketsCreatedMs = agentId ? await zh(`/tickets?assigneeId=${agentId}&status=Closed&createdTime=${fromMs},${toMs}&limit=5`) : null;
+    const ratings          = agentId ? await zh(`/happinessRatings?agentId=${agentId}&from=${fromMs}&to=${toMs}&limit=5`) : null;
 
-    res.json({ email, agentId, agentRaw: agentRaw || null, tickets_sample: tickets, summary_sample: summary });
+    res.json({ email, agentId, ticketsNoFilter, ticketsClosedMs, ticketsCreatedMs, ratings });
     return;
   }
 
