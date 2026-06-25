@@ -122,9 +122,46 @@ export default async function handler(req, res) {
       res.json(data || []); return;
     }
 
+    // ── GET detalle completo de una reserva (staff) ──
+    if (req.method === 'GET' && accion === 'detalle') {
+      const { id } = req.query;
+      const reservas = await query('psico_reservas', 'GET', null, `?id=eq.${id}&limit=1`);
+      const rv = reservas?.[0];
+      if (!rv) { res.status(404).json({ error: 'No encontrado' }); return; }
+      const ests = await query('estudiantes', 'GET', null, `?codigo=eq.${encodeURIComponent(rv.codigo)}&limit=1`);
+      const est = ests?.[0] || null;
+      // Posición secuencial de esta sesión para este estudiante
+      const todas = await query('psico_reservas', 'GET', null,
+        `?codigo=eq.${encodeURIComponent(rv.codigo)}&select=id&order=fecha.asc,hora_inicio.asc`);
+      const pos = (todas || []).findIndex(r => r.id === rv.id);
+      const nSesion = pos >= 0 ? pos + 1 : (todas?.length || 1);
+      res.json({ reserva: rv, estudiante: est, n_sesion: nSesion }); return;
+    }
+
+    // ── POST guardar ficha clínica (staff) ──
+    if (req.method === 'POST' && req.body?.accion === 'ficha-clinica') {
+      const { id, estado, n_sesion, profundidad_problema, impacto_profesional,
+              tipo_dificultad, nivel_compromiso, problema_hallado,
+              observaciones, con_quien_vive, motivo_consulta } = req.body;
+      if (!id) { res.json({ ok: false, error: 'id requerido' }); return; }
+      const updates = {};
+      if (estado            !== undefined) updates.estado             = estado;
+      if (n_sesion          !== undefined) updates.n_sesion           = n_sesion;
+      if (profundidad_problema !== undefined) updates.profundidad_problema = profundidad_problema;
+      if (impacto_profesional  !== undefined) updates.impacto_profesional  = impacto_profesional;
+      if (tipo_dificultad   !== undefined) updates.tipo_dificultad    = tipo_dificultad;
+      if (nivel_compromiso  !== undefined) updates.nivel_compromiso   = nivel_compromiso;
+      if (problema_hallado  !== undefined) updates.problema_hallado   = problema_hallado;
+      if (observaciones     !== undefined) updates.notas              = observaciones;
+      if (con_quien_vive    !== undefined) updates.con_quien_vive     = con_quien_vive;
+      if (motivo_consulta   !== undefined) updates.motivo_consulta    = motivo_consulta;
+      await sbFetch(`psico_reservas?id=eq.${id}`, 'PATCH', updates);
+      res.json({ ok: true }); return;
+    }
+
     // ── POST crear reserva (estudiante) ──
     if (req.method === 'POST' && req.body?.accion === 'reservar') {
-      const { codigo, nombre, email, fecha, hora_inicio, hora_fin } = req.body;
+      const { codigo, nombre, email, fecha, hora_inicio, hora_fin, con_quien_vive, motivo_consulta } = req.body;
       if (!codigo || !fecha || !hora_inicio) {
         res.json({ ok: false, error: 'Faltan datos obligatorios' }); return;
       }
@@ -158,6 +195,8 @@ export default async function handler(req, res) {
         codigo, nombre: nombreCompleto, email: emailFinal,
         fecha, hora_inicio, hora_fin: hora_fin || `${String(parseInt(hora_inicio)+1).padStart(2,'0')}:${hora_inicio.slice(3)}`,
         estado: 'pendiente',
+        con_quien_vive:  con_quien_vive  || null,
+        motivo_consulta: motivo_consulta || null,
       }]);
       res.json({ ok: true, nombre: nombreCompleto }); return;
     }

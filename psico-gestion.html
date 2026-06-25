@@ -104,6 +104,12 @@ tbody tr:last-child td{border-bottom:none}
 .msg-err{background:rgba(239,68,68,.12);border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:0.83rem;font-weight:600;margin-top:10px;display:none;text-align:center}
 
 .empty-row{text-align:center;padding:20px;color:var(--t3);font-size:0.82rem}
+.tab-btn{padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--t3);font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.tab-btn:hover{color:var(--t2)}
+.tab-activo{color:var(--acc2)!important;border-bottom-color:var(--acc)!important}
+.tab-label{font-size:0.7rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.tab-val{font-size:0.88rem;color:var(--text);font-weight:500;padding:6px 0}
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 </style>
 </head>
 <body>
@@ -181,6 +187,112 @@ tbody tr:last-child td{border-bottom:none}
         <tr><td colspan="6" class="empty-row">Cargando...</td></tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- Panel de detalle de sesión (desde reserva) -->
+<div id="panelDetalle" style="display:none;margin-bottom:20px">
+  <div class="seccion">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+      <div>
+        <div id="detNombre" style="font-size:1.1rem;font-weight:800;color:var(--text)">—</div>
+        <div id="detSub" style="font-size:0.78rem;color:var(--t3);margin-top:3px">—</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="detBadge" class="badge">—</span>
+        <button onclick="cerrarDetalle()" class="btn-logout">✕ Cerrar</button>
+      </div>
+    </div>
+    <div style="display:flex;border-bottom:1px solid var(--b);margin-bottom:18px">
+      <button class="tab-btn tab-activo" id="tabBtn-ficha" onclick="verTab('ficha')">Ficha del Alumno</button>
+      <button class="tab-btn" id="tabBtn-sesion" onclick="verTab('sesion')">Registro de Sesión</button>
+    </div>
+
+    <!-- Tab: Ficha del Alumno -->
+    <div id="tabContent-ficha">
+      <div class="det-grid">
+        <div><div class="tab-label">Correo</div><div class="tab-val" id="detEmail">—</div></div>
+        <div><div class="tab-label">Teléfono / WhatsApp</div><div class="tab-val" id="detTelefono">—</div></div>
+        <div><div class="tab-label">Carrera</div><div class="tab-val" id="detCarrera">—</div></div>
+        <div><div class="tab-label">Código</div><div class="tab-val" id="detCodigo">—</div></div>
+      </div>
+      <div class="form-field">
+        <label>¿Con quién vive?</label>
+        <textarea id="detConQuienVive" rows="2" placeholder="No registra"></textarea>
+      </div>
+      <div class="form-field">
+        <label>Motivo de consulta</label>
+        <textarea id="detMotivoConsulta" rows="3" placeholder="No registra"></textarea>
+      </div>
+      <button class="btn btn-acc btn-sm" onclick="guardarFichaDetalle()">Guardar ficha</button>
+      <div class="msg-ok" id="fichaDetOk">✅ Ficha guardada</div>
+      <div class="msg-err" id="fichaDetErr"></div>
+    </div>
+
+    <!-- Tab: Registro de Sesión -->
+    <div id="tabContent-sesion" style="display:none">
+      <div style="background:var(--s2);border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:0.85rem;color:var(--t2)">
+        Sesión N° <strong id="detNSesion" style="color:var(--acc2);font-size:1.2rem;margin-left:4px">—</strong>
+      </div>
+      <div class="form-row" style="margin-bottom:12px">
+        <div class="form-field" style="margin:0">
+          <label>Estado</label>
+          <select id="detEstado">
+            <option value="confirmada">Programada</option>
+            <option value="completada">Realizada</option>
+            <option value="no_asistio">No asistió</option>
+            <option value="cancelada">Cancelada</option>
+            <option value="reprogramada">Reprogramada</option>
+          </select>
+        </div>
+        <div></div>
+      </div>
+      <div class="form-row" style="margin-bottom:12px">
+        <div class="form-field" style="margin:0">
+          <label>Profundidad del problema</label>
+          <select id="detProfundidad">
+            <option value="">No aplica</option>
+            <option>Leve</option><option>Medio</option><option>Severo</option>
+          </select>
+        </div>
+        <div class="form-field" style="margin:0">
+          <label>Impacto en su éxito profesional</label>
+          <select id="detImpacto">
+            <option value="">No aplica</option>
+            <option>Bajo</option><option>Medio</option><option>Alto</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:12px">
+        <div class="form-field" style="margin:0">
+          <label>Tipo de dificultad</label>
+          <select id="detTipoDificultad">
+            <option value="">No aplica</option>
+            <option>Académica</option><option>Personal</option><option>Familiar</option>
+            <option>Social</option><option>Vocacional</option>
+            <option>Social comunicativa</option><option>Clima Laboral</option><option>Otras</option>
+          </select>
+        </div>
+        <div class="form-field" style="margin:0">
+          <label>Nivel de compromiso</label>
+          <select id="detNivelCompromiso">
+            <option value="">No aplica</option>
+            <option>Bajo</option><option>Medio</option><option>Alto</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Problema hallado</label>
+        <textarea id="detProblemaHallado" rows="3" placeholder="Describe el problema identificado..."></textarea>
+      </div>
+      <div class="form-field">
+        <label>Observaciones</label>
+        <textarea id="detObservaciones" rows="3" placeholder="Observaciones adicionales de la sesión..."></textarea>
+      </div>
+      <button class="btn btn-acc" style="width:100%" onclick="guardarRegistroSesion()">Guardar registro de sesión</button>
+      <div class="msg-ok" id="sesionOk">✅ Sesión registrada</div>
+      <div class="msg-err" id="sesionErr"></div>
+    </div>
   </div>
 </div>
 
@@ -409,34 +521,114 @@ async function cancelarReserva(id) {
   cargarReservas();
 }
 
-async function iniciarDesdeReserva(rv) {
-  reservaActivaId = rv.id;
+let detalleReservaId = null;
 
-  // Marcar como confirmada si estaba pendiente
-  if (rv.estado === 'pendiente') {
-    fetch('/api/psico-reservas', {
+async function iniciarDesdeReserva(rv) {
+  detalleReservaId = rv.id;
+
+  const r = await fetch(`/api/psico-reservas?accion=detalle&id=${rv.id}`);
+  const data = await r.json();
+  if (data.error) { alert('Error: ' + data.error); return; }
+  const { reserva, estudiante, n_sesion } = data;
+
+  // Header
+  document.getElementById('detNombre').textContent = reserva.nombre || rv.nombre || '—';
+  document.getElementById('detSub').textContent =
+    `${formatFechaCorta(rv.fecha)} · ${formatHora(rv.hora_inicio)} – ${formatHora(rv.hora_fin)}`;
+  const badgeMap = {
+    pendiente:['badge-yellow','Pendiente'], confirmada:['badge-green','Confirmada'],
+    completada:['badge-purple','Completada'], cancelada:['badge-red','Cancelada'],
+    no_asistio:['badge-red','No asistió'], reprogramada:['badge-blue','Reprogramada'],
+  };
+  const [bcls, btxt] = badgeMap[rv.estado] || ['badge-yellow', rv.estado];
+  const badge = document.getElementById('detBadge');
+  badge.className = `badge ${bcls}`; badge.textContent = btxt;
+
+  // Tab ficha
+  document.getElementById('detEmail').textContent    = estudiante?.email   || reserva.email || '—';
+  document.getElementById('detTelefono').textContent = estudiante?.whatsapp || '—';
+  document.getElementById('detCarrera').textContent  = estudiante?.carrera  || '—';
+  document.getElementById('detCodigo').textContent   = reserva.codigo || '—';
+  document.getElementById('detConQuienVive').value   = reserva.con_quien_vive  || '';
+  document.getElementById('detMotivoConsulta').value = reserva.motivo_consulta || '';
+
+  // Tab sesión
+  document.getElementById('detNSesion').textContent = n_sesion;
+  document.getElementById('detEstado').value         = reserva.estado || 'confirmada';
+  document.getElementById('detProfundidad').value    = reserva.profundidad_problema || '';
+  document.getElementById('detImpacto').value        = reserva.impacto_profesional  || '';
+  document.getElementById('detTipoDificultad').value = reserva.tipo_dificultad      || '';
+  document.getElementById('detNivelCompromiso').value= reserva.nivel_compromiso     || '';
+  document.getElementById('detProblemaHallado').value= reserva.problema_hallado     || '';
+  document.getElementById('detObservaciones').value  = reserva.notas               || '';
+
+  ['fichaDetOk','fichaDetErr','sesionOk','sesionErr'].forEach(id =>
+    document.getElementById(id).style.display = 'none');
+
+  verTab('ficha');
+  document.getElementById('panelDetalle').style.display = 'block';
+  document.getElementById('panelDetalle').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function cerrarDetalle() {
+  document.getElementById('panelDetalle').style.display = 'none';
+  detalleReservaId = null;
+}
+
+function verTab(tab) {
+  ['ficha','sesion'].forEach(t => {
+    document.getElementById(`tabContent-${t}`).style.display = t === tab ? 'block' : 'none';
+    const btn = document.getElementById(`tabBtn-${t}`);
+    btn.className = 'tab-btn' + (t === tab ? ' tab-activo' : '');
+  });
+}
+
+async function guardarFichaDetalle() {
+  const ok = document.getElementById('fichaDetOk');
+  const err = document.getElementById('fichaDetErr');
+  ok.style.display='none'; err.style.display='none';
+  try {
+    const r = await fetch('/api/psico-reservas', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accion: 'estado', id: rv.id, estado: 'confirmada' }),
+      body: JSON.stringify({
+        accion: 'ficha-clinica', id: detalleReservaId,
+        con_quien_vive:  document.getElementById('detConQuienVive').value.trim()   || null,
+        motivo_consulta: document.getElementById('detMotivoConsulta').value.trim() || null,
+      }),
     });
-  }
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error);
+    ok.style.display='block'; setTimeout(()=>ok.style.display='none', 3000);
+  } catch(e) { err.textContent='Error: '+e.message; err.style.display='block'; }
+}
 
-  // Buscar datos del estudiante
-  const r = await fetch(`/api/psicopedagogico?accion=buscar&q=${encodeURIComponent(rv.codigo)}`);
-  const { estudiantes } = await r.json();
-  const est = estudiantes.find(e => e.codigo === rv.codigo) || {
-    codigo: rv.codigo, nombre: rv.nombre || rv.codigo, apellido: '', carrera: '', email: rv.email || ''
-  };
-
-  // Pre-llenar fecha/hora desde la reserva
-  await seleccionarEstudiante(est, rv.fecha, rv.hora_inicio);
-
-  // Mostrar chip de contexto
-  const ctx = document.getElementById('reservaCtx');
-  document.getElementById('reservaCtxTexto').innerHTML =
-    `<strong>Sesión reservada · ${formatFechaCorta(rv.fecha)}</strong>
-     <span>${formatHora(rv.hora_inicio)} – ${formatHora(rv.hora_fin)} · Al registrar la atención, la reserva se marcará como completada</span>`;
-  ctx.style.display = 'flex';
+async function guardarRegistroSesion() {
+  const ok = document.getElementById('sesionOk');
+  const err = document.getElementById('sesionErr');
+  ok.style.display='none'; err.style.display='none';
+  try {
+    const r = await fetch('/api/psico-reservas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        accion: 'ficha-clinica', id: detalleReservaId,
+        estado:               document.getElementById('detEstado').value,
+        n_sesion:             parseInt(document.getElementById('detNSesion').textContent) || null,
+        profundidad_problema: document.getElementById('detProfundidad').value    || null,
+        impacto_profesional:  document.getElementById('detImpacto').value        || null,
+        tipo_dificultad:      document.getElementById('detTipoDificultad').value || null,
+        nivel_compromiso:     document.getElementById('detNivelCompromiso').value|| null,
+        problema_hallado:     document.getElementById('detProblemaHallado').value.trim() || null,
+        observaciones:        document.getElementById('detObservaciones').value.trim()   || null,
+      }),
+    });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error);
+    ok.style.display='block';
+    setTimeout(()=>ok.style.display='none', 3000);
+    cargarReservas();
+  } catch(e) { err.textContent='Error: '+e.message; err.style.display='block'; }
 }
 
 // ── Búsqueda directa ──

@@ -169,6 +169,16 @@ body{padding:24px 16px 60px;max-width:560px;margin:0 auto}
       <div class="confirm-hora" id="confirmHora"></div>
       <div style="font-size:0.78rem;color:var(--t3);margin-top:6px">Duración: 1 hora</div>
     </div>
+    <div style="margin:18px 0 4px">
+      <div style="margin-bottom:12px">
+        <label style="font-size:0.7rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">¿Con quién vives?</label>
+        <textarea id="rConQuienVive" rows="2" placeholder="Ej: mis padres, solo, con mi pareja…" style="width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:9px;padding:10px 14px;color:var(--text);font-size:0.88rem;font-family:'Inter',sans-serif;outline:none;resize:none;line-height:1.5"></textarea>
+      </div>
+      <div>
+        <label style="font-size:0.7rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Motivo de consulta</label>
+        <textarea id="rMotivoConsulta" rows="3" placeholder="Cuéntanos brevemente el motivo de tu consulta…" style="width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:9px;padding:10px 14px;color:var(--text);font-size:0.88rem;font-family:'Inter',sans-serif;outline:none;resize:none;line-height:1.5"></textarea>
+      </div>
+    </div>
     <p style="font-size:0.8rem;color:var(--t3);text-align:center;margin-bottom:14px">
       Al confirmar, esta sesión quedará registrada y no podrás hacer otra reserva hasta que sea atendida o cancelada.
     </p>
@@ -468,13 +478,15 @@ async function confirmarReserva() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        accion: 'reservar',
-        codigo:      estudianteActual.codigo,
-        nombre:      `${estudianteActual.nombre} ${estudianteActual.apellido || ''}`.trim(),
-        email:       estudianteActual.email || null,
-        fecha:       slotSeleccionado.fecha,
-        hora_inicio: slotSeleccionado.hora_inicio,
-        hora_fin:    slotSeleccionado.hora_fin,
+        accion:          'reservar',
+        codigo:          estudianteActual.codigo,
+        nombre:          `${estudianteActual.nombre} ${estudianteActual.apellido || ''}`.trim(),
+        email:           estudianteActual.email || null,
+        fecha:           slotSeleccionado.fecha,
+        hora_inicio:     slotSeleccionado.hora_inicio,
+        hora_fin:        slotSeleccionado.hora_fin,
+        con_quien_vive:  document.getElementById('rConQuienVive').value.trim() || null,
+        motivo_consulta: document.getElementById('rMotivoConsulta').value.trim() || null,
       }),
     });
     const data = await r.json();
@@ -500,6 +512,8 @@ function reiniciar() {
   document.getElementById('calendario').innerHTML = '';
   document.getElementById('reservaExistente').style.display = 'none';
   document.getElementById('slotsWrap').style.display = 'block';
+  document.getElementById('rConQuienVive').value = '';
+  document.getElementById('rMotivoConsulta').value = '';
   irPaso(1);
 }
 </script>
