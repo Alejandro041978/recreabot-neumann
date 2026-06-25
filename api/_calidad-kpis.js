@@ -176,49 +176,73 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
         if (!staffEmail) return 0;
         const agentId = await zohoAgentId(staffEmail);
         if (!agentId) return 0;
-        const from = `${fechaInicio}T00:00:00.000Z`;
-        const to   = `${fechaFin}T23:59:59.000Z`;
-        const data = await zohoGet(
-          `/tickets?assigneeId=${agentId}&status=Closed&createdTime=between[${from},${to}]&limit=1&include=count`
-        );
-        return data?.count ?? (data?.data?.length ?? 0);
+        // Zoho filtra por epoch en ms para closedTime
+        const fromMs = new Date(`${fechaInicio}T00:00:00.000Z`).getTime();
+        const toMs   = new Date(`${fechaFin}T23:59:59.000Z`).getTime();
+        let total = 0, page = 1;
+        while (true) {
+          const data = await zohoGet(
+            `/tickets?assigneeId=${agentId}&status=Closed&closedTime=${fromMs},${toMs}&limit=100&from=${(page-1)*100}`
+          );
+          const rows = data?.data || [];
+          total += rows.length;
+          if (rows.length < 100) break;
+          page++;
+        }
+        return total;
       }
 
       case 'zoho_tickets_recibidos': {
         if (!staffEmail) return 0;
         const agentId = await zohoAgentId(staffEmail);
         if (!agentId) return 0;
-        const from = `${fechaInicio}T00:00:00.000Z`;
-        const to   = `${fechaFin}T23:59:59.000Z`;
-        const data = await zohoGet(
-          `/tickets?assigneeId=${agentId}&createdTime=between[${from},${to}]&limit=1&include=count`
-        );
-        return data?.count ?? (data?.data?.length ?? 0);
+        const fromMs = new Date(`${fechaInicio}T00:00:00.000Z`).getTime();
+        const toMs   = new Date(`${fechaFin}T23:59:59.000Z`).getTime();
+        let total = 0, page = 1;
+        while (true) {
+          const data = await zohoGet(
+            `/tickets?assigneeId=${agentId}&createdTime=${fromMs},${toMs}&limit=100&from=${(page-1)*100}`
+          );
+          const rows = data?.data || [];
+          total += rows.length;
+          if (rows.length < 100) break;
+          page++;
+        }
+        return total;
       }
 
       case 'zoho_primera_respuesta': {
         if (!staffEmail) return null;
         const agentId = await zohoAgentId(staffEmail);
         if (!agentId) return null;
+        const fromMs = new Date(`${fechaInicio}T00:00:00.000Z`).getTime();
+        const toMs   = new Date(`${fechaFin}T23:59:59.000Z`).getTime();
+        // Obtener tickets cerrados del agente en el periodo e incluir firstResponseTime
         const data = await zohoGet(
-          `/reports/agentSummary?from=${fechaInicio}T00:00:00.000Z&to=${fechaFin}T23:59:59.000Z`
+          `/tickets?assigneeId=${agentId}&status=Closed&closedTime=${fromMs},${toMs}&limit=100&fields=id,firstResponseTime`
         );
-        const agente = (data?.data || []).find(a => a.agentId === agentId);
-        if (!agente?.avgFirstResponseTime) return null;
-        // Zoho devuelve en segundos → convertir a horas
-        return Math.round((agente.avgFirstResponseTime / 3600) * 10) / 10;
+        const rows = (data?.data || []).filter(t => t.firstResponseTime);
+        if (!rows.length) return null;
+        const avgSec = rows.reduce((s, t) => s + Number(t.firstResponseTime), 0) / rows.length;
+        return Math.round((avgSec / 3600) * 10) / 10; // segundos → horas
       }
 
       case 'zoho_csat': {
         if (!staffEmail) return 0;
         const agentId = await zohoAgentId(staffEmail);
         if (!agentId) return 0;
+        const fromMs = new Date(`${fechaInicio}T00:00:00.000Z`).getTime();
+        const toMs   = new Date(`${fechaFin}T23:59:59.000Z`).getTime();
+        // Ratings de felicidad por agente
         const data = await zohoGet(
-          `/reports/agentSummary?from=${fechaInicio}T00:00:00.000Z&to=${fechaFin}T23:59:59.000Z`
+          `/happinessRatings?agentId=${agentId}&from=${fromMs}&to=${toMs}&limit=100`
         );
-        const agente = (data?.data || []).find(a => a.agentId === agentId);
-        if (!agente?.happinessRating) return 0;
-        return Math.round((agente.happinessRating / 100) * 5 * 10) / 10; // Zoho da %, convertimos a escala 1-5
+        const rows = data?.data || [];
+        if (!rows.length) return 0;
+        // Zoho da: Good=3, Neutral=2, Bad=1 (o similar) → convertir a escala 1-5
+        const scoreMap = { 'Good': 5, 'Neutral': 3, 'Bad': 1, 'good': 5, 'neutral': 3, 'bad': 1 };
+        const sum = rows.reduce((s, r) => s + (scoreMap[r.rating] || 3), 0);
+        return Math.round((sum / rows.length) * 10) / 10;
       }
 
       case 'manual':
