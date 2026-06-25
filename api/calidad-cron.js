@@ -67,7 +67,7 @@ export default async function handler(req, res) {
         headers: { 'Authorization': `Zoho-oauthtoken ${tok.access_token}`, 'orgId': process.env.ZOHO_ORG_ID },
       });
       const data = await r.json();
-      res.json({ ticketId, status: r.status, customerHappiness: data?.customerHappiness, allFields: Object.keys(data || {}) });
+      res.json({ ticketId, status: r.status, sentiment: data?.sentiment, customFields: data?.cf, customerHappiness: data?.customerHappiness });
     } catch(e) {
       res.status(500).json({ error: e.message });
     }
