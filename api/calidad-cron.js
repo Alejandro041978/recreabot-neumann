@@ -82,7 +82,7 @@ export default async function handler(req, res) {
     let totalClosed = 0, agentInRange = 0, agentTotal = 0, offset = 0, pages = 0, stopped = 'limit';
     const sample = [];
     while (pages < 20) {
-      const data = await zh(`/tickets?status=Closed&limit=100&from=${offset}&sortBy=closedTime&order=desc`);
+      const data = await zh(`/tickets?status=Resolved&limit=100&from=${offset}&sortBy=closedTime&order=desc`);
       const rows = data?.data || [];
       if (!rows.length) { stopped = 'empty'; break; }
       totalClosed += rows.length;

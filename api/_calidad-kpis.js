@@ -182,7 +182,7 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
         const ff = new Date(`${fechaFin}T23:59:59.000Z`);
         let count = 0, offset = 0;
         while (true) {
-          const data = await zohoGet(`/tickets?status=Closed&limit=100&from=${offset}&sortBy=closedTime&order=desc`);
+          const data = await zohoGet(`/tickets?status=Resolved&limit=100&from=${offset}&sortBy=closedTime&order=desc`);
           const rows = data?.data || [];
           if (!rows.length) break;
           for (const t of rows) {
@@ -233,7 +233,7 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
         const ticketIds = [];
         let offset = 0;
         while (true) {
-          const data = await zohoGet(`/tickets?status=Closed&limit=100&from=${offset}&sortBy=closedTime&order=desc`);
+          const data = await zohoGet(`/tickets?status=Resolved&limit=100&from=${offset}&sortBy=closedTime&order=desc`);
           const rows = data?.data || [];
           if (!rows.length) break;
           for (const t of rows) {
