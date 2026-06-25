@@ -63,11 +63,11 @@ export default async function handler(req, res) {
       });
       const tok = await tr.json();
       if (!tok.access_token) { res.json({ error: 'token error', tok }); return; }
-      const r = await fetch(`https://desk.zoho.com/api/v1/tickets/${ticketId}/customerHappiness`, {
+      const r = await fetch(`https://desk.zoho.com/api/v1/happinessRatings?limit=5`, {
         headers: { 'Authorization': `Zoho-oauthtoken ${tok.access_token}`, 'orgId': process.env.ZOHO_ORG_ID },
       });
       const data = await r.json();
-      res.json({ ticketId, status: r.status, data });
+      res.json({ status: r.status, data });
     } catch(e) {
       res.status(500).json({ error: e.message });
     }
