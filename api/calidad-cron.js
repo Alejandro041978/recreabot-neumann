@@ -55,7 +55,6 @@ export default async function handler(req, res) {
   // Debug: probar customerHappiness de un ticket
   if (req.query.debug === 'zoho-happiness') {
     try {
-      const ticketId = req.query.ticket_id || '1136017000014377039';
       const tr = await fetch('https://accounts.zoho.com/oauth/v2/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
