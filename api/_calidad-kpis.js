@@ -1,12 +1,35 @@
 // api/_calidad-kpis.js — Lógica compartida de cálculo de KPIs (usado por calidad.js y calidad-cron.js)
 import { query } from './_supabase.js';
 
+// Cache en memoria (válido mientras la función esté caliente)
 let _zohoToken = null;
 let _zohoTokenExp = 0;
 
+const SB_URL_KPI = process.env.SUPABASE_URL;
+const SB_KEY_KPI = process.env.SUPABASE_SECRET_KEY;
+
 async function zohoToken() {
+  // 1. Cache en memoria (más rápido, evita llamadas innecesarias)
   if (_zohoToken && Date.now() < _zohoTokenExp) return _zohoToken;
-  const r = await fetch('https://accounts.zoho.com/oauth/v2/token', {
+
+  // 2. Leer token persistido en Supabase
+  try {
+    const r = await fetch(`${SB_URL_KPI}/rest/v1/config_sistema?clave=eq.zoho_access_token&limit=1`, {
+      headers: { 'apikey': SB_KEY_KPI, 'Authorization': `Bearer ${SB_KEY_KPI}` },
+    });
+    if (r.ok) {
+      const rows = await r.json();
+      const row = rows?.[0];
+      if (row?.valor && row?.expires_at && new Date(row.expires_at) > new Date(Date.now() + 60000)) {
+        _zohoToken = row.valor;
+        _zohoTokenExp = new Date(row.expires_at).getTime();
+        return _zohoToken;
+      }
+    }
+  } catch(_) {}
+
+  // 3. Renovar token desde Zoho
+  const resp = await fetch('https://accounts.zoho.com/oauth/v2/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -16,10 +39,29 @@ async function zohoToken() {
       refresh_token: process.env.ZOHO_REFRESH_TOKEN,
     }),
   });
-  const d = await r.json();
+  const d = await resp.json();
   if (!d.access_token) throw new Error('Zoho token error: ' + JSON.stringify(d));
+
   _zohoToken = d.access_token;
   _zohoTokenExp = Date.now() + (d.expires_in - 60) * 1000;
+  const expiresAt = new Date(_zohoTokenExp).toISOString();
+
+  // 4. Persistir en Supabase (upsert)
+  try {
+    await fetch(`${SB_URL_KPI}/rest/v1/config_sistema?clave=eq.zoho_access_token`, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY_KPI, 'Authorization': `Bearer ${SB_KEY_KPI}` },
+    });
+    await fetch(`${SB_URL_KPI}/rest/v1/config_sistema`, {
+      method: 'POST',
+      headers: {
+        'apikey': SB_KEY_KPI, 'Authorization': `Bearer ${SB_KEY_KPI}`,
+        'Content-Type': 'application/json', 'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({ clave: 'zoho_access_token', valor: _zohoToken, expires_at: expiresAt }),
+    });
+  } catch(_) {}
+
   return _zohoToken;
 }
 
