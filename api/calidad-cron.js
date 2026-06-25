@@ -118,7 +118,7 @@ export default async function handler(req, res) {
     }
 
     // Upsert todos los resúmenes en una sola llamada
-    await sbFetch('calidad_resumen_trabajador', 'POST', resultados);
+    await sbFetch('calidad_resumen_trabajador?on_conflict=periodo_id,staff_id', 'POST', resultados);
 
     res.json({
       ok: true,
