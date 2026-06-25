@@ -431,7 +431,7 @@ async function checkAuth() {
     if (!r.ok) { window.location.href = '/login'; return; }
     const info = await r.json();
     if (!info.email) { window.location.href = '/login'; return; }
-    if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('beca_dashboard')) {
+    if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('beca_dashboard')) {
       window.location.href = '/ejecutivo'; return;
     }
   } catch(e) { window.location.href = '/login'; }

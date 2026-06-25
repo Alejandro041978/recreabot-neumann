@@ -170,7 +170,7 @@ async function initAuth() {
   const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
   if (!r.ok) { window.location.href = '/login'; return false; }
   const info = await r.json();
-  if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('salud_dashboard')) {
+  if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('salud_dashboard')) {
     window.location.href = '/ejecutivo'; return false;
   }
   document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
