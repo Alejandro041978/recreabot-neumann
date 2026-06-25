@@ -16,7 +16,8 @@ async function sbFetch(path, method, body) {
     method, headers, body: body ? JSON.stringify(body) : undefined,
   });
   if (!r.ok) { const t = await r.text(); throw new Error(`${method} ${path}: ${t}`); }
-  return r.status === 204 ? null : r.json();
+  const text = await r.text();
+  return text?.trim() ? JSON.parse(text) : null;
 }
 
 export default async function handler(req, res) {
