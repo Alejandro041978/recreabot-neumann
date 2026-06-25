@@ -52,6 +52,28 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Debug: probar customerHappiness de un ticket
+  if (req.query.debug === 'zoho-happiness') {
+    try {
+      const ticketId = req.query.ticket_id || '1136017000014377039';
+      const tr = await fetch('https://accounts.zoho.com/oauth/v2/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ grant_type: 'refresh_token', client_id: process.env.ZOHO_CLIENT_ID, client_secret: process.env.ZOHO_CLIENT_SECRET, refresh_token: process.env.ZOHO_REFRESH_TOKEN }),
+      });
+      const tok = await tr.json();
+      if (!tok.access_token) { res.json({ error: 'token error', tok }); return; }
+      const r = await fetch(`https://desk.zoho.com/api/v1/tickets/${ticketId}/customerHappiness`, {
+        headers: { 'Authorization': `Zoho-oauthtoken ${tok.access_token}`, 'orgId': process.env.ZOHO_ORG_ID },
+      });
+      const data = await r.json();
+      res.json({ ticketId, status: r.status, data });
+    } catch(e) {
+      res.status(500).json({ error: e.message });
+    }
+    return;
+  }
+
   // Debug: probar KPIs Zoho para un agente específico
   if (req.query.debug === 'zoho-kpi') {
     try {
