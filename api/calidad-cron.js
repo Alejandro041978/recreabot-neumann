@@ -31,7 +31,6 @@ export default async function handler(req, res) {
 
   // Debug: listar agentes de Zoho para verificar emails
   if (req.query.debug === 'zoho-agents') {
-    const { zohoToken: _tok, ...rest } = {};
     const r = await fetch('https://accounts.zoho.com/oauth/v2/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -49,6 +48,38 @@ export default async function handler(req, res) {
     });
     const agents = await agentsRes.json();
     res.json({ agents: (agents?.data || []).map(a => ({ id: a.id, email: a.emailId || a.email, name: a.firstName + ' ' + a.lastName })) });
+    return;
+  }
+
+  // Debug: probar KPIs Zoho para un agente específico
+  if (req.query.debug === 'zoho-kpi') {
+    const email = req.query.email || 'frejas@neumann.edu.pe';
+    const from = req.query.from || '2026-05-11';
+    const to   = req.query.to   || '2026-06-14';
+    const r = await fetch('https://accounts.zoho.com/oauth/v2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        client_id: process.env.ZOHO_CLIENT_ID,
+        client_secret: process.env.ZOHO_CLIENT_SECRET,
+        refresh_token: process.env.ZOHO_REFRESH_TOKEN,
+      }),
+    });
+    const tok = await r.json();
+    if (!tok.access_token) { res.json({ error: 'token error', tok }); return; }
+    const zh = (path) => fetch(`https://desk.zoho.com/api/v1${path}`, {
+      headers: { 'Authorization': `Zoho-oauthtoken ${tok.access_token}`, 'orgId': process.env.ZOHO_ORG_ID },
+    }).then(r => r.json());
+
+    const agents = await zh('/agents?limit=50');
+    const agentRaw = (agents?.data || []).find(a => (a.emailId || a.email) === email);
+    const agentId = agentRaw?.id || null;
+
+    const tickets = agentId ? await zh(`/tickets?assigneeId=${agentId}&status=Closed&from=${from}T00:00:00.000Z&to=${to}T23:59:59.000Z&limit=5`) : null;
+    const summary = agentId ? await zh(`/reports/agentSummary?from=${from}T00:00:00.000Z&to=${to}T23:59:59.000Z`) : null;
+
+    res.json({ email, agentId, agentRaw: agentRaw || null, tickets_sample: tickets, summary_sample: summary });
     return;
   }
 
