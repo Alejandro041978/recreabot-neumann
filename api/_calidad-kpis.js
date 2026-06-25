@@ -181,8 +181,8 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
         const fi = new Date(`${fechaInicio}T00:00:00.000Z`);
         const ff = new Date(`${fechaFin}T23:59:59.000Z`);
         let count = 0, offset = 0;
-        while (true) {
-          const data = await zohoGet(`/tickets?status=Resolved&limit=50&from=${offset}&sortBy=closedTime&order=desc`);
+        while (offset < 2000) {
+          const data = await zohoGet(`/tickets?status=Closed&limit=50&from=${offset}`);
           const rows = data?.data || [];
           if (!rows.length) break;
           for (const t of rows) {
@@ -190,9 +190,6 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
             const closed = t.closedTime ? new Date(t.closedTime) : null;
             if (closed && closed >= fi && closed <= ff) count++;
           }
-          // Si el ticket más antiguo de la página ya es anterior al rango, parar
-          const lastClosed = rows.at(-1)?.closedTime ? new Date(rows.at(-1).closedTime) : null;
-          if (lastClosed && lastClosed < fi) break;
           if (rows.length < 50) break;
           offset += 50;
         }
@@ -206,8 +203,8 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
         const fi = new Date(`${fechaInicio}T00:00:00.000Z`);
         const ff = new Date(`${fechaFin}T23:59:59.000Z`);
         let count = 0, offset = 0;
-        while (true) {
-          const data = await zohoGet(`/tickets?limit=50&from=${offset}&sortBy=createdTime&order=desc`);
+        while (offset < 2000) {
+          const data = await zohoGet(`/tickets?limit=50&from=${offset}`);
           const rows = data?.data || [];
           if (!rows.length) break;
           for (const t of rows) {
@@ -215,8 +212,6 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
             const created = t.createdTime ? new Date(t.createdTime) : null;
             if (created && created >= fi && created <= ff) count++;
           }
-          const lastCreated = rows.at(-1)?.createdTime ? new Date(rows.at(-1).createdTime) : null;
-          if (lastCreated && lastCreated < fi) break;
           if (rows.length < 50) break;
           offset += 50;
         }
@@ -229,11 +224,10 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
         if (!agentId) return null;
         const fi = new Date(`${fechaInicio}T00:00:00.000Z`);
         const ff = new Date(`${fechaFin}T23:59:59.000Z`);
-        // Recopilar IDs de tickets cerrados del agente en el periodo
         const ticketIds = [];
         let offset = 0;
-        while (true) {
-          const data = await zohoGet(`/tickets?status=Resolved&limit=50&from=${offset}&sortBy=closedTime&order=desc`);
+        while (offset < 2000) {
+          const data = await zohoGet(`/tickets?status=Closed&limit=50&from=${offset}`);
           const rows = data?.data || [];
           if (!rows.length) break;
           for (const t of rows) {
@@ -241,8 +235,6 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
             const closed = t.closedTime ? new Date(t.closedTime) : null;
             if (closed && closed >= fi && closed <= ff) ticketIds.push(t.id);
           }
-          const lastClosed = rows.at(-1)?.closedTime ? new Date(rows.at(-1).closedTime) : null;
-          if (lastClosed && lastClosed < fi) break;
           if (rows.length < 50) break;
           offset += 50;
         }
