@@ -256,24 +256,11 @@ async function cargarKpis() {
       </div>
     `;
 
-    // ── KPIs charlas y satisfacción ──
+    // ── KPIs charlas ──
     document.getElementById('kpisCharlas').innerHTML = `
       <div class="kpi" ${color('acc2')}>
         <div class="kpi-val">${charlas.length}</div>
-        <div class="kpi-label">Eval. charlas</div>
-      </div>
-      <div class="kpi" ${promCharla ? `style="--kpi-color:${scoreColor(promCharla)}"` : ''}>
-        <div class="kpi-val" style="color:${promCharla ? scoreColor(promCharla) : 'var(--t3)'}">
-          ${promCharla ? promCharla.toFixed(2) : '—'}
-        </div>
-        <div class="kpi-label">Prom. charlas / 5</div>
-      </div>
-      <div class="kpi" ${promEval ? `style="--kpi-color:${scoreColor(promEval)}"` : ''}>
-        <div class="kpi-val" style="color:${promEval ? scoreColor(promEval) : 'var(--t3)'}">
-          ${promEval ? promEval.toFixed(2) : '—'}
-        </div>
-        <div class="kpi-label">Satisfacción / 5</div>
-        <div class="kpi-sub">${eval_atenciones.length} evaluaciones</div>
+        <div class="kpi-label">Evaluaciones recibidas</div>
       </div>
     `;
 
