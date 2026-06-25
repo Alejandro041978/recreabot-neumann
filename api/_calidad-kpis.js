@@ -43,6 +43,14 @@ async function zohoAgentId(email) {
   return _agentIdCache[email] || null;
 }
 
+// Fuentes donde menor valor es mejor (ej: tiempo de respuesta)
+const FUENTES_INVERSAS = new Set(['zoho_primera_respuesta']);
+export function esFuenteInversa(fuente) { return FUENTES_INVERSAS.has(fuente); }
+export function evalCumple(fuente, valor, meta) {
+  if (valor === null || valor === undefined) return false;
+  return esFuenteInversa(fuente) ? valor <= meta : valor >= meta;
+}
+
 // ── Calcular valor de un KPI ──
 // staffEmail se usa solo para fuentes zoho_*
 export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fechaFin) {
@@ -144,6 +152,19 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
           `/tickets?assigneeId=${agentId}&createdTime=between[${from},${to}]&limit=1&include=count`
         );
         return data?.count ?? (data?.data?.length ?? 0);
+      }
+
+      case 'zoho_primera_respuesta': {
+        if (!staffEmail) return null;
+        const agentId = await zohoAgentId(staffEmail);
+        if (!agentId) return null;
+        const data = await zohoGet(
+          `/reports/agentSummary?from=${fechaInicio}T00:00:00.000Z&to=${fechaFin}T23:59:59.000Z`
+        );
+        const agente = (data?.data || []).find(a => a.agentId === agentId);
+        if (!agente?.avgFirstResponseTime) return null;
+        // Zoho devuelve en segundos → convertir a horas
+        return Math.round((agente.avgFirstResponseTime / 3600) * 10) / 10;
       }
 
       case 'zoho_csat': {

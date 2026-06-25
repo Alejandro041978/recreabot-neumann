@@ -1,6 +1,6 @@
 // api/calidad.js — Sistema de Mes Calidad: periodos, KPIs bonificables y dashboard de desempeño
 import { query } from './_supabase.js';
-import { calcularKpi } from './_calidad-kpis.js';
+import { calcularKpi, evalCumple } from './_calidad-kpis.js';
 
 const SB_URL = process.env.SUPABASE_URL;
 const SB_KEY = process.env.SUPABASE_SECRET_KEY;
@@ -114,7 +114,7 @@ export default async function handler(req, res) {
         } else {
           valor = await calcularKpi(k.fuente, staff_id, staff.email, periodo.fecha_inicio, periodo.fecha_fin);
         }
-        const cumple = valor !== null && valor >= k.meta_valor;
+        const cumple = evalCumple(k.fuente, valor, k.meta_valor);
         return { ...k, valor_obtenido: valor, cumple };
       }));
 
