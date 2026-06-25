@@ -109,59 +109,60 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
   </div>
 </div>
 
-<!-- ── GRUPO 1: Sesiones ── -->
+<!-- ══ GRUPO 1: Sesiones psicológicas ══ -->
 <div class="grupo">
   <div class="grupo-header">
     <span class="grupo-titulo">📋 Sesiones psicológicas</span>
     <div class="grupo-linea"></div>
   </div>
-  <div class="kpi-grid kpi-grid-5" id="kpisSesiones">
+
+  <!-- KPIs sesiones -->
+  <div class="kpi-grid kpi-grid-5" id="kpisSesiones" style="margin-bottom:14px">
     <div class="kpi"><div class="kpi-val">…</div><div class="kpi-label">Cargando</div></div>
   </div>
-</div>
 
-<!-- ── GRUPO 2: Charlas y satisfacción ── -->
-<div class="grupo">
-  <div class="grupo-header">
-    <span class="grupo-titulo">🎤 Charlas y satisfacción</span>
-    <div class="grupo-linea"></div>
-  </div>
-  <div class="kpi-grid kpi-grid-3" id="kpisCharlas">
-    <div class="kpi"><div class="kpi-val">…</div><div class="kpi-label">Cargando</div></div>
-  </div>
-</div>
-
-<!-- ── Paneles detalle ── -->
-<div class="panel-grid">
-  <!-- Últimas sesiones -->
-  <div class="panel">
-    <div class="panel-titulo">
-      📋 Últimas sesiones
-      <span class="sub">mostrando 10 más recientes</span>
-    </div>
-    <div style="overflow-x:auto">
-      <table>
-        <thead><tr><th>Estudiante</th><th>Fecha</th><th>Sesión</th><th>Estado</th></tr></thead>
-        <tbody id="tbodyRecientes">
-          <tr><td colspan="4" style="text-align:center;color:var(--t3);padding:20px">Cargando...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Panel derecho: charlas + satisfacción -->
-  <div style="display:flex;flex-direction:column;gap:14px">
+  <!-- Tabla + satisfacción atenciones -->
+  <div class="panel-grid">
     <div class="panel">
-      <div class="panel-titulo">🎤 Charlas de salud</div>
-      <div id="charlasPanel">
-        <div style="text-align:center;color:var(--t3);padding:16px;font-size:0.82rem">Cargando...</div>
+      <div class="panel-titulo">
+        📋 Últimas sesiones
+        <span class="sub">10 más recientes</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Estudiante</th><th>Fecha</th><th>Sesión</th><th>Estado</th></tr></thead>
+          <tbody id="tbodyRecientes">
+            <tr><td colspan="4" style="text-align:center;color:var(--t3);padding:20px">Cargando...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
     <div class="panel">
-      <div class="panel-titulo">⭐ Satisfacción — Atenciones</div>
+      <div class="panel-titulo">⭐ Satisfacción — Sesiones</div>
       <div id="satPanel">
         <div style="text-align:center;color:var(--t3);padding:16px;font-size:0.82rem">Cargando...</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GRUPO 2: Charlas ══ -->
+<div class="grupo">
+  <div class="grupo-header">
+    <span class="grupo-titulo">🎤 Charlas de salud</span>
+    <div class="grupo-linea"></div>
+  </div>
+
+  <!-- KPIs charlas -->
+  <div class="kpi-grid kpi-grid-3" id="kpisCharlas" style="margin-bottom:14px">
+    <div class="kpi"><div class="kpi-val">…</div><div class="kpi-label">Cargando</div></div>
+  </div>
+
+  <!-- Detalle charlas -->
+  <div class="panel" style="max-width:480px">
+    <div class="panel-titulo">🎤 Evaluaciones de charlas</div>
+    <div id="charlasPanel">
+      <div style="text-align:center;color:var(--t3);padding:16px;font-size:0.82rem">Cargando...</div>
     </div>
   </div>
 </div>
