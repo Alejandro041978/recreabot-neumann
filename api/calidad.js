@@ -1,5 +1,6 @@
 // api/calidad.js — Sistema de Mes Calidad: periodos, KPIs bonificables y dashboard de desempeño
 import { query } from './_supabase.js';
+import { calcularKpi } from './_calidad-kpis.js';
 
 const SB_URL = process.env.SUPABASE_URL;
 const SB_KEY = process.env.SUPABASE_SECRET_KEY;
@@ -36,93 +37,6 @@ async function verificarDirector(req, res) {
   return staff;
 }
 
-// ── Calcular valor de un KPI según su fuente ──
-async function calcularKpi(fuente, staffId, fechaInicio, fechaFin) {
-  try {
-    switch (fuente) {
-
-      case 'salud_atenciones':
-        // Nº de atenciones registradas en el periodo
-        const atenciones = await query('atenciones_salud', 'GET', null,
-          `?fecha_atencion=gte.${fechaInicio}&fecha_atencion=lte.${fechaFin}&select=id`);
-        return (atenciones || []).length;
-
-      case 'salud_charlas':
-        // Nº de charlas de salud en el periodo
-        const charlasS = await query('sesiones_charla', 'GET', null,
-          `?modulo=eq.salud&fecha=gte.${fechaInicio}&fecha=lte.${fechaFin}&select=id`);
-        return (charlasS || []).length;
-
-      case 'salud_satisfaccion':
-        // Promedio de evaluaciones de atención de salud (campos p1, p2, p3 de 1-5)
-        const evalSalud = await query('evaluaciones_atencion', 'GET', null,
-          `?ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=p1,p2,p3`);
-        if (!evalSalud?.length) return 0;
-        const sum = evalSalud.reduce((acc, e) => acc + ((Number(e.p1)+Number(e.p2)+Number(e.p3))/3), 0);
-        return Math.round((sum / evalSalud.length) * 100) / 100;
-
-      case 'salud_charlas_participantes':
-        // Nº de encuestas de charlas de salud respondidas (= participantes)
-        const partCharlaS = await query('evaluaciones_charla', 'GET', null,
-          `?ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=id`);
-        return (partCharlaS || []).length;
-
-      case 'salud_charlas_satisfaccion':
-        // Promedio de evaluaciones de charlas de salud (campos p1, p2, p3 de 1-5)
-        const evalCharlaS = await query('evaluaciones_charla', 'GET', null,
-          `?ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=p1,p2,p3`);
-        if (!evalCharlaS?.length) return 0;
-        const sumCS = evalCharlaS.reduce((acc, e) => acc + ((Number(e.p1)+Number(e.p2)+Number(e.p3))/3), 0);
-        return Math.round((sumCS / evalCharlaS.length) * 100) / 100;
-
-      case 'psico_sesiones':
-        // Nº de sesiones psicopedagógicas completadas
-        const sesiones = await query('psico_reservas', 'GET', null,
-          `?estado=eq.completada&fecha=gte.${fechaInicio}&fecha=lte.${fechaFin}&select=id`);
-        return (sesiones || []).length;
-
-      case 'psico_satisfaccion':
-        // Promedio de satisfacción de atenciones psicopedagógicas (p1, p2, p3 de 1-5)
-        const evalPsico = await query('evaluaciones_psico_atencion', 'GET', null,
-          `?ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=p1,p2,p3`);
-        if (!evalPsico?.length) return 0;
-        const sumP = evalPsico.reduce((acc, e) => acc + ((Number(e.p1)+Number(e.p2)+Number(e.p3))/3), 0);
-        return Math.round((sumP / evalPsico.length) * 100) / 100;
-
-      case 'psico_asistencia':
-        // % de asistencia: sesiones completadas / (completadas + no_asistio) * 100
-        const [asist, noAsist] = await Promise.all([
-          query('psico_reservas', 'GET', null,
-            `?estado=eq.completada&fecha=gte.${fechaInicio}&fecha=lte.${fechaFin}&select=id`),
-          query('psico_reservas', 'GET', null,
-            `?estado=eq.no_asistio&fecha=gte.${fechaInicio}&fecha=lte.${fechaFin}&select=id`),
-        ]);
-        const total = (asist||[]).length + (noAsist||[]).length;
-        if (!total) return 0;
-        return Math.round(((asist||[]).length / total) * 100);
-
-      case 'psico_charlas':
-        // Nº de charlas psicopedagógicas
-        const charlasP = await query('sesiones_charla', 'GET', null,
-          `?modulo=eq.psicopedagogico&fecha=gte.${fechaInicio}&fecha=lte.${fechaFin}&select=id`);
-        return (charlasP || []).length;
-
-      case 'psico_charlas_satisfaccion':
-        // Promedio de evaluaciones de charlas psicopedagógicas
-        const evalCharlaP = await query('evaluaciones_charla', 'GET', null,
-          `?modulo=eq.psicopedagogico&ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=calificacion`);
-        if (!evalCharlaP?.length) return 0;
-        const sumCP = evalCharlaP.reduce((acc, e) => acc + (Number(e.calificacion) || 0), 0);
-        return Math.round((sumCP / evalCharlaP.length) * 10) / 10;
-
-      case 'manual':
-        return null; // valor ingresado manualmente
-
-      default:
-        return null;
-    }
-  } catch { return null; }
-}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -155,6 +69,56 @@ export default async function handler(req, res) {
       const data = await query('kpis_trabajador', 'GET', null,
         `?staff_id=eq.${staff_id}&order=id.asc`);
       res.json(data || []); return;
+    }
+
+    // ── GET resumen cacheado del cron (lista rápida) ──
+    if (req.method === 'GET' && accion === 'resumen') {
+      const { periodo_id } = req.query;
+      if (!periodo_id) { res.status(400).json({ error: 'periodo_id requerido' }); return; }
+      const [resumen, staffData] = await Promise.all([
+        query('calidad_resumen_trabajador', 'GET', null, `?periodo_id=eq.${periodo_id}&order=staff_id.asc`),
+        query('staff', 'GET', null, '?activo=eq.true&select=id,nombre,email,roles(nombre)&order=nombre.asc'),
+      ]);
+      const staffMap = {};
+      (staffData || []).forEach(s => { staffMap[s.id] = s; });
+      const rows = (resumen || []).map(r => ({
+        ...r,
+        staff: staffMap[r.staff_id] || { id: r.staff_id, nombre: '—', rol: '—' },
+      }));
+      res.json(rows); return;
+    }
+
+    // ── GET detalle en tiempo real de un trabajador ──
+    if (req.method === 'GET' && accion === 'detalle') {
+      const { periodo_id, staff_id } = req.query;
+      if (!periodo_id || !staff_id) { res.status(400).json({ error: 'periodo_id y staff_id requeridos' }); return; }
+
+      const [periodos, kpis, staffData, manuales] = await Promise.all([
+        query('periodos_calidad', 'GET', null, `?id=eq.${periodo_id}&limit=1`),
+        query('kpis_trabajador', 'GET', null, `?staff_id=eq.${staff_id}&activo=eq.true&order=id.asc`),
+        query('staff', 'GET', null, `?id=eq.${staff_id}&select=id,nombre,email,roles(nombre)&limit=1`),
+        query('resultados_calidad', 'GET', null, `?periodo_id=eq.${periodo_id}&staff_id=eq.${staff_id}`),
+      ]);
+
+      const periodo = periodos?.[0];
+      const staff = staffData?.[0];
+      if (!periodo || !staff) { res.status(404).json({ error: 'No encontrado' }); return; }
+
+      const manualMap = {};
+      (manuales || []).forEach(m => { manualMap[m.kpi_id] = m.valor_obtenido; });
+
+      const kpisCalc = await Promise.all((kpis || []).map(async k => {
+        let valor;
+        if (k.fuente === 'manual') {
+          valor = manualMap[k.id] ?? null;
+        } else {
+          valor = await calcularKpi(k.fuente, staff_id, staff.email, periodo.fecha_inicio, periodo.fecha_fin);
+        }
+        const cumple = valor !== null && valor >= k.meta_valor;
+        return { ...k, valor_obtenido: valor, cumple };
+      }));
+
+      res.json({ periodo, staff, kpis: kpisCalc }); return;
     }
 
     // ── GET dashboard de desempeño para un periodo ──
@@ -200,7 +164,7 @@ export default async function handler(req, res) {
           if (k.fuente === 'manual') {
             valor = manualMap[`${staffId}_${k.id}`] ?? null;
           } else {
-            valor = await calcularKpi(k.fuente, staffId, periodo.fecha_inicio, periodo.fecha_fin);
+            valor = await calcularKpi(k.fuente, staffId, staffMap[staffId]?.email, periodo.fecha_inicio, periodo.fecha_fin);
           }
           const cumple = valor !== null ? valor >= k.meta_valor : false;
           return { ...k, valor_obtenido: valor, cumple };

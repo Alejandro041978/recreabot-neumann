@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -29,84 +29,94 @@ body{padding:20px 16px 60px;max-width:1100px;margin:0 auto}
 .toolbar select:focus{border-color:var(--acc)}
 .btn-refresh{padding:8px 14px;border-radius:8px;border:1.5px solid var(--b);background:var(--s2);color:var(--t2);font-size:0.8rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
 .btn-refresh:hover{border-color:var(--acc);color:var(--acc2)}
+.btn-refresh.loading{opacity:.5;pointer-events:none}
 
-.periodo-info{background:var(--s);border:1px solid var(--b);border-radius:10px;padding:12px 16px;margin-bottom:20px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;display:none}
-.periodo-info .pi-label{font-size:0.72rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-.periodo-info .pi-val{font-size:0.9rem;font-weight:700;color:var(--text)}
+.periodo-info{background:var(--s);border:1px solid var(--b);border-radius:10px;padding:12px 16px;margin-bottom:20px;display:none;gap:20px;align-items:center;flex-wrap:wrap}
+.pi-label{font-size:0.72rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.pi-val{font-size:0.9rem;font-weight:700;color:var(--text)}
 .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:0.7rem;font-weight:700}
 .badge-green{background:rgba(16,185,129,.15);color:var(--green)}
 .badge-gray{background:rgba(42,58,82,.6);color:var(--t3)}
 
-.resumen-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+/* KPIs resumen */
+.resumen-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px;display:none}
 .stat-card{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:16px 18px;text-align:center}
 .stat-num{font-size:2rem;font-weight:800;margin-bottom:4px}
 .stat-label{font-size:0.72rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .stat-green{color:var(--green)}.stat-red{color:var(--red)}.stat-yellow{color:var(--yellow)}.stat-acc{color:var(--acc2)}
 
-.workers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:16px}
-
-.worker-card{background:var(--s);border:1px solid var(--b);border-radius:16px;padding:22px;transition:border-color .2s}
-.worker-card.con-bono{border-color:rgba(16,185,129,.4);background:linear-gradient(135deg,#1a2235 0%,rgba(16,185,129,.04) 100%)}
-.worker-card.sin-bono{border-color:rgba(239,68,68,.2)}
-.worker-card.pendiente{border-color:rgba(245,158,11,.2)}
-
-.worker-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
-.worker-nombre{font-size:1rem;font-weight:800;color:var(--text)}
-.worker-rol{font-size:0.75rem;color:var(--t3);margin-top:2px}
-.bono-badge{padding:6px 14px;border-radius:20px;font-size:0.78rem;font-weight:800;text-align:center;white-space:nowrap}
+/* Lista de trabajadores */
+.workers-table{background:var(--s);border:1px solid var(--b);border-radius:16px;overflow:hidden}
+.workers-table-header{display:grid;grid-template-columns:1fr 160px 120px 100px;padding:10px 20px;border-bottom:1px solid var(--b);font-size:0.72rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
+.worker-row{display:grid;grid-template-columns:1fr 160px 120px 100px;padding:14px 20px;border-bottom:1px solid rgba(42,58,82,.5);cursor:pointer;transition:background .15s;align-items:center}
+.worker-row:last-child{border-bottom:none}
+.worker-row:hover{background:rgba(99,102,241,.05)}
+.worker-row.active{background:rgba(99,102,241,.1);border-left:3px solid var(--acc)}
+.worker-nombre-col .nombre{font-size:0.88rem;font-weight:700;color:var(--text)}
+.worker-nombre-col .rol{font-size:0.72rem;color:var(--t3);margin-top:2px}
+.kpis-col{font-size:0.82rem;color:var(--t2)}
+.kpis-col .pct{font-size:0.72rem;color:var(--t3);margin-top:2px}
+.bono-badge{padding:4px 12px;border-radius:20px;font-size:0.72rem;font-weight:800;white-space:nowrap;display:inline-block}
 .bono-verde{background:rgba(16,185,129,.18);color:var(--green);border:1px solid rgba(16,185,129,.3)}
 .bono-rojo{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25)}
 .bono-gris{background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.25)}
+.bono-pending{background:rgba(100,116,139,.15);color:var(--t3);border:1px solid var(--b)}
+.updated-col{font-size:0.72rem;color:var(--t3)}
 
-.progress-global{margin-bottom:16px}
-.progress-label{display:flex;justify-content:space-between;font-size:0.72rem;color:var(--t3);margin-bottom:4px}
-.progress-bar{height:6px;background:var(--s2);border-radius:3px;overflow:hidden}
-.progress-fill{height:100%;border-radius:3px;transition:width .4s}
-.fill-green{background:var(--green)}.fill-red{background:var(--red)}.fill-yellow{background:var(--yellow)}
+.progress-mini{height:4px;background:var(--b);border-radius:2px;overflow:hidden;margin-top:4px}
+.progress-mini-fill{height:100%;border-radius:2px}
+
+/* Panel de detalle */
+.detalle-panel{background:var(--s2);border:1px solid var(--b);border-radius:16px;padding:24px;margin-top:16px;display:none}
+.detalle-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.detalle-nombre{font-size:1.1rem;font-weight:800;color:var(--text)}
+.detalle-rol{font-size:0.78rem;color:var(--t3);margin-top:3px}
+.btn-cerrar{background:none;border:1px solid var(--b);border-radius:6px;color:var(--t3);font-size:0.75rem;font-weight:700;padding:5px 12px;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-cerrar:hover{border-color:var(--red);color:var(--red)}
 
 .kpis-list{display:flex;flex-direction:column;gap:8px}
-.kpi-row{background:var(--s2);border-radius:10px;padding:12px 14px;border:1px solid var(--b)}
+.kpi-row{background:var(--s);border-radius:10px;padding:12px 14px;border:1px solid var(--b)}
 .kpi-row.cumple{border-color:rgba(16,185,129,.25)}
 .kpi-row.no-cumple{border-color:rgba(239,68,68,.2)}
 .kpi-row.pendiente-manual{border-color:rgba(245,158,11,.2)}
-
 .kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
 .kpi-nombre{font-size:0.8rem;font-weight:700;color:var(--text)}
 .kpi-estado{font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:10px}
 .estado-ok{background:rgba(16,185,129,.15);color:var(--green)}
 .estado-fail{background:rgba(239,68,68,.12);color:var(--red)}
 .estado-pend{background:rgba(245,158,11,.12);color:var(--yellow)}
-
 .kpi-vals{display:flex;align-items:center;gap:12px;font-size:0.78rem;color:var(--t3)}
 .kpi-val-actual{font-size:1.05rem;font-weight:800;color:var(--text)}
-.kpi-val-actual.ok{color:var(--green)}
-.kpi-val-actual.fail{color:var(--red)}
-.kpi-val-sep{color:var(--t3);font-size:0.7rem}
-.kpi-meta{color:var(--t3)}
-
+.kpi-val-actual.ok{color:var(--green)}.kpi-val-actual.fail{color:var(--red)}
 .kpi-bar{height:4px;background:var(--b);border-radius:2px;overflow:hidden;margin-top:6px}
 .kpi-bar-fill{height:100%;border-radius:2px}
-
 .manual-input-wrap{margin-top:8px;display:flex;gap:8px;align-items:center}
-.manual-input{background:var(--s);border:1.5px solid var(--b);border-radius:6px;padding:5px 8px;color:var(--text);font-size:0.82rem;font-family:'Inter',sans-serif;outline:none;width:100px}
+.manual-input{background:var(--bg);border:1.5px solid var(--b);border-radius:6px;padding:5px 8px;color:var(--text);font-size:0.82rem;font-family:'Inter',sans-serif;outline:none;width:100px}
 .manual-input:focus{border-color:var(--acc)}
 .btn-manual-save{padding:5px 10px;border-radius:6px;border:none;background:var(--acc);color:#fff;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
 .btn-manual-save:hover{opacity:.85}
 .manual-saved{font-size:0.72rem;color:var(--green);display:none}
 
+.detalle-loading{text-align:center;padding:40px;color:var(--t3);font-size:0.85rem}
+.detalle-updated{font-size:0.72rem;color:var(--t3);margin-bottom:16px}
+
 .empty-state{text-align:center;padding:60px 20px;color:var(--t3)}
 .empty-icon{font-size:3rem;margin-bottom:12px}
 .empty-title{font-size:1rem;font-weight:700;color:var(--t2);margin-bottom:6px}
 .empty-sub{font-size:0.83rem}
-
 .loading{text-align:center;padding:60px;color:var(--t3);font-size:0.88rem}
+
+.cron-bar{display:flex;align-items:center;gap:10px;background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.2);border-radius:8px;padding:8px 14px;margin-bottom:16px;font-size:0.78rem;color:var(--t3);display:none}
+.cron-bar span{flex:1}
+.btn-recalcular{padding:5px 12px;border-radius:6px;border:1px solid var(--acc);background:none;color:var(--acc2);font-size:0.75rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-recalcular:hover{background:rgba(99,102,241,.1)}
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div style="display:flex;align-items:center;gap:10px">
-    <div style="font-size:1.4rem">📊</div>
+    <div style="font-size:1.4rem">⭐</div>
     <div class="topbar-titulo">Dashboard Mes Calidad</div>
   </div>
   <div style="display:flex;align-items:center;gap:8px">
@@ -122,35 +132,42 @@ body{padding:20px 16px 60px;max-width:1100px;margin:0 auto}
   <select id="selectPeriodo" onchange="cargarDashboard()">
     <option value="">Selecciona un periodo...</option>
   </select>
-  <button class="btn-refresh" onclick="cargarDashboard()">↻ Actualizar</button>
+  <button class="btn-refresh" id="btnRefresh" onclick="cargarDashboard()">↻ Actualizar</button>
 </div>
 
 <div class="periodo-info" id="periodoInfo">
-  <div>
-    <div class="pi-label">Periodo</div>
-    <div class="pi-val" id="piNombre">—</div>
-  </div>
-  <div>
-    <div class="pi-label">Inicio</div>
-    <div class="pi-val" id="piFechaInicio">—</div>
-  </div>
-  <div>
-    <div class="pi-label">Fin</div>
-    <div class="pi-val" id="piFechaFin">—</div>
-  </div>
-  <div>
-    <div class="pi-label">Estado</div>
-    <div class="pi-val" id="piEstado">—</div>
-  </div>
+  <div><div class="pi-label">Periodo</div><div class="pi-val" id="piNombre">—</div></div>
+  <div><div class="pi-label">Inicio</div><div class="pi-val" id="piFechaInicio">—</div></div>
+  <div><div class="pi-label">Fin</div><div class="pi-val" id="piFechaFin">—</div></div>
+  <div><div class="pi-label">Estado</div><div class="pi-val" id="piEstado">—</div></div>
 </div>
 
-<div id="resumenRow" class="resumen-row" style="display:none"></div>
+<div id="cronBar" class="cron-bar">
+  <span id="cronMsg"></span>
+  <button class="btn-recalcular" onclick="recalcularAhora()">↻ Recalcular ahora</button>
+</div>
+
+<div id="resumenRow" class="resumen-row"></div>
 
 <div id="mainContent">
   <div class="empty-state">
     <div class="empty-icon">📅</div>
     <div class="empty-title">Selecciona un periodo</div>
-    <div class="empty-sub">Elige un periodo de calidad para ver el desempeño de los trabajadores</div>
+    <div class="empty-sub">Elige un periodo de calidad para ver el desempeño del equipo</div>
+  </div>
+</div>
+
+<div class="detalle-panel" id="detallePanel">
+  <div class="detalle-header">
+    <div>
+      <div class="detalle-nombre" id="detalleNombre">—</div>
+      <div class="detalle-rol" id="detalleRol">—</div>
+    </div>
+    <button class="btn-cerrar" onclick="cerrarDetalle()">✕ Cerrar</button>
+  </div>
+  <div class="detalle-updated" id="detalleUpdated"></div>
+  <div class="kpis-list" id="detalleKpis">
+    <div class="detalle-loading">Calculando KPIs en tiempo real…</div>
   </div>
 </div>
 
@@ -162,7 +179,8 @@ const sb = supabase.createClient(
 );
 
 let token = null;
-let dashData = null;
+let periodoActual = null;
+let staffDetalleActual = null;
 
 function fmtFecha(d) {
   if (!d) return '—';
@@ -170,9 +188,22 @@ function fmtFecha(d) {
   return `${dd}/${m}/${y}`;
 }
 
+function fmtTs(ts) {
+  if (!ts) return 'nunca';
+  const d = new Date(ts);
+  return d.toLocaleDateString('es-PE', { day:'2-digit', month:'short', year:'numeric' }) +
+    ' ' + d.toLocaleTimeString('es-PE', { hour:'2-digit', minute:'2-digit' });
+}
+
 function pct(v, meta) {
-  if (v === null || v === undefined || meta === 0) return 0;
+  if (v === null || v === undefined || !meta) return 0;
   return Math.min(100, Math.round((v / meta) * 100));
+}
+
+async function getToken() {
+  const { data: { session } } = await sb.auth.getSession();
+  token = session?.access_token || token;
+  return token;
 }
 
 async function initAuth() {
@@ -181,7 +212,7 @@ async function initAuth() {
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal.currentLevel !== 'aal2') { await sb.auth.signOut(); window.location.href = '/login'; return; }
   token = session.access_token;
-  const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${token}` } });
+  const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${await getToken()}` } });
   if (!r.ok) { window.location.href = '/login'; return; }
   const info = await r.json();
   if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('calidad_dashboard')) { window.location.href = '/ejecutivo'; return; }
@@ -191,100 +222,173 @@ async function initAuth() {
 }
 
 async function cargarPeriodos() {
-  const r = await fetch('/api/calidad?accion=periodos', { headers: { 'Authorization': `Bearer ${token}` } });
+  const r = await fetch('/api/calidad?accion=periodos', { headers: { 'Authorization': `Bearer ${await getToken()}` } });
   const periodos = await r.json();
   const sel = document.getElementById('selectPeriodo');
   sel.innerHTML = '<option value="">Selecciona un periodo...</option>' +
-    periodos.map(p => `<option value="${p.id}"${p.activo?' selected':''}>${p.nombre} ${p.activo?'· Activo':''}</option>`).join('');
-  // Auto-load active period
+    periodos.map(p => `<option value="${p.id}"${p.activo?' selected':''}>${p.nombre}${p.activo?' · Activo':''}</option>`).join('');
   const activo = periodos.find(p => p.activo);
   if (activo) { sel.value = activo.id; cargarDashboard(); }
 }
 
 async function cargarDashboard() {
   const periodoId = document.getElementById('selectPeriodo').value;
+  cerrarDetalle();
   if (!periodoId) {
+    document.getElementById('periodoInfo').style.display = 'none';
+    document.getElementById('resumenRow').style.display = 'none';
+    document.getElementById('cronBar').style.display = 'none';
     document.getElementById('mainContent').innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">📅</div>
         <div class="empty-title">Selecciona un periodo</div>
-        <div class="empty-sub">Elige un periodo de calidad para ver el desempeño de los trabajadores</div>
+        <div class="empty-sub">Elige un periodo de calidad para ver el desempeño del equipo</div>
       </div>`;
-    document.getElementById('periodoInfo').style.display = 'none';
-    document.getElementById('resumenRow').style.display = 'none';
     return;
   }
-  document.getElementById('mainContent').innerHTML = '<div class="loading">Calculando KPIs...</div>';
-  const r = await fetch(`/api/calidad?accion=dashboard&periodo_id=${periodoId}`, {
-    headers: { 'Authorization': `Bearer ${token}` },
-  });
-  dashData = await r.json();
-  if (dashData.error) {
-    document.getElementById('mainContent').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">${dashData.error}</div></div>`;
-    return;
-  }
-  renderDashboard();
-}
 
-function renderDashboard() {
-  const { periodo, trabajadores } = dashData;
+  document.getElementById('mainContent').innerHTML = '<div class="loading">Cargando…</div>';
+  const btn = document.getElementById('btnRefresh');
+  btn.classList.add('loading');
 
-  // Periodo info bar
+  const [periodoRes, resumenRes] = await Promise.all([
+    fetch(`/api/calidad?accion=periodos`, { headers: { 'Authorization': `Bearer ${await getToken()}` } }),
+    fetch(`/api/calidad?accion=resumen&periodo_id=${periodoId}`, { headers: { 'Authorization': `Bearer ${await getToken()}` } }),
+  ]);
+
+  const periodos = await periodoRes.json();
+  const resumen  = await resumenRes.json();
+  btn.classList.remove('loading');
+
+  periodoActual = periodos.find(p => p.id == periodoId);
+  if (!periodoActual) return;
+
+  // Periodo info
   const pi = document.getElementById('periodoInfo');
   pi.style.display = 'flex';
-  document.getElementById('piNombre').textContent = periodo.nombre;
-  document.getElementById('piFechaInicio').textContent = fmtFecha(periodo.fecha_inicio);
-  document.getElementById('piFechaFin').textContent = fmtFecha(periodo.fecha_fin);
-  document.getElementById('piEstado').innerHTML = periodo.activo
+  document.getElementById('piNombre').textContent = periodoActual.nombre;
+  document.getElementById('piFechaInicio').textContent = fmtFecha(periodoActual.fecha_inicio);
+  document.getElementById('piFechaFin').textContent = fmtFecha(periodoActual.fecha_fin);
+  document.getElementById('piEstado').innerHTML = periodoActual.activo
     ? '<span class="badge badge-green">Activo</span>'
     : '<span class="badge badge-gray">Histórico</span>';
 
-  // Stats summary
-  const conBono = trabajadores.filter(t => t.con_bono).length;
-  const sinBono = trabajadores.filter(t => !t.con_bono && !t.tiene_manuales_pendientes).length;
-  const pendientes = trabajadores.filter(t => t.tiene_manuales_pendientes).length;
-  const totalKpis = trabajadores.reduce((a, t) => a + t.total_kpis, 0);
-  const kpisCumplidos = trabajadores.reduce((a, t) => a + t.kpis_cumplidos, 0);
-
-  const resumen = document.getElementById('resumenRow');
-  resumen.style.display = 'grid';
-  resumen.innerHTML = `
-    <div class="stat-card"><div class="stat-num stat-acc">${trabajadores.length}</div><div class="stat-label">Trabajadores</div></div>
-    <div class="stat-card"><div class="stat-num stat-green">${conBono}</div><div class="stat-label">Con Bono ✅</div></div>
-    <div class="stat-card"><div class="stat-num stat-red">${sinBono}</div><div class="stat-label">Sin Bono ✗</div></div>
-    ${pendientes ? `<div class="stat-card"><div class="stat-num stat-yellow">${pendientes}</div><div class="stat-label">Pendiente manual</div></div>` : ''}
-    <div class="stat-card"><div class="stat-num stat-acc">${totalKpis > 0 ? Math.round((kpisCumplidos/totalKpis)*100) : 0}%</div><div class="stat-label">KPIs cumplidos</div></div>
-  `;
-
-  if (!trabajadores.length) {
+  if (!resumen.length) {
+    document.getElementById('resumenRow').style.display = 'none';
+    document.getElementById('cronBar').style.display = 'none';
     document.getElementById('mainContent').innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">🎯</div>
-        <div class="empty-title">Sin KPIs configurados</div>
-        <div class="empty-sub">Ve a <a href="/calidad-config" style="color:var(--acc2)">Configuración</a> para agregar KPIs a los trabajadores.</div>
+        <div class="empty-title">Sin datos aún</div>
+        <div class="empty-sub">El cron corre cada noche a las 2am. Puedes forzar el cálculo con el botón de abajo o <a href="/calidad-config" style="color:var(--acc2)">configura KPIs</a> primero.</div>
       </div>`;
+    if (periodoActual.activo) {
+      const cb = document.getElementById('cronBar');
+      cb.style.display = 'flex';
+      document.getElementById('cronMsg').textContent = 'Sin datos calculados aún para este periodo.';
+    }
     return;
   }
 
-  const grid = document.createElement('div');
-  grid.className = 'workers-grid';
-  grid.innerHTML = trabajadores.map(t => renderWorkerCard(t)).join('');
-  document.getElementById('mainContent').innerHTML = '';
-  document.getElementById('mainContent').appendChild(grid);
+  // Stats resumen
+  const conBono  = resumen.filter(r => r.tiene_bono).length;
+  const sinBono  = resumen.filter(r => !r.tiene_bono).length;
+  const totalKpis = resumen.reduce((a, r) => a + r.kpis_total, 0);
+  const kpisCump  = resumen.reduce((a, r) => a + r.kpis_cumplidos, 0);
+  const pctGlobal = totalKpis > 0 ? Math.round((kpisCump / totalKpis) * 100) : 0;
+
+  const rr = document.getElementById('resumenRow');
+  rr.style.display = 'grid';
+  rr.innerHTML = `
+    <div class="stat-card"><div class="stat-num stat-acc">${resumen.length}</div><div class="stat-label">Trabajadores</div></div>
+    <div class="stat-card"><div class="stat-num stat-green">${conBono}</div><div class="stat-label">Con Bono ✅</div></div>
+    <div class="stat-card"><div class="stat-num stat-red">${sinBono}</div><div class="stat-label">Sin Bono ✗</div></div>
+    <div class="stat-card"><div class="stat-num stat-acc">${pctGlobal}%</div><div class="stat-label">KPIs cumplidos</div></div>
+  `;
+
+  // Última actualización del cron
+  const ultimaAct = resumen.reduce((a, r) => r.updated_at > a ? r.updated_at : a, '');
+  const cb = document.getElementById('cronBar');
+  if (periodoActual.activo) {
+    cb.style.display = 'flex';
+    document.getElementById('cronMsg').textContent = `Última actualización automática: ${fmtTs(ultimaAct)}`;
+  } else {
+    cb.style.display = 'none';
+  }
+
+  // Lista de trabajadores
+  document.getElementById('mainContent').innerHTML = `
+    <div class="workers-table">
+      <div class="workers-table-header">
+        <div>Trabajador</div>
+        <div>KPIs cumplidos</div>
+        <div>Bono</div>
+        <div>Actualizado</div>
+      </div>
+      ${resumen.map(r => {
+        const nombre = r.staff?.nombre || '—';
+        const rol    = r.staff?.roles?.nombre || '';
+        const pctW   = r.kpis_total > 0 ? Math.round((r.kpis_cumplidos / r.kpis_total) * 100) : 0;
+        const fillColor = r.tiene_bono ? 'var(--green)' : 'var(--red)';
+        const bonoHtml  = r.tiene_bono
+          ? '<span class="bono-badge bono-verde">⭐ CON BONO</span>'
+          : '<span class="bono-badge bono-rojo">✗ SIN BONO</span>';
+        const updated = r.updated_at ? fmtTs(r.updated_at).split(' ')[0] : '—';
+        return `
+          <div class="worker-row" id="row_${r.staff_id}" onclick="verDetalle(${r.staff_id}, '${nombre}', '${rol}', '${r.updated_at||''}')">
+            <div class="worker-nombre-col">
+              <div class="nombre">${nombre}</div>
+              <div class="rol">${rol}</div>
+            </div>
+            <div class="kpis-col">
+              ${r.kpis_cumplidos} / ${r.kpis_total}
+              <div class="progress-mini"><div class="progress-mini-fill" style="width:${pctW}%;background:${fillColor}"></div></div>
+              <div class="pct">${pctW}%</div>
+            </div>
+            <div>${bonoHtml}</div>
+            <div class="updated-col">${updated}</div>
+          </div>`;
+      }).join('')}
+    </div>`;
 }
 
-function renderWorkerCard(t) {
-  const { staff, kpis, con_bono, total_kpis, kpis_cumplidos, tiene_manuales_pendientes } = t;
-  const pctGlobal = total_kpis > 0 ? Math.round((kpis_cumplidos / total_kpis) * 100) : 0;
-  const cardClass = con_bono ? 'con-bono' : tiene_manuales_pendientes ? 'pendiente' : 'sin-bono';
-  const bonoHtml = con_bono
-    ? '<div class="bono-badge bono-verde">⭐ CON BONO</div>'
-    : tiene_manuales_pendientes
-      ? '<div class="bono-badge bono-gris">⏳ PENDIENTE</div>'
-      : '<div class="bono-badge bono-rojo">✗ SIN BONO</div>';
-  const fillClass = con_bono ? 'fill-green' : tiene_manuales_pendientes ? 'fill-yellow' : 'fill-red';
+async function verDetalle(staffId, nombre, rol, updatedAt) {
+  // Marcar fila activa
+  document.querySelectorAll('.worker-row').forEach(r => r.classList.remove('active'));
+  document.getElementById(`row_${staffId}`)?.classList.add('active');
 
-  const kpisHtml = kpis.map(k => {
+  staffDetalleActual = staffId;
+
+  // Mostrar panel con loading
+  const panel = document.getElementById('detallePanel');
+  panel.style.display = 'block';
+  document.getElementById('detalleNombre').textContent = nombre;
+  document.getElementById('detalleRol').textContent = rol;
+  document.getElementById('detalleUpdated').textContent = updatedAt
+    ? `Resumen calculado el ${fmtTs(updatedAt)} · Detalle en tiempo real`
+    : 'Detalle en tiempo real';
+  document.getElementById('detalleKpis').innerHTML = '<div class="detalle-loading">Calculando KPIs en tiempo real…</div>';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  const periodoId = document.getElementById('selectPeriodo').value;
+  const r = await fetch(`/api/calidad?accion=detalle&periodo_id=${periodoId}&staff_id=${staffId}`, {
+    headers: { 'Authorization': `Bearer ${await getToken()}` },
+  });
+  const data = await r.json();
+  if (data.error) {
+    document.getElementById('detalleKpis').innerHTML = `<div class="detalle-loading">Error: ${data.error}</div>`;
+    return;
+  }
+  renderDetalle(data);
+}
+
+function renderDetalle({ kpis }) {
+  if (!kpis?.length) {
+    document.getElementById('detalleKpis').innerHTML = '<div class="detalle-loading">Sin KPIs configurados para este trabajador.</div>';
+    return;
+  }
+  const periodoId = document.getElementById('selectPeriodo').value;
+  document.getElementById('detalleKpis').innerHTML = kpis.map(k => {
     const esManual = k.fuente === 'manual';
     const pendManual = esManual && k.valor_obtenido === null;
     const rowClass = pendManual ? 'pendiente-manual' : k.cumple ? 'cumple' : 'no-cumple';
@@ -295,18 +399,16 @@ function renderWorkerCard(t) {
         : '<span class="kpi-estado estado-fail">✗ No cumplido</span>';
     const valClass = pendManual ? '' : k.cumple ? 'ok' : 'fail';
     const valDisplay = k.valor_obtenido !== null ? k.valor_obtenido : '—';
-    const pctKpi = pct(k.valor_obtenido, k.meta_valor);
-    const barColor = pendManual ? 'background:var(--yellow)' : k.cumple ? 'background:var(--green)' : 'background:var(--red)';
-
+    const pctK = pct(k.valor_obtenido, k.meta_valor);
+    const barColor = pendManual ? 'var(--yellow)' : k.cumple ? 'var(--green)' : 'var(--red)';
     const manualHtml = esManual ? `
       <div class="manual-input-wrap">
-        <input type="number" class="manual-input" id="manual_${staff.id}_${k.id}"
+        <input type="number" class="manual-input" id="manual_${k.id}"
           value="${k.valor_obtenido !== null ? k.valor_obtenido : ''}"
           placeholder="Ingresar..." min="0" step="0.1">
-        <button class="btn-manual-save" onclick="guardarManual(${staff.id},${k.id},'manual_${staff.id}_${k.id}','saved_${staff.id}_${k.id}')">Guardar</button>
-        <span class="manual-saved" id="saved_${staff.id}_${k.id}">✓ Guardado</span>
+        <button class="btn-manual-save" onclick="guardarManual(${periodoId},${staffDetalleActual},${k.id})">Guardar</button>
+        <span class="manual-saved" id="saved_${k.id}">✓ Guardado</span>
       </div>` : '';
-
     return `
       <div class="kpi-row ${rowClass}">
         <div class="kpi-top">
@@ -315,50 +417,53 @@ function renderWorkerCard(t) {
         </div>
         <div class="kpi-vals">
           <span class="kpi-val-actual ${valClass}">${valDisplay}${k.unidad?' '+k.unidad:''}</span>
-          <span class="kpi-val-sep">de</span>
-          <span class="kpi-meta">${k.meta_valor}${k.unidad?' '+k.unidad:''} mínimo</span>
+          <span style="color:var(--t3);font-size:0.7rem">de</span>
+          <span style="color:var(--t3);font-size:0.78rem">${k.meta_valor}${k.unidad?' '+k.unidad:''} mínimo</span>
         </div>
-        ${!pendManual ? `<div class="kpi-bar"><div class="kpi-bar-fill" style="width:${pctKpi}%;${barColor}"></div></div>` : ''}
+        ${!pendManual ? `<div class="kpi-bar"><div class="kpi-bar-fill" style="width:${pctK}%;background:${barColor}"></div></div>` : ''}
         ${manualHtml}
       </div>`;
   }).join('');
-
-  return `
-    <div class="worker-card ${cardClass}">
-      <div class="worker-head">
-        <div>
-          <div class="worker-nombre">${staff.nombre}</div>
-          <div class="worker-rol">${staff.rol || ''}</div>
-        </div>
-        ${bonoHtml}
-      </div>
-      <div class="progress-global">
-        <div class="progress-label">
-          <span>KPIs cumplidos</span>
-          <span>${kpis_cumplidos} / ${total_kpis} (${pctGlobal}%)</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill ${fillClass}" style="width:${pctGlobal}%"></div></div>
-      </div>
-      <div class="kpis-list">${kpisHtml}</div>
-    </div>`;
 }
 
-async function guardarManual(staffId, kpiId, inputId, savedId) {
-  const periodoId = document.getElementById('selectPeriodo').value;
-  const valor = document.getElementById(inputId).value;
+async function guardarManual(periodoId, staffId, kpiId) {
+  const valor = document.getElementById(`manual_${kpiId}`).value;
   if (valor === '') return;
   const r = await fetch('/api/calidad', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${await getToken()}` },
     body: JSON.stringify({ accion: 'valor-manual', periodo_id: periodoId, staff_id: staffId, kpi_id: kpiId, valor }),
   });
   const data = await r.json();
   if (data.ok) {
-    const el = document.getElementById(savedId);
+    const el = document.getElementById(`saved_${kpiId}`);
     el.style.display = 'inline';
     setTimeout(() => el.style.display = 'none', 2000);
-    await cargarDashboard(); // refresh
+    verDetalle(staffId, document.getElementById('detalleNombre').textContent,
+      document.getElementById('detalleRol').textContent, '');
   }
+}
+
+async function recalcularAhora() {
+  const btn = document.querySelector('.btn-recalcular');
+  btn.textContent = 'Calculando…';
+  btn.disabled = true;
+  try {
+    const r = await fetch(`/api/calidad-cron?secret=${encodeURIComponent('recreabot-neumann-2026')}`);
+    const data = await r.json();
+    if (data.ok) {
+      await cargarDashboard();
+    }
+  } finally {
+    btn.textContent = '↻ Recalcular ahora';
+    btn.disabled = false;
+  }
+}
+
+function cerrarDetalle() {
+  document.getElementById('detallePanel').style.display = 'none';
+  document.querySelectorAll('.worker-row').forEach(r => r.classList.remove('active'));
+  staffDetalleActual = null;
 }
 
 initAuth();

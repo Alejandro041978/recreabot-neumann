@@ -198,6 +198,12 @@ tbody tr:last-child td{border-bottom:none}
             <option value="salud_charlas_satisfaccion">Satisfacción charlas salud (promedio)</option>
           </optgroup>
           <optgroup label="── Psicopedagógico ──">
+            <optgroup label="── Zoho Desk ──">
+              <option value="zoho_tickets_resueltos">Tickets resueltos (Zoho Desk)</option>
+              <option value="zoho_tickets_recibidos">Tickets recibidos (Zoho Desk)</option>
+              <option value="zoho_csat">Satisfacción CSAT agente (Zoho Desk)</option>
+            </optgroup>
+            <optgroup label="── Psicopedagógico ──">
             <option value="psico_sesiones">Sesiones psicopedagógicas completadas</option>
             <option value="psico_satisfaccion">Satisfacción sesiones psico (promedio)</option>
             <option value="psico_asistencia">% Asistencia a sesiones psico</option>
@@ -252,6 +258,9 @@ const FUENTE_DESC = {
   salud_charlas_participantes:'Cuenta las encuestas respondidas en charlas de salud — equivale al nº de participantes.',
   salud_satisfaccion:        'Calcula el promedio de calificaciones de evaluaciones de atención de salud.',
   salud_charlas_satisfaccion:'Calcula el promedio de calificaciones de evaluaciones de charlas de salud.',
+  zoho_tickets_resueltos:    'Cuenta los tickets cerrados asignados a este agente en Zoho Desk durante el periodo.',
+  zoho_tickets_recibidos:    'Cuenta el total de tickets recibidos asignados a este agente en Zoho Desk durante el periodo.',
+  zoho_csat:                 'Promedio de satisfacción del cliente (CSAT) del agente en Zoho Desk, convertido a escala 1-5.',
   psico_sesiones:            'Cuenta automáticamente las sesiones psicopedagógicas con estado "completada" durante el periodo.',
   psico_satisfaccion:        'Calcula el promedio de satisfacción de las evaluaciones de sesiones psicopedagógicas (escala 1-5).',
   psico_asistencia:          'Calcula el % de asistencia: sesiones completadas ÷ (completadas + no asistió) × 100.',
@@ -388,6 +397,7 @@ async function cargarKpis() {
 const FUENTE_LABEL = {
   salud_atenciones:'Atenciones salud', salud_charlas:'Charlas impartidas', salud_charlas_participantes:'Participantes charlas',
   salud_satisfaccion:'Satisfacción atenc.', salud_charlas_satisfaccion:'Satisfacción charlas salud',
+  zoho_tickets_resueltos:'Tickets resueltos Zoho', zoho_tickets_recibidos:'Tickets recibidos Zoho', zoho_csat:'CSAT Zoho',
   psico_sesiones:'Sesiones psico', psico_satisfaccion:'Satisfacción sesiones psico', psico_asistencia:'% Asistencia psico', psico_charlas:'Charlas psico',
   psico_charlas_satisfaccion:'Satisfacción charlas psico', manual:'Manual',
 };
