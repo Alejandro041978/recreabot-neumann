@@ -214,6 +214,16 @@ let estudianteActual = null;
 let slotSeleccionado = null;
 let reservaActual = null;
 
+// Auto-login si viene código en la URL (desde portal del estudiante)
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const codigoUrl = params.get('codigo');
+  if (codigoUrl) {
+    document.getElementById('codigoInput').value = codigoUrl;
+    verificar();
+  }
+});
+
 function irPaso(n) {
   document.querySelectorAll('.step').forEach(s => s.classList.remove('activo'));
   document.getElementById(`paso${n}`).classList.add('activo');

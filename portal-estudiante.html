@@ -101,7 +101,7 @@ body{padding:20px 16px 60px;max-width:640px;margin:0 auto}
     <div class="badge-prox">Próximamente</div>
   </div>
 
-  <a class="modulo-card" href="/psico-reserva">
+  <a class="modulo-card" href="#" onclick="window.location.href='/psico-reserva?codigo='+encodeURIComponent(sessionStorage.getItem('neumann_student_codigo')||'');return false;">
     <div class="modulo-icon">🧠</div>
     <div class="modulo-nombre">Apoyo Psicopedagógico</div>
     <div class="modulo-desc">Reserva tu sesión con la psicóloga en línea.</div>
