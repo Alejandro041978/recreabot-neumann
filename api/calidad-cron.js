@@ -76,33 +76,15 @@ export default async function handler(req, res) {
     const agentRaw = (agents?.data || []).find(a => (a.emailId || a.email) === email);
     const agentId = agentRaw?.id || null;
 
-    const fi = new Date(`${from}T00:00:00.000Z`);
-    const ff = new Date(`${to}T23:59:59.000Z`);
-    // Paginar tickets cerrados y contar los de este agente en el rango
-    let totalClosed = 0, agentInRange = 0, agentTotal = 0, offset = 0, pages = 0, stopped = 'limit';
-    const sample = [];
-    while (pages < 20) {
-      const data = await zh(`/tickets?status=Resolved&limit=50&from=${offset}&sortBy=closedTime&order=desc`);
-      const rows = data?.data || [];
-      if (!rows.length) { stopped = 'empty'; break; }
-      totalClosed += rows.length;
-      pages++;
-      for (const t of rows) {
-        if (t.assigneeId === agentId) {
-          agentTotal++;
-          const closed = t.closedTime ? new Date(t.closedTime) : null;
-          if (closed && closed >= fi && closed <= ff) {
-            agentInRange++;
-            if (sample.length < 3) sample.push({ id: t.id, closedTime: t.closedTime, assigneeId: t.assigneeId });
-          }
-        }
-      }
-      const lastClosed = rows.at(-1)?.closedTime ? new Date(rows.at(-1).closedTime) : null;
-      if (lastClosed && lastClosed < fi) { stopped = 'date_cutoff'; break; }
-      if (rows.length < 50) { stopped = 'end'; break; }
-      offset += 50;
-    }
-    res.json({ email, agentId, totalClosed, agentTotal, agentInRange, pages, stopped, sample });
+    // Probar distintos status y ver qué devuelve Zoho
+    const t1 = await zh(`/tickets?limit=3`);
+    const t2 = await zh(`/tickets?status=Resolved&limit=3`);
+    const t3 = await zh(`/tickets?status=Closed&limit=3`);
+    const t4 = await zh(`/tickets?limit=3&sortBy=closedTime&order=desc`);
+    const t5 = await zh(`/tickets?limit=3&sortBy=createdTime&order=desc`);
+    // Ver los status únicos de los primeros tickets
+    const statuses = (t1?.data || []).map(t => ({ status: t.status, statusType: t.statusType, assigneeId: t.assigneeId }));
+    res.json({ agentId, statuses, t2_resolved: { count: t2?.data?.length, err: t2?.errorCode }, t3_closed: { count: t3?.data?.length, err: t3?.errorCode }, t4_sortClosedTime: { count: t4?.data?.length, err: t4?.errorCode }, t5_sortCreated: { count: t5?.data?.length, err: t5?.errorCode } });
     return;
   }
 
