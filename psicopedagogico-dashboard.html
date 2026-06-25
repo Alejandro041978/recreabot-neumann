@@ -250,6 +250,14 @@ async function cargarKpis() {
         <div class="kpi-val">${noAsistio.length}</div>
         <div class="kpi-label">No asistió</div>
       </div>
+      <div class="kpi" ${color('yellow')}>
+        <div class="kpi-val">${canceladas.length}</div>
+        <div class="kpi-label">Canceladas</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val">${reservas.filter(r=>r.estado==='reprogramada').length}</div>
+        <div class="kpi-label">Reprogramadas</div>
+      </div>
       <div class="kpi">
         <div class="kpi-val">${reservas.length}</div>
         <div class="kpi-label">Total registros</div>
