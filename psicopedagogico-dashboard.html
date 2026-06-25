@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -205,7 +205,7 @@ async function initAuth() {
   const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
   if (!r.ok) { window.location.href = '/login'; return false; }
   const info = await r.json();
-  if (info.modulos?.length > 0 && !info.modulos.includes('psicopedagogico')) {
+  if (info.modulos?.length > 0 && !info.modulos.includes('psico_dashboard')) {
     window.location.href = '/ejecutivo'; return false;
   }
   document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
@@ -215,7 +215,7 @@ async function initAuth() {
 
 async function cargarKpis() {
   try {
-    const r = await fetch('/api/psicopedagogico?accion=kpis');
+    const r = await fetch('/api/psico_dashboard?accion=kpis');
     const { reservas, charlas, eval_atenciones } = await r.json();
 
     // ── Cálculos sesiones ──

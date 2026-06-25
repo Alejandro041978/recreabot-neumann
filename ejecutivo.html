@@ -226,22 +226,31 @@ async function initAuth() {
     window.location.href = '/login';
   });
   // Filtrar cards por módulos asignados
-  if (info.rol === 'director') {
+  const modulos = info.modulos || [];
+  const has = (...keys) => keys.some(k => modulos.includes(k));
+  if (info.rol !== 'director' && modulos.length > 0) {
+    if (!has('psico_dashboard','psico_gestion','psico_reservas_gestion','psico_disponibilidad')) document.querySelector('.mod-psico')?.remove();
+    if (!has('salud_dashboard','salud_gestion')) document.querySelector('.mod-salud')?.remove();
+    if (!has('cafeteria_dashboard')) document.querySelector('.mod-cafeteria')?.remove();
+    if (!has('cultura_dashboard')) document.querySelector('.mod-cultura')?.remove();
+    if (!has('beca_dashboard')) document.querySelector('.mod-becas')?.remove();
+    if (!has('asistencia_dashboard')) document.querySelector('.mod-asistencia')?.remove();
+    if (!has('bano_dashboard')) document.querySelector('.mod-banos')?.remove();
+    if (!has('recreativos_panel')) document.querySelector('.mod-recreacion')?.remove();
+    if (!has('calidad_dashboard','calidad_config')) document.getElementById('card-calidad')?.remove();
+    if (!has('admin_usuarios')) document.getElementById('card-admin')?.remove();
+  } else if (info.rol === 'director') {
     document.getElementById('card-admin').style.display = 'block';
     document.getElementById('card-calidad').style.display = 'block';
   }
-  const modulos = info.modulos || [];
-  if (modulos.length > 0) {
-    const mapa = { cafeteria: '.mod-cafeteria', recreativos: '.mod-recreacion', salud: '.mod-salud', asistencia: '.mod-asistencia', becas: '.mod-becas', cultura: '.mod-cultura', psicopedagogico: '.mod-psico' };
-    Object.entries(mapa).forEach(([mod, sel]) => {
-      if (!modulos.includes(mod)) document.querySelector(sel)?.remove();
-    });
-    // Si solo tiene 1 módulo, redirigir directamente
-    if (modulos.length === 1) {
-      const dest = { salud: '/salud-dashboard', cafeteria: '/cafeteria-dashboard', recreativos: '/recreativos-dashboard' };
-      window.location.href = dest[modulos[0]] || '/ejecutivo';
-      return false;
-    }
+  // Si solo tiene 1 módulo, redirigir directamente
+  if (modulos.length === 1) {
+    const dest = {
+      salud_dashboard: '/salud-dashboard', salud_gestion: '/salud-gestion',
+      cafeteria_dashboard: '/cafeteria-dashboard', psico_dashboard: '/psicopedagogico-dashboard',
+      psico_gestion: '/psico-gestion', recreativos_panel: '/recreativos-dashboard',
+    };
+    if (dest[modulos[0]]) { window.location.href = dest[modulos[0]]; return false; }
   }
   return true;
 }

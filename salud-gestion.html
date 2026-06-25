@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -270,7 +270,7 @@ async function initAuth() {
   const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
   if (!r.ok) { window.location.href = '/login'; return false; }
   const info = await r.json();
-  if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('salud')) {
+  if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('salud_gestion')) {
     window.location.href = '/ejecutivo'; return false;
   }
   document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
@@ -443,7 +443,7 @@ async function generarQR() {
     const r = await fetch('/api/sesiones-charla', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token||''}` },
-      body: JSON.stringify({ modulo: 'salud', fecha, hora_inicio: inicio, hora_fin: fin }),
+      body: JSON.stringify({ modulo: 'salud_gestion', fecha, hora_inicio: inicio, hora_fin: fin }),
     });
     const data = await r.json();
     if (!data.ok) throw new Error(data.error || 'Error al crear sesión');

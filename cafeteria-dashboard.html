@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -282,7 +282,7 @@ async function initAuth() {
   });
   if (!r.ok) { window.location.href = '/login'; return false; }
   const info = await r.json();
-  if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('cafeteria')) {
+  if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('cafeteria_dashboard')) {
     window.location.href = '/ejecutivo'; return false;
   }
   document.getElementById('topbar-user').innerHTML =

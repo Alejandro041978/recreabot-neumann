@@ -287,6 +287,7 @@ async function initAuth() {
   const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
   if (!r.ok) { window.location.href = '/login'; return; }
   const info = await r.json();
+  if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('psico_disponibilidad')) { window.location.href = '/ejecutivo'; return; }
   document.getElementById('topbar-user').innerHTML = `<strong>${info.nombre}</strong>`;
   document.getElementById('btnLogout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = '/login'; });
   buildGrid();

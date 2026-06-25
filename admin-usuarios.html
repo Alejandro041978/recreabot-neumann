@@ -240,11 +240,43 @@ const sb = supabase.createClient(
   'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
 );
 
-const MODULOS_LABELS = {
-  cafeteria:'Cafetería', recreativos:'Recreativos', salud:'Salud / Tópico',
-  psicopedagogico:'Psicopedagógico', cultura:'Cultura', becas:'Becas',
-  asistencia:'Asistencia', banos:'Baños', conocimientos:'Conocimientos',
-};
+const MODULOS_GRUPOS = [
+  { grupo: '🧠 Psicopedagógico', paginas: {
+    psico_dashboard:         'Dashboard Psicopedagógico',
+    psico_gestion:           'Gestión de sesiones',
+    psico_reservas_gestion:  'Gestión de reservas',
+    psico_disponibilidad:    'Configurador disponibilidad',
+  }},
+  { grupo: '🏥 Salud / Tópico', paginas: {
+    salud_dashboard: 'Dashboard Salud',
+    salud_gestion:   'Gestión atenciones',
+  }},
+  { grupo: '⚽ Recreativos', paginas: {
+    recreativos_panel: 'Panel de reservas',
+  }},
+  { grupo: '☕ Cafetería', paginas: {
+    cafeteria_dashboard: 'Dashboard Cafetería',
+  }},
+  { grupo: '🎭 Cultura', paginas: {
+    cultura_dashboard: 'Dashboard Cultura',
+  }},
+  { grupo: '🎓 Becas', paginas: {
+    beca_dashboard: 'Dashboard Becas',
+  }},
+  { grupo: '🚻 Baños', paginas: {
+    bano_dashboard: 'Dashboard Baños',
+  }},
+  { grupo: '📊 Asistencia', paginas: {
+    asistencia_dashboard: 'Dashboard Asistencia',
+  }},
+  { grupo: '⭐ Calidad', paginas: {
+    calidad_dashboard: 'Dashboard Mes Calidad',
+    calidad_config:    'Configuración Calidad',
+  }},
+  { grupo: '⚙️ Administración', paginas: {
+    admin_usuarios: 'Administración de Usuarios',
+  }},
+];
 
 let token = null;
 let roles = [];
@@ -264,7 +296,7 @@ async function initAuth() {
   const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${token}` } });
   if (!r.ok) { window.location.href = '/login'; return; }
   const info = await r.json();
-  if (info.rol !== 'director') { window.location.href = '/ejecutivo'; return; }
+  if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('admin_usuarios')) { window.location.href = '/ejecutivo'; return; }
 
   document.getElementById('topbar-user').innerHTML =
     `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
@@ -463,25 +495,28 @@ async function cargarPermisos() {
   permisosActuales = {};
   permisos.forEach(p => { permisosActuales[p.modulo] = { puede_ver: p.puede_ver, puede_editar: p.puede_editar }; });
 
-  const modulos = Object.keys(MODULOS_LABELS);
   document.getElementById('permisosContenido').innerHTML = `
     <div style="overflow-x:auto">
       <table class="permisos-grid">
         <thead><tr>
-          <th>Módulo</th>
+          <th>Página</th>
           <th>Puede ver</th>
           <th>Puede editar</th>
         </tr></thead>
         <tbody>
-          ${modulos.map(m => {
-            const p = permisosActuales[m] || {};
-            return `<tr>
-              <td>${MODULOS_LABELS[m]}</td>
-              <td><input type="checkbox" id="pv_${m}" ${p.puede_ver?'checked':''}
-                onchange="if(!this.checked) document.getElementById('pe_${m}').checked=false"></td>
-              <td><input type="checkbox" id="pe_${m}" ${p.puede_editar?'checked':''}
-                onchange="if(this.checked) document.getElementById('pv_${m}').checked=true"></td>
-            </tr>`;
+          ${MODULOS_GRUPOS.map(g => {
+            const filaGrupo = `<tr><td colspan="3" style="background:var(--s2);font-weight:600;font-size:0.8rem;padding:6px 10px;color:var(--t2);border-top:1px solid var(--border)">${g.grupo}</td></tr>`;
+            const filas = Object.entries(g.paginas).map(([m, label]) => {
+              const p = permisosActuales[m] || {};
+              return `<tr>
+                <td style="padding-left:20px">${label}</td>
+                <td><input type="checkbox" id="pv_${m}" ${p.puede_ver?'checked':''}
+                  onchange="if(!this.checked) document.getElementById('pe_${m}').checked=false"></td>
+                <td><input type="checkbox" id="pe_${m}" ${p.puede_editar?'checked':''}
+                  onchange="if(this.checked) document.getElementById('pv_${m}').checked=true"></td>
+              </tr>`;
+            }).join('');
+            return filaGrupo + filas;
           }).join('')}
         </tbody>
       </table>
@@ -499,7 +534,7 @@ async function guardarPermisos() {
   const rol_id = document.getElementById('selectRolPermisos').value;
   if (!rol_id) { err.textContent = 'Selecciona un rol'; err.style.display = 'block'; return; }
 
-  const modulos = Object.keys(MODULOS_LABELS);
+  const modulos = MODULOS_GRUPOS.flatMap(g => Object.keys(g.paginas));
   const permisos = modulos
     .filter(m => document.getElementById(`pv_${m}`)?.checked)
     .map(m => ({

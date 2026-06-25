@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -122,7 +122,7 @@ tbody tr:last-child td{border-bottom:none}
   <div style="display:flex;align-items:center;gap:8px">
     <div class="topbar-user" id="topbar-user"></div>
     <a href="/psico-disponibilidad" class="btn-link">⏰ Disponibilidad</a>
-    <a href="/psicopedagogico-dashboard" class="btn-link">📊 Dashboard</a>
+    <a href="/psico_gestion-dashboard" class="btn-link">📊 Dashboard</a>
     <a href="/ejecutivo" class="btn-link">← Volver</a>
     <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
   </div>
@@ -461,7 +461,7 @@ async function initAuth() {
   const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
   if (!r.ok) { window.location.href = '/login'; return false; }
   const info = await r.json();
-  if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('psicopedagogico')) {
+  if (info.modulos && info.modulos.length > 0 && !info.modulos.includes('psico_gestion')) {
     window.location.href = '/ejecutivo'; return false;
   }
   document.getElementById('topbar-user').innerHTML =
@@ -635,7 +635,7 @@ async function guardarRegistroSesion() {
 async function buscar() {
   const q = document.getElementById('searchInput').value.trim();
   if (!q) return;
-  const r = await fetch(`/api/psicopedagogico?accion=buscar&q=${encodeURIComponent(q)}`);
+  const r = await fetch(`/api/psico_gestion?accion=buscar&q=${encodeURIComponent(q)}`);
   const { estudiantes } = await r.json();
   const div = document.getElementById('resultados');
   div.style.display = 'block';
@@ -679,7 +679,7 @@ async function seleccionarEstudiante(est, fechaPreset, horaPreset) {
   }
 
   // Cargar ficha
-  const fr = await fetch(`/api/psicopedagogico?accion=ficha&codigo=${est.codigo}`);
+  const fr = await fetch(`/api/psico_gestion?accion=ficha&codigo=${est.codigo}`);
   const { ficha } = await fr.json();
   if (ficha) {
     document.getElementById('fDerivado').value      = ficha.derivado_por || '';
@@ -698,7 +698,7 @@ async function seleccionarEstudiante(est, fechaPreset, horaPreset) {
 
 // ── Historial ──
 async function cargarHistorial(codigo) {
-  const r = await fetch(`/api/psicopedagogico?accion=atenciones&codigo=${codigo}`);
+  const r = await fetch(`/api/psico_gestion?accion=atenciones&codigo=${codigo}`);
   const { atenciones } = await r.json();
   document.getElementById('tbodyHistorial').innerHTML = atenciones.length
     ? atenciones.map(a=>`<tr>
@@ -740,7 +740,7 @@ async function registrarAtencion() {
   }
 
   try {
-    const r = await fetch('/api/psicopedagogico', {
+    const r = await fetch('/api/psico_gestion', {
       method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
     });
     const data = await r.json();
@@ -782,7 +782,7 @@ async function guardarFicha() {
     observaciones:       document.getElementById('fObservaciones').value||null,
   };
   try {
-    const r = await fetch('/api/psicopedagogico', {
+    const r = await fetch('/api/psico_gestion', {
       method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
     });
     const data = await r.json();
@@ -827,7 +827,7 @@ async function generarQR() {
     const r = await fetch('/api/sesiones-charla', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':`Bearer ${session?.access_token||''}`},
-      body: JSON.stringify({ modulo:'psicopedagogico', fecha, hora_inicio:inicio, hora_fin:fin }),
+      body: JSON.stringify({ modulo:'psico_gestion', fecha, hora_inicio:inicio, hora_fin:fin }),
     });
     const data = await r.json();
     if (!data.ok) throw new Error(data.error||'Error al crear sesión');
@@ -884,7 +884,7 @@ function imprimirQRReserva() {
 function descargarQRReserva() {
   const a = document.createElement('a');
   a.href = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&format=png&data=${encodeURIComponent(URL_RESERVA)}`;
-  a.download = 'qr-reservas-psicopedagogico.png';
+  a.download = 'qr-reservas-psico_gestion.png';
   a.target = '_blank';
   a.click();
 }
