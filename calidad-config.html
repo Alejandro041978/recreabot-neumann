@@ -199,6 +199,8 @@ tbody tr:last-child td{border-bottom:none}
           </optgroup>
           <optgroup label="── Psicopedagógico ──">
             <option value="psico_sesiones">Sesiones psicopedagógicas completadas</option>
+            <option value="psico_satisfaccion">Satisfacción sesiones psico (promedio)</option>
+            <option value="psico_asistencia">% Asistencia a sesiones psico</option>
             <option value="psico_charlas">Charlas psicopedagógicas</option>
             <option value="psico_charlas_satisfaccion">Satisfacción charlas psico (promedio)</option>
           </optgroup>
@@ -246,6 +248,8 @@ const FUENTE_DESC = {
   salud_satisfaccion:        'Calcula el promedio de calificaciones de evaluaciones de atención de salud.',
   salud_charlas_satisfaccion:'Calcula el promedio de calificaciones de evaluaciones de charlas de salud.',
   psico_sesiones:            'Cuenta automáticamente las sesiones psicopedagógicas con estado "completada" durante el periodo.',
+  psico_satisfaccion:        'Calcula el promedio de satisfacción de las evaluaciones de sesiones psicopedagógicas (escala 1-5).',
+  psico_asistencia:          'Calcula el % de asistencia: sesiones completadas ÷ (completadas + no asistió) × 100.',
   psico_charlas:             'Cuenta automáticamente las charlas psicopedagógicas realizadas durante el periodo.',
   psico_charlas_satisfaccion:'Calcula el promedio de calificaciones de evaluaciones de charlas psicopedagógicas.',
   manual:                    'El director ingresa el valor manualmente en el dashboard de desempeño.',
@@ -379,7 +383,7 @@ async function cargarKpis() {
 const FUENTE_LABEL = {
   salud_atenciones:'Atenciones salud', salud_charlas:'Charlas impartidas', salud_charlas_participantes:'Participantes charlas',
   salud_satisfaccion:'Satisfacción atenc.', salud_charlas_satisfaccion:'Satisfacción charlas salud',
-  psico_sesiones:'Sesiones psico', psico_charlas:'Charlas psico',
+  psico_sesiones:'Sesiones psico', psico_satisfaccion:'Satisfacción sesiones psico', psico_asistencia:'% Asistencia psico', psico_charlas:'Charlas psico',
   psico_charlas_satisfaccion:'Satisfacción charlas psico', manual:'Manual',
 };
 

@@ -81,6 +81,26 @@ async function calcularKpi(fuente, staffId, fechaInicio, fechaFin) {
           `?estado=eq.completada&fecha=gte.${fechaInicio}&fecha=lte.${fechaFin}&select=id`);
         return (sesiones || []).length;
 
+      case 'psico_satisfaccion':
+        // Promedio de satisfacción de atenciones psicopedagógicas (p1, p2, p3 de 1-5)
+        const evalPsico = await query('evaluaciones_psico_atencion', 'GET', null,
+          `?ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=p1,p2,p3`);
+        if (!evalPsico?.length) return 0;
+        const sumP = evalPsico.reduce((acc, e) => acc + ((Number(e.p1)+Number(e.p2)+Number(e.p3))/3), 0);
+        return Math.round((sumP / evalPsico.length) * 100) / 100;
+
+      case 'psico_asistencia':
+        // % de asistencia: sesiones completadas / (completadas + no_asistio) * 100
+        const [asist, noAsist] = await Promise.all([
+          query('psico_reservas', 'GET', null,
+            `?estado=eq.completada&fecha=gte.${fechaInicio}&fecha=lte.${fechaFin}&select=id`),
+          query('psico_reservas', 'GET', null,
+            `?estado=eq.no_asistio&fecha=gte.${fechaInicio}&fecha=lte.${fechaFin}&select=id`),
+        ]);
+        const total = (asist||[]).length + (noAsist||[]).length;
+        if (!total) return 0;
+        return Math.round(((asist||[]).length / total) * 100);
+
       case 'psico_charlas':
         // Nº de charlas psicopedagógicas
         const charlasP = await query('sesiones_charla', 'GET', null,
