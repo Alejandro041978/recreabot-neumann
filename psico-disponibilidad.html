@@ -49,6 +49,21 @@ body{padding:20px 16px 60px;max-width:900px;margin:0 auto}
 .leyenda{display:flex;gap:16px;margin-bottom:16px;font-size:0.75rem;color:var(--t3)}
 .leyenda-item{display:flex;align-items:center;gap:6px}
 .leyenda-box{width:16px;height:16px;border-radius:4px}
+
+/* Días no laborables */
+.nol-form{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.nol-input{flex:1;min-width:140px;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;color:var(--text);padding:8px 12px;font-family:'Inter',sans-serif;font-size:0.83rem}
+.nol-input:focus{outline:none;border-color:var(--acc)}
+.nol-input::placeholder{color:var(--t3)}
+.btn-nol-add{padding:8px 16px;background:var(--acc);color:#fff;font-weight:700;font-size:0.82rem;border:none;border-radius:8px;cursor:pointer;white-space:nowrap}
+.btn-nol-add:hover{opacity:.85}
+.nol-list{display:flex;flex-direction:column;gap:6px}
+.nol-item{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:10px 14px}
+.nol-fecha{font-size:0.85rem;font-weight:700;color:var(--text)}
+.nol-motivo{font-size:0.75rem;color:var(--t3);margin-top:2px}
+.btn-nol-del{background:none;border:1px solid var(--b);border-radius:6px;color:var(--t3);font-size:0.75rem;padding:4px 10px;cursor:pointer;transition:all .15s}
+.btn-nol-del:hover{border-color:var(--red);color:var(--red)}
+.nol-empty{font-size:0.8rem;color:var(--t3);text-align:center;padding:14px}
 </style>
 </head>
 <body>
@@ -95,6 +110,24 @@ body{padding:20px 16px 60px;max-width:900px;margin:0 auto}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<!-- Card días no laborables -->
+<div class="card" style="margin-top:0">
+  <div class="card-titulo">🚫 Días no laborables</div>
+  <div class="card-sub">Las fechas marcadas aquí no aparecerán como disponibles para reserva, aunque coincidan con el horario semanal configurado arriba.</div>
+
+  <div class="nol-form">
+    <input type="date" id="nolFecha" class="nol-input" style="max-width:180px">
+    <input type="text" id="nolMotivo" class="nol-input" placeholder="Motivo (opcional): feriado, capacitación…">
+    <button class="btn-nol-add" onclick="agregarNoLaborable()">+ Agregar</button>
+  </div>
+  <div class="msg-err" id="msgErrNol"></div>
+
+  <div class="nol-list" id="nolList">
+    <div class="nol-empty">Cargando…</div>
+  </div>
+</div>
+
 <script>
 const sb = supabase.createClient(
   'https://exjaxhrylfdwehzjfjut.supabase.co',
@@ -175,6 +208,77 @@ async function guardar() {
   }
 }
 
+// ── Días no laborables ──
+const DIAS_SEMANA = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+function fechaLegible(fechaStr) {
+  const [y, m, d] = fechaStr.split('-').map(Number);
+  const diaSem = new Date(y, m-1, d).getDay();
+  return `${DIAS_SEMANA[diaSem]} ${d} de ${MESES[m-1]} ${y}`;
+}
+
+async function cargarNoLaborables() {
+  const list = document.getElementById('nolList');
+  try {
+    const r = await fetch('/api/psico-reservas?accion=dias-no-laborables');
+    const data = await r.json();
+    if (!data.length) {
+      list.innerHTML = '<div class="nol-empty">No hay días no laborables registrados.</div>';
+      return;
+    }
+    list.innerHTML = data.map(d => `
+      <div class="nol-item" id="nol_${d.fecha}">
+        <div>
+          <div class="nol-fecha">🚫 ${fechaLegible(d.fecha)}</div>
+          ${d.motivo ? `<div class="nol-motivo">${d.motivo}</div>` : ''}
+        </div>
+        <button class="btn-nol-del" onclick="eliminarNoLaborable('${d.fecha}')">Eliminar</button>
+      </div>`).join('');
+  } catch(e) {
+    list.innerHTML = '<div class="nol-empty">Error al cargar.</div>';
+  }
+}
+
+async function agregarNoLaborable() {
+  const fecha  = document.getElementById('nolFecha').value;
+  const motivo = document.getElementById('nolMotivo').value.trim();
+  const err    = document.getElementById('msgErrNol');
+  err.style.display = 'none';
+  if (!fecha) { err.textContent = 'Selecciona una fecha'; err.style.display = 'block'; return; }
+  try {
+    const r = await fetch('/api/psico-reservas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'agregar-no-laborable', fecha, motivo }),
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error);
+    document.getElementById('nolFecha').value = '';
+    document.getElementById('nolMotivo').value = '';
+    cargarNoLaborables();
+  } catch(e) {
+    err.textContent = e.message.includes('duplicate') ? 'Esa fecha ya está registrada.' : 'Error: ' + e.message;
+    err.style.display = 'block';
+  }
+}
+
+async function eliminarNoLaborable(fecha) {
+  if (!confirm(`¿Eliminar ${fechaLegible(fecha)} de los días no laborables?`)) return;
+  try {
+    const r = await fetch('/api/psico-reservas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'eliminar-no-laborable', fecha }),
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error);
+    cargarNoLaborables();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = '/login'; return; }
@@ -187,6 +291,7 @@ async function initAuth() {
   document.getElementById('btnLogout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = '/login'; });
   buildGrid();
   cargarDisponibilidad();
+  cargarNoLaborables();
 }
 
 initAuth();

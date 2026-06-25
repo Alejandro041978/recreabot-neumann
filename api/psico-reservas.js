@@ -99,9 +99,41 @@ export default async function handler(req, res) {
         `?estado=in.(pendiente,confirmada)&fecha=gte.${hoyStr}`);
       const booked = new Set((reservas || []).map(r =>
         `${r.fecha}_${r.hora_inicio.substring(0, 5)}`));
-      const available = slots.filter(s => !booked.has(`${s.fecha}_${s.hora_inicio}`));
+
+      // Excluir días no laborables
+      const fechaFin28 = new Date(hoyStr + 'T00:00:00');
+      fechaFin28.setDate(fechaFin28.getDate() + 27);
+      const noLab = await query('psico_dias_no_laborables', 'GET', null,
+        `?fecha=gte.${hoyStr}&fecha=lte.${fechaFin28.toISOString().split('T')[0]}&select=fecha`);
+      const noLaborables = new Set((noLab || []).map(r => r.fecha));
+
+      const available = slots.filter(s =>
+        !booked.has(`${s.fecha}_${s.hora_inicio}`) && !noLaborables.has(s.fecha));
 
       res.json(available); return;
+    }
+
+    // ── GET días no laborables ──
+    if (req.method === 'GET' && accion === 'dias-no-laborables') {
+      const data = await query('psico_dias_no_laborables', 'GET', null,
+        '?order=fecha.asc');
+      res.json(data || []); return;
+    }
+
+    // ── POST agregar día no laborable ──
+    if (req.method === 'POST' && req.body?.accion === 'agregar-no-laborable') {
+      const { fecha, motivo } = req.body;
+      if (!fecha) { res.json({ ok: false, error: 'Falta fecha' }); return; }
+      await query('psico_dias_no_laborables', 'POST', [{ fecha, motivo: motivo || null }]);
+      res.json({ ok: true }); return;
+    }
+
+    // ── POST eliminar día no laborable ──
+    if (req.method === 'POST' && req.body?.accion === 'eliminar-no-laborable') {
+      const { fecha } = req.body;
+      if (!fecha) { res.json({ ok: false, error: 'Falta fecha' }); return; }
+      await sbFetch(`psico_dias_no_laborables?fecha=eq.${fecha}`, 'DELETE');
+      res.json({ ok: true }); return;
     }
 
     // ── GET reserva activa de un estudiante ──
