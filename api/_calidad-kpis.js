@@ -85,6 +85,42 @@ async function zohoAgentId(email) {
   return _agentIdCache[email] || null;
 }
 
+// Cache de tickets Zoho para el cron (evita re-fetching por cada agente)
+let _zohoTicketsCache = null;
+
+// Pre-carga todos los tickets Zoho del periodo una sola vez (usar en el cron)
+export async function precargarTicketsZoho(fechaInicio, fechaFin) {
+  if (_zohoTicketsCache) return _zohoTicketsCache;
+  const fi = new Date(`${fechaInicio}T00:00:00.000Z`);
+  const ff = new Date(`${fechaFin}T23:59:59.000Z`);
+  const closed = {}, frt = {}; // { agentId: count }, { agentId: [seconds] }
+  let offset = 0;
+  while (offset < 5000) {
+    const data = await zohoGet(`/tickets?status=Closed&limit=50&from=${offset}`);
+    const rows = data?.data || [];
+    if (!rows.length) break;
+    for (const t of rows) {
+      const aid = t.assigneeId;
+      if (!aid) continue;
+      const ct = t.closedTime ? new Date(t.closedTime) : null;
+      if (ct && ct >= fi && ct <= ff) {
+        closed[aid] = (closed[aid] || 0) + 1;
+        // firstResponseTime si está en el listado
+        if (t.firstResponseTime) {
+          if (!frt[aid]) frt[aid] = [];
+          frt[aid].push(Number(t.firstResponseTime));
+        }
+      }
+    }
+    if (rows.length < 50) break;
+    offset += 50;
+  }
+  _zohoTicketsCache = { closed, frt };
+  return _zohoTicketsCache;
+}
+
+export function limpiarCacheZoho() { _zohoTicketsCache = null; }
+
 // Fuentes donde menor valor es mejor (ej: tiempo de respuesta)
 const FUENTES_INVERSAS = new Set(['zoho_primera_respuesta']);
 export function esFuenteInversa(fuente) { return FUENTES_INVERSAS.has(fuente); }
@@ -95,7 +131,7 @@ export function evalCumple(fuente, valor, meta) {
 
 // ── Calcular valor de un KPI ──
 // staffEmail se usa solo para fuentes zoho_*
-export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fechaFin) {
+export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fechaFin, zohoCache = null) {
   try {
     switch (fuente) {
 
@@ -178,78 +214,32 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
         if (!staffEmail) return 0;
         const agentId = await zohoAgentId(staffEmail);
         if (!agentId) return 0;
-        const fi = new Date(`${fechaInicio}T00:00:00.000Z`);
-        const ff = new Date(`${fechaFin}T23:59:59.000Z`);
-        let count = 0, offset = 0;
-        while (offset < 2000) {
-          const data = await zohoGet(`/tickets?status=Closed&limit=50&from=${offset}`);
-          const rows = data?.data || [];
-          if (!rows.length) break;
-          for (const t of rows) {
-            if (t.assigneeId !== agentId) continue;
-            const closed = t.closedTime ? new Date(t.closedTime) : null;
-            if (closed && closed >= fi && closed <= ff) count++;
-          }
-          if (rows.length < 50) break;
-          offset += 50;
-        }
-        return count;
+        const rows = await query('zoho_tickets', 'GET', null,
+          `?assignee_id=eq.${agentId}&status=eq.Closed&closed_time=gte.${fechaInicio}T00:00:00.000Z&closed_time=lte.${fechaFin}T23:59:59.999Z&select=id`);
+        return (rows || []).length;
       }
 
       case 'zoho_tickets_recibidos': {
         if (!staffEmail) return 0;
         const agentId = await zohoAgentId(staffEmail);
         if (!agentId) return 0;
-        const fi = new Date(`${fechaInicio}T00:00:00.000Z`);
-        const ff = new Date(`${fechaFin}T23:59:59.000Z`);
-        let count = 0, offset = 0;
-        while (offset < 2000) {
-          const data = await zohoGet(`/tickets?limit=50&from=${offset}`);
-          const rows = data?.data || [];
-          if (!rows.length) break;
-          for (const t of rows) {
-            if (t.assigneeId !== agentId) continue;
-            const created = t.createdTime ? new Date(t.createdTime) : null;
-            if (created && created >= fi && created <= ff) count++;
-          }
-          if (rows.length < 50) break;
-          offset += 50;
-        }
-        return count;
+        const rows = await query('zoho_tickets', 'GET', null,
+          `?assignee_id=eq.${agentId}&created_time=gte.${fechaInicio}T00:00:00.000Z&created_time=lte.${fechaFin}T23:59:59.999Z&select=id`);
+        return (rows || []).length;
       }
 
       case 'zoho_primera_respuesta': {
         if (!staffEmail) return null;
         const agentId = await zohoAgentId(staffEmail);
         if (!agentId) return null;
-        const fi = new Date(`${fechaInicio}T00:00:00.000Z`);
-        const ff = new Date(`${fechaFin}T23:59:59.000Z`);
-        const ticketIds = [];
-        let offset = 0;
-        while (offset < 2000) {
-          const data = await zohoGet(`/tickets?status=Closed&limit=50&from=${offset}`);
-          const rows = data?.data || [];
-          if (!rows.length) break;
-          for (const t of rows) {
-            if (t.assigneeId !== agentId) continue;
-            const closed = t.closedTime ? new Date(t.closedTime) : null;
-            if (closed && closed >= fi && closed <= ff) ticketIds.push(t.id);
-          }
-          if (rows.length < 50) break;
-          offset += 50;
-        }
-        if (!ticketIds.length) return null;
-        // Obtener detalle de cada ticket (máx 20 para no agotar tiempo)
-        const sample = ticketIds.slice(0, 20);
-        const details = await Promise.all(sample.map(id => zohoGet(`/tickets/${id}`)));
-        const withTime = details.filter(t => t?.firstResponseTime);
-        if (!withTime.length) return null;
-        const avgSec = withTime.reduce((s, t) => s + Number(t.firstResponseTime), 0) / withTime.length;
-        return Math.round((avgSec / 3600) * 10) / 10;
+        const rows = await query('zoho_tickets', 'GET', null,
+          `?assignee_id=eq.${agentId}&status=eq.Closed&closed_time=gte.${fechaInicio}T00:00:00.000Z&closed_time=lte.${fechaFin}T23:59:59.999Z&first_response_time=not.is.null&select=first_response_time`);
+        if (!rows?.length) return null;
+        const avg = rows.reduce((s, t) => s + Number(t.first_response_time), 0) / rows.length;
+        return Math.round((avg / 3600) * 10) / 10;
       }
 
       case 'zoho_csat': {
-        // Requiere scope Desk.search.READ — pendiente de regenerar token OAuth
         return null;
       }
 
