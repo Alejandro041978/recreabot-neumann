@@ -76,17 +76,33 @@ export default async function handler(req, res) {
     const agentRaw = (agents?.data || []).find(a => (a.emailId || a.email) === email);
     const agentId = agentRaw?.id || null;
 
-    const fromMs = new Date(`${from}T00:00:00.000Z`).getTime();
-    const toMs   = new Date(`${to}T23:59:59.000Z`).getTime();
-    // Probar distintos enfoques
-    const ticketsAny     = await zh(`/tickets?limit=3`);
-    const ticketsAgent   = agentId ? await zh(`/tickets?agentId=${agentId}&status=Closed&limit=3`) : null;
-    const ticketsSearch  = agentId ? await zh(`/tickets/search?assigneeId=${agentId}&limit=3`) : null;
-    const ratings1       = agentId ? await zh(`/ratings?agentId=${agentId}&limit=3`) : null;
-    const ratings2       = agentId ? await zh(`/satisfaction/ratings?agentId=${agentId}&limit=3`) : null;
-    const agentMetrics   = agentId ? await zh(`/agents/${agentId}/metrics?from=${fromMs}&to=${toMs}`) : null;
-
-    res.json({ email, agentId, ticketsAny, ticketsAgent, ticketsSearch, ratings1, ratings2, agentMetrics });
+    const fi = new Date(`${from}T00:00:00.000Z`);
+    const ff = new Date(`${to}T23:59:59.000Z`);
+    // Paginar tickets cerrados y contar los de este agente en el rango
+    let totalClosed = 0, agentInRange = 0, agentTotal = 0, offset = 0, pages = 0, stopped = 'limit';
+    const sample = [];
+    while (pages < 20) {
+      const data = await zh(`/tickets?status=Closed&limit=100&from=${offset}&sortBy=closedTime&order=desc`);
+      const rows = data?.data || [];
+      if (!rows.length) { stopped = 'empty'; break; }
+      totalClosed += rows.length;
+      pages++;
+      for (const t of rows) {
+        if (t.assigneeId === agentId) {
+          agentTotal++;
+          const closed = t.closedTime ? new Date(t.closedTime) : null;
+          if (closed && closed >= fi && closed <= ff) {
+            agentInRange++;
+            if (sample.length < 3) sample.push({ id: t.id, closedTime: t.closedTime, assigneeId: t.assigneeId });
+          }
+        }
+      }
+      const lastClosed = rows.at(-1)?.closedTime ? new Date(rows.at(-1).closedTime) : null;
+      if (lastClosed && lastClosed < fi) { stopped = 'date_cutoff'; break; }
+      if (rows.length < 100) { stopped = 'end'; break; }
+      offset += 100;
+    }
+    res.json({ email, agentId, totalClosed, agentTotal, agentInRange, pages, stopped, sample });
     return;
   }
 
