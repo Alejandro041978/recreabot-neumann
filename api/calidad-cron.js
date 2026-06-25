@@ -58,10 +58,15 @@ export default async function handler(req, res) {
       const tr = await fetch('https://accounts.zoho.com/oauth/v2/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ grant_type: 'authorization_code', client_id: process.env.ZOHO_CLIENT_ID, client_secret: process.env.ZOHO_CLIENT_SECRET, redirect_uri: 'https://recreabot-neumann.vercel.app', code: '1000.9bba30b680434dd32caebe4024c07ba4.89c434acc6441659045c6c2f19011a79' }),
+        body: new URLSearchParams({ grant_type: 'refresh_token', client_id: process.env.ZOHO_CLIENT_ID, client_secret: process.env.ZOHO_CLIENT_SECRET, refresh_token: process.env.ZOHO_REFRESH_TOKEN }),
       });
       const tok = await tr.json();
-      res.json({ tok });
+      if (!tok.access_token) { res.json({ error: 'token error', tok }); return; }
+      const r = await fetch(`https://desk.zoho.com/api/v1/customerHappiness?limit=5&department=1136017000000006907`, {
+        headers: { 'Authorization': `Zoho-oauthtoken ${tok.access_token}`, 'orgId': process.env.ZOHO_ORG_ID },
+      });
+      const data = await r.json();
+      res.json({ status: r.status, data });
     } catch(e) {
       res.status(500).json({ error: e.message });
     }
