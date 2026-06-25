@@ -120,10 +120,13 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
         const agentId = await zohoAgentId(staffId);
         if (!agentId) return null;
         const rows = await query('zoho_tickets', 'GET', null,
-          `?assignee_id=eq.${agentId}&status=eq.Closed&closed_time=gte.${fechaInicio}T00:00:00.000Z&closed_time=lte.${fechaFin}T23:59:59.999Z&first_response_time=not.is.null&select=first_response_time`);
+          `?assignee_id=eq.${agentId}&status=eq.Closed&closed_time=gte.${fechaInicio}T00:00:00.000Z&closed_time=lte.${fechaFin}T23:59:59.999Z&created_time=not.is.null&select=created_time,closed_time`);
         if (!rows?.length) return null;
-        const avg = rows.reduce((s, t) => s + Number(t.first_response_time), 0) / rows.length;
-        return Math.round((avg / 3600) * 10) / 10;
+        const totalHrs = rows.reduce((s, t) => {
+          const diff = new Date(t.closed_time) - new Date(t.created_time);
+          return s + diff / 3600000;
+        }, 0);
+        return Math.round((totalHrs / rows.length) * 10) / 10;
       }
 
       case 'zoho_csat': {
