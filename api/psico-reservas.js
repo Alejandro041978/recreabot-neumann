@@ -191,13 +191,96 @@ export default async function handler(req, res) {
       const nombreCompleto = nombre || `${e.nombre} ${e.apellido || ''}`.trim();
       const emailFinal = email || e.email || null;
 
+      const horaFinFinal = hora_fin || `${String(parseInt(hora_inicio)+1).padStart(2,'0')}:${hora_inicio.slice(3)}`;
       await query('psico_reservas', 'POST', [{
         codigo, nombre: nombreCompleto, email: emailFinal,
-        fecha, hora_inicio, hora_fin: hora_fin || `${String(parseInt(hora_inicio)+1).padStart(2,'0')}:${hora_inicio.slice(3)}`,
+        fecha, hora_inicio, hora_fin: horaFinFinal,
         estado: 'pendiente',
         con_quien_vive:  con_quien_vive  || null,
         motivo_consulta: motivo_consulta || null,
       }]);
+
+      // Enviar email de confirmación al estudiante
+      if (emailFinal) {
+        const RESEND_KEY = process.env.RESEND_API_KEY;
+        const EMAIL_FROM = process.env.EMAIL_FROM || 'Instituto Neumann <onboarding@resend.dev>';
+        if (RESEND_KEY) {
+          // Formatear fecha legible: "2026-06-25" → "miércoles 25 de junio de 2026"
+          const fechaLegible = new Date(fecha + 'T12:00:00').toLocaleDateString('es-PE', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+          });
+          const horaLegible = `${hora_inicio.substring(0,5)} – ${horaFinFinal.substring(0,5)}`;
+
+          const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif">
+<div style="max-width:540px;margin:30px auto;background:white;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.09)">
+
+  <div style="background:linear-gradient(135deg,#312e81 0%,#1e1b4b 100%);padding:32px;text-align:center">
+    <div style="font-size:48px;margin-bottom:10px">🧠</div>
+    <h1 style="margin:0;color:#a5b4fc;font-size:22px;font-weight:700;letter-spacing:-0.3px">¡Sesión reservada!</h1>
+    <p style="margin:8px 0 0;color:#94a3b8;font-size:14px">Servicio Psicopedagógico · Campus Neumann</p>
+  </div>
+
+  <div style="padding:28px 32px 0">
+    <p style="font-size:16px;color:#1e293b;margin:0 0 6px;font-weight:600">Hola, ${nombreCompleto} 👋</p>
+    <p style="font-size:14px;color:#64748b;line-height:1.7;margin:0">
+      Tu sesión con la psicóloga del campus ha sido registrada. Aquí tienes el detalle de tu cita.
+    </p>
+  </div>
+
+  <div style="margin:24px 32px;background:#f8fafc;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0">
+    <div style="background:#312e81;padding:10px 18px">
+      <p style="margin:0;font-size:12px;font-weight:700;color:#a5b4fc;text-transform:uppercase;letter-spacing:1px">Detalle de tu cita</p>
+    </div>
+    <table style="width:100%;border-collapse:collapse">
+      <tr style="border-bottom:1px solid #e2e8f0">
+        <td style="padding:12px 18px;font-size:13px;color:#64748b;width:40%">Fecha</td>
+        <td style="padding:12px 18px;font-size:14px;color:#1e293b;font-weight:600">${fechaLegible}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #e2e8f0">
+        <td style="padding:12px 18px;font-size:13px;color:#64748b">Horario</td>
+        <td style="padding:12px 18px;font-size:14px;color:#1e293b;font-weight:600">${horaLegible}</td>
+      </tr>
+      <tr>
+        <td style="padding:12px 18px;font-size:13px;color:#64748b">Código</td>
+        <td style="padding:12px 18px;font-size:14px;color:#1e293b;font-family:monospace">${codigo}</td>
+      </tr>
+    </table>
+  </div>
+
+  <div style="margin:0 32px 24px;background:#eef2ff;border-left:4px solid #6366f1;border-radius:0 8px 8px 0;padding:14px 16px">
+    <p style="margin:0;font-size:13px;color:#3730a3;font-weight:600;margin-bottom:4px">📌 Importante</p>
+    <p style="margin:0;font-size:13px;color:#3730a3;line-height:1.6">
+      Preséntate <strong>10 minutos antes</strong> de tu horario en la <strong>oficina de la psicóloga</strong>, ubicada en el Campus Neumann. Si no puedes asistir, cancela tu reserva con anticipación desde <a href="https://system.neumann.edu.pe/psico-reserva" style="color:#4f46e5">system.neumann.edu.pe/psico-reserva</a>.
+    </p>
+  </div>
+
+  <div style="margin:0 0 0;background:#f8fafc;padding:18px 32px;border-top:1px solid #e2e8f0;text-align:center">
+    <p style="margin:0;font-size:12px;color:#94a3b8">
+      Servicio Psicopedagógico · Instituto Superior Neumann<br>
+      <a href="https://system.neumann.edu.pe" style="color:#6366f1;text-decoration:none">system.neumann.edu.pe</a>
+    </p>
+  </div>
+
+</div>
+</body>
+</html>`;
+
+          fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              from:    EMAIL_FROM,
+              to:      [emailFinal],
+              subject: `🧠 Sesión reservada — ${fechaLegible} · ${horaLegible}`,
+              html,
+            }),
+          }).catch(err => console.error('psico email error:', err));
+        }
+      }
+
       res.json({ ok: true, nombre: nombreCompleto }); return;
     }
 
