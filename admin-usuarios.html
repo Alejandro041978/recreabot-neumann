@@ -199,6 +199,14 @@ input:checked + .slider:before{transform:translateX(16px);background:white}
         <label>Contraseña temporal</label>
         <input type="password" id="uPassword" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
       </div>
+      <div class="form-field">
+        <label>Inicio de contrato</label>
+        <input type="date" id="uFechaInicio">
+      </div>
+      <div class="form-field">
+        <label>Fin de contrato <span style="color:var(--t3);font-size:11px">(vacío = vigente)</span></label>
+        <input type="date" id="uFechaFin">
+      </div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
       <button class="btn btn-sec" onclick="cerrarModal('modalUsuario')">Cancelar</button>
@@ -355,9 +363,11 @@ function abrirModalUsuario(id) {
   const u = id ? staffList.find(x => x.id === id) : null;
 
   document.getElementById('modalUsuarioTitulo').textContent = u ? 'Editar usuario' : 'Agregar usuario';
-  document.getElementById('uNombre').value   = u?.nombre || '';
-  document.getElementById('uEmail').value    = u?.email  || '';
-  document.getElementById('uRol').value      = u?.rol_id || '';
+  document.getElementById('uNombre').value      = u?.nombre       || '';
+  document.getElementById('uEmail').value       = u?.email        || '';
+  document.getElementById('uRol').value         = u?.rol_id       || '';
+  document.getElementById('uFechaInicio').value = u?.fecha_inicio  || '';
+  document.getElementById('uFechaFin').value    = u?.fecha_fin     || '';
   document.getElementById('uPasswordWrap').style.display = u ? 'none' : 'block';
   document.getElementById('btnGuardarUsuario').textContent = u ? 'Guardar cambios' : 'Crear usuario';
   document.getElementById('usuarioOk').style.display = 'none';
@@ -371,10 +381,12 @@ async function guardarUsuario() {
   const err = document.getElementById('usuarioErr');
   ok.style.display = 'none'; err.style.display = 'none';
 
-  const nombre   = document.getElementById('uNombre').value.trim();
-  const email    = document.getElementById('uEmail').value.trim();
-  const rol_id   = document.getElementById('uRol').value;
-  const password = document.getElementById('uPassword').value;
+  const nombre       = document.getElementById('uNombre').value.trim();
+  const email        = document.getElementById('uEmail').value.trim();
+  const rol_id       = document.getElementById('uRol').value;
+  const password     = document.getElementById('uPassword').value;
+  const fecha_inicio = document.getElementById('uFechaInicio').value || null;
+  const fecha_fin    = document.getElementById('uFechaFin').value    || null;
 
   if (!nombre || !email || !rol_id) {
     err.textContent = 'Completa nombre, email y rol'; err.style.display = 'block'; return;
@@ -384,7 +396,7 @@ async function guardarUsuario() {
     const r = await fetch('/api/admin-usuarios', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ accion: 'staff', id: editandoStaffId, nombre, email, rol_id }),
+      body: JSON.stringify({ accion: 'staff', id: editandoStaffId, nombre, email, rol_id, fecha_inicio, fecha_fin }),
     });
     const data = await r.json();
     if (!data.ok) { err.textContent = data.error || 'Error'; err.style.display = 'block'; return; }

@@ -123,10 +123,12 @@ export default async function handler(req, res) {
       // Actualizar staff
       if (ac === 'staff') {
         const allowed = {};
-        if (body.nombre   !== undefined) allowed.nombre   = body.nombre;
-        if (body.email    !== undefined) allowed.email    = body.email;
-        if (body.rol_id   !== undefined) allowed.rol_id   = parseInt(body.rol_id);
-        if (body.activo   !== undefined) allowed.activo   = body.activo;
+        if (body.nombre       !== undefined) allowed.nombre       = body.nombre;
+        if (body.email        !== undefined) allowed.email        = body.email;
+        if (body.rol_id       !== undefined) allowed.rol_id       = parseInt(body.rol_id);
+        if (body.activo       !== undefined) allowed.activo       = body.activo;
+        if (body.fecha_inicio !== undefined) allowed.fecha_inicio = body.fecha_inicio || null;
+        if (body.fecha_fin    !== undefined) allowed.fecha_fin    = body.fecha_fin    || null;
         await query('staff', 'PATCH', allowed, `?id=eq.${id}`);
         res.json({ ok: true }); return;
       }
