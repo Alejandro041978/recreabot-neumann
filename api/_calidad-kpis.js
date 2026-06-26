@@ -1,6 +1,52 @@
 // api/_calidad-kpis.js — Lógica compartida de cálculo de KPIs (usado por calidad.js y calidad-cron.js)
 import { query } from './_supabase.js';
 
+// Calcula horas hábiles entre dos fechas: Lun-Vie 8am-6pm Lima (UTC-5)
+function horasHabiles(inicio, fin) {
+  const LIMA_OFFSET = -5 * 60; // minutos
+  const BIZ_START = 8;  // 8am
+  const BIZ_END   = 18; // 6pm
+
+  const toLocal = (d) => new Date(d.getTime() + LIMA_OFFSET * 60000);
+
+  let total = 0;
+  let cur = new Date(inicio);
+
+  while (cur < fin) {
+    const local = toLocal(cur);
+    const dow = local.getUTCDay(); // 0=dom,1=lun,...,5=vie,6=sab
+    const hour = local.getUTCHours() + local.getUTCMinutes() / 60;
+
+    if (dow >= 1 && dow <= 5 && hour >= BIZ_START && hour < BIZ_END) {
+      // Avanzar hasta el próximo límite: fin del día hábil o fin del ticket
+      const endOfBiz = new Date(cur);
+      endOfBiz.setUTCHours(cur.getUTCHours() - (hour - BIZ_END), 0, 0, 0);
+      // Calculamos cuántos minutos quedan en este bloque hábil
+      const localEndBiz = new Date(local);
+      localEndBiz.setUTCHours(BIZ_END, 0, 0, 0);
+      const bizEndUTC = new Date(localEndBiz.getTime() - LIMA_OFFSET * 60000);
+      const blockEnd = bizEndUTC < fin ? bizEndUTC : fin;
+      total += (blockEnd - cur) / 3600000;
+      cur = blockEnd;
+    } else {
+      // Avanzar al siguiente inicio de día hábil
+      const next = toLocal(cur);
+      if (dow === 0 || dow === 6 || hour >= BIZ_END) {
+        // Ir al próximo lunes o próximo día laboral a las 8am
+        const daysUntilMon = dow === 0 ? 1 : dow === 6 ? 2 : 1;
+        const skip = hour >= BIZ_END ? (dow === 5 ? 3 : dow === 6 ? 2 : 1) : 0;
+        next.setUTCDate(next.getUTCDate() + (hour >= BIZ_END ? skip : daysUntilMon));
+        next.setUTCHours(BIZ_START, 0, 0, 0);
+      } else {
+        next.setUTCHours(BIZ_START, 0, 0, 0);
+      }
+      cur = new Date(next.getTime() - LIMA_OFFSET * 60000);
+      if (cur >= fin) break;
+    }
+  }
+  return total;
+}
+
 // Cache de zoho_agent_id por staffId
 const _agentIdCache = {};
 async function zohoAgentId(staffId) {
@@ -120,11 +166,10 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
         const agentId = await zohoAgentId(staffId);
         if (!agentId) return null;
         const rows = await query('zoho_tickets', 'GET', null,
-          `?assignee_id=eq.${agentId}&status=eq.Closed&closed_time=gte.${fechaInicio}T00:00:00.000Z&closed_time=lte.${fechaFin}T23:59:59.999Z&created_time=gte.${fechaInicio}T00:00:00.000Z&select=created_time,closed_time`);
+          `?assignee_id=eq.${agentId}&status=eq.Closed&closed_time=gte.${fechaInicio}T00:00:00.000Z&closed_time=lte.${fechaFin}T23:59:59.999Z&select=created_time,closed_time`);
         if (!rows?.length) return null;
         const totalHrs = rows.reduce((s, t) => {
-          const diff = new Date(t.closed_time) - new Date(t.created_time);
-          return s + diff / 3600000;
+          return s + horasHabiles(new Date(t.created_time), new Date(t.closed_time));
         }, 0);
         return Math.round((totalHrs / rows.length) * 10) / 10;
       }
