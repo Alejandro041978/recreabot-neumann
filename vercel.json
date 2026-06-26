@@ -24,6 +24,7 @@
     { "src": "api/banos.js",            "use": "@vercel/node" },
     { "src": "api/calidad.js",          "use": "@vercel/node" },
     { "src": "api/calidad-cron.js",     "use": "@vercel/node" },
+    { "src": "api/reset-password.js",  "use": "@vercel/node" },
     { "src": "*.html",                   "use": "@vercel/static" }
   ],
   "crons": [
@@ -90,6 +91,7 @@
     { "src": "/psico-charla-eval",          "dest": "/psico-charla-eval.html"          },
     { "src": "/api/calidad",              "dest": "/api/calidad.js"                },
     { "src": "/api/calidad-cron",         "dest": "/api/calidad-cron.js"           },
+    { "src": "/api/reset-password",      "dest": "/api/reset-password.js"         },
     { "src": "/calidad-config",           "dest": "/calidad-config.html"           },
     { "src": "/calidad-dashboard",        "dest": "/calidad-dashboard.html"        },
     { "src": "/bot.html",                   "dest": "/bot.html"                        },
