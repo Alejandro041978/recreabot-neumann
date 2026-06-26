@@ -135,12 +135,20 @@ export default async function handler(req, res) {
     const manualMap = {};
     (manuales || []).forEach(m => { manualMap[`${m.staff_id}_${m.kpi_id}`] = m.valor_obtenido; });
 
-    // 4. Obtener info de staff (nombre + email)
+    // 4. Obtener info de staff (nombre + email) filtrando por contrato activo en el periodo
     const staffIds = [...new Set(kpis.map(k => k.staff_id))];
     const staffData = await query('staff', 'GET', null,
-      `?id=in.(${staffIds.join(',')})&select=id,nombre,email`);
+      `?id=in.(${staffIds.join(',')})&select=id,nombre,email,fecha_inicio,fecha_fin`);
     const staffMap = {};
-    (staffData || []).forEach(s => { staffMap[s.id] = s; });
+    const staffIdsActivos = [];
+    (staffData || []).forEach(s => {
+      const inicioOk = !s.fecha_inicio || s.fecha_inicio <= periodo.fecha_fin;
+      const finOk    = !s.fecha_fin    || s.fecha_fin   >= periodo.fecha_inicio;
+      if (inicioOk && finOk) {
+        staffMap[s.id] = s;
+        staffIdsActivos.push(s.id);
+      }
+    });
 
     // 5. Agrupar KPIs por staff
     const porStaff = {};
@@ -149,9 +157,9 @@ export default async function handler(req, res) {
       porStaff[k.staff_id].push(k);
     });
 
-    // 6. Calcular y hacer upsert del resumen por cada trabajador
+    // 6. Calcular y hacer upsert del resumen por cada trabajador activo en el periodo
     const resultados = [];
-    for (const staffId of staffIds) {
+    for (const staffId of staffIdsActivos) {
       const s = staffMap[staffId];
       const kpisStaff = porStaff[staffId] || [];
 
