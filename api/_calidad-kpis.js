@@ -130,7 +130,13 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
       }
 
       case 'zoho_csat': {
-        return null;
+        const agentId = await zohoAgentId(staffId);
+        if (!agentId) return null;
+        const rows = await query('zoho_ratings', 'GET', null,
+          `?agent_id=eq.${agentId}&rated_time=gte.${fechaInicio}T00:00:00.000Z&rated_time=lte.${fechaFin}T23:59:59.999Z&select=rating`);
+        if (!rows?.length) return null;
+        const good = rows.filter(r => r.rating === 'GOOD').length;
+        return Math.round((good / rows.length) * 100);
       }
 
       case 'manual':
