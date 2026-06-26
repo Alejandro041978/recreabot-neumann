@@ -355,7 +355,7 @@ function renderStaff() {
 async function resetearPassword(email) {
   if (!confirm(`¿Enviar enlace de recuperación a ${email}?`)) return;
   const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://recreabot-neumann.vercel.app/login?reset=1',
+    redirectTo: 'https://system.neumann.edu.pe/login?reset=1',
   });
   if (error) { alert('Error: ' + error.message); }
   else { alert(`✅ Enlace enviado a ${email}`); }

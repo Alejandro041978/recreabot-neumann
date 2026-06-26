@@ -281,7 +281,7 @@ document.getElementById('btnEnviarReset').addEventListener('click', async () => 
   if (!email) { msg.className='msg err'; msg.textContent='Ingresa tu correo'; msg.style.display='block'; return; }
   btn.disabled = true; btn.textContent = 'Enviando...';
   const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://recreabot-neumann.vercel.app/login?reset=1',
+    redirectTo: 'https://system.neumann.edu.pe/login?reset=1',
   });
   btn.disabled = false; btn.textContent = 'Enviar enlace';
   if (error) {
