@@ -3,47 +3,46 @@ import { query } from './_supabase.js';
 
 // Calcula horas hábiles entre dos fechas: Lun-Vie 8am-6pm Lima (UTC-5)
 function horasHabiles(inicio, fin) {
-  const LIMA_OFFSET = -5 * 60; // minutos
-  const BIZ_START = 8;  // 8am
-  const BIZ_END   = 18; // 6pm
-
-  const toLocal = (d) => new Date(d.getTime() + LIMA_OFFSET * 60000);
+  if (fin <= inicio) return 0;
+  const LIMA_MS = -5 * 60 * 60 * 1000; // UTC-5 en ms
+  const BIZ_START = 8;  // 8am Lima
+  const BIZ_END   = 18; // 6pm Lima
 
   let total = 0;
-  let cur = new Date(inicio);
 
-  while (cur < fin) {
-    const local = toLocal(cur);
-    const dow = local.getUTCDay(); // 0=dom,1=lun,...,5=vie,6=sab
-    const hour = local.getUTCHours() + local.getUTCMinutes() / 60;
+  // Iteramos día por día en hora Lima
+  const limaInicio = new Date(inicio.getTime() + LIMA_MS);
+  // Floor al inicio del día Lima
+  const diaActual = new Date(limaInicio);
+  diaActual.setUTCHours(0, 0, 0, 0);
 
-    if (dow >= 1 && dow <= 5 && hour >= BIZ_START && hour < BIZ_END) {
-      // Avanzar hasta el próximo límite: fin del día hábil o fin del ticket
-      const endOfBiz = new Date(cur);
-      endOfBiz.setUTCHours(cur.getUTCHours() - (hour - BIZ_END), 0, 0, 0);
-      // Calculamos cuántos minutos quedan en este bloque hábil
-      const localEndBiz = new Date(local);
-      localEndBiz.setUTCHours(BIZ_END, 0, 0, 0);
-      const bizEndUTC = new Date(localEndBiz.getTime() - LIMA_OFFSET * 60000);
-      const blockEnd = bizEndUTC < fin ? bizEndUTC : fin;
-      total += (blockEnd - cur) / 3600000;
-      cur = blockEnd;
-    } else {
-      // Avanzar al siguiente inicio de día hábil
-      const next = toLocal(cur);
-      if (dow === 0 || dow === 6 || hour >= BIZ_END) {
-        // Ir al próximo lunes o próximo día laboral a las 8am
-        const daysUntilMon = dow === 0 ? 1 : dow === 6 ? 2 : 1;
-        const skip = hour >= BIZ_END ? (dow === 5 ? 3 : dow === 6 ? 2 : 1) : 0;
-        next.setUTCDate(next.getUTCDate() + (hour >= BIZ_END ? skip : daysUntilMon));
-        next.setUTCHours(BIZ_START, 0, 0, 0);
-      } else {
-        next.setUTCHours(BIZ_START, 0, 0, 0);
+  while (true) {
+    const dow = diaActual.getUTCDay(); // 0=dom,6=sab
+    if (dow >= 1 && dow <= 5) { // lunes a viernes
+      // Ventana hábil del día en UTC
+      const bizInicioLima = new Date(diaActual);
+      bizInicioLima.setUTCHours(BIZ_START, 0, 0, 0);
+      const bizFinLima = new Date(diaActual);
+      bizFinLima.setUTCHours(BIZ_END, 0, 0, 0);
+
+      const bizInicioUTC = new Date(bizInicioLima.getTime() - LIMA_MS);
+      const bizFinUTC    = new Date(bizFinLima.getTime()   - LIMA_MS);
+
+      const overlapStart = Math.max(inicio.getTime(), bizInicioUTC.getTime());
+      const overlapEnd   = Math.min(fin.getTime(),    bizFinUTC.getTime());
+
+      if (overlapEnd > overlapStart) {
+        total += (overlapEnd - overlapStart) / 3600000;
       }
-      cur = new Date(next.getTime() - LIMA_OFFSET * 60000);
-      if (cur >= fin) break;
     }
+
+    // Siguiente día Lima
+    diaActual.setUTCDate(diaActual.getUTCDate() + 1);
+    // Si el inicio del día siguiente en UTC ya supera fin, paramos
+    const nextDayUTC = new Date(diaActual.getTime() - LIMA_MS);
+    if (nextDayUTC >= fin) break;
   }
+
   return total;
 }
 
