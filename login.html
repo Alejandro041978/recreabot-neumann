@@ -78,6 +78,17 @@ input::placeholder{color:var(--t3)}
     <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
     <button class="btn" id="btnLogin">Ingresar</button>
     <div class="msg" id="msg1"></div>
+    <button class="btn btn-ghost" id="btnOlvide" style="margin-top:12px">¿Olvidaste tu contraseña?</button>
+  </div>
+
+  <!-- PASO: Recuperar contraseña -->
+  <div id="pasoReset" class="step">
+    <div class="instruccion">Ingresa tu correo institucional y te enviaremos un enlace para restablecer tu contraseña.</div>
+    <label>Correo institucional</label>
+    <input type="email" id="emailReset" placeholder="nombre@neumann.education" autocomplete="email">
+    <button class="btn" id="btnEnviarReset">Enviar enlace</button>
+    <button class="btn btn-ghost" onclick="mostrarPaso('paso1')">Volver al inicio</button>
+    <div class="msg" id="msgReset"></div>
   </div>
 
   <!-- PASO 2a: Verificar MFA (ya configurado) -->
@@ -254,6 +265,31 @@ document.getElementById('totpEnroll').addEventListener('keydown', e => { if(e.ke
   document.getElementById(id).addEventListener('input', function() {
     this.value = this.value.replace(/\D/g,'').slice(0,6);
   });
+});
+
+// Recuperar contraseña
+document.getElementById('btnOlvide').addEventListener('click', () => {
+  document.getElementById('emailReset').value = document.getElementById('email').value || '';
+  mostrarPaso('pasoReset');
+});
+
+document.getElementById('btnEnviarReset').addEventListener('click', async () => {
+  const email = document.getElementById('emailReset').value.trim();
+  const msg   = document.getElementById('msgReset');
+  const btn   = document.getElementById('btnEnviarReset');
+  msg.style.display = 'none';
+  if (!email) { msg.className='msg err'; msg.textContent='Ingresa tu correo'; msg.style.display='block'; return; }
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://recreabot-neumann.vercel.app/login?reset=1',
+  });
+  btn.disabled = false; btn.textContent = 'Enviar enlace';
+  if (error) {
+    msg.className='msg err'; msg.textContent='Error: ' + error.message;
+  } else {
+    msg.className='msg ok'; msg.textContent='✅ Revisa tu correo — te enviamos el enlace';
+  }
+  msg.style.display = 'block';
 });
 </script>
 </body>
