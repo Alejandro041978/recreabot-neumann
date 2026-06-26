@@ -2,7 +2,7 @@
 import { query } from './_supabase.js';
 
 const RESEND_KEY = process.env.RESEND_API_KEY;
-const EMAIL_FROM = 'Sistema Neumann <onboarding@resend.dev>';
+const EMAIL_FROM = process.env.EMAIL_FROM || 'RecreaBot Neumann <onboarding@resend.dev>';
 const SB_URL = process.env.SUPABASE_URL;
 const SB_KEY = process.env.SUPABASE_SECRET_KEY;
 
@@ -76,7 +76,10 @@ export default async function handler(req, res) {
       }),
     });
 
-    if (!emailRes.ok) { res.status(500).json({ error: 'Error enviando email' }); return; }
+    if (!emailRes.ok) {
+      const errBody = await emailRes.text();
+      res.status(500).json({ error: 'Error enviando email: ' + errBody }); return;
+    }
     res.json({ ok: true });
     return;
   }
