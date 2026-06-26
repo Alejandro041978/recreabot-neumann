@@ -81,6 +81,17 @@ input::placeholder{color:var(--t3)}
     <button class="btn btn-ghost" id="btnOlvide" style="margin-top:12px">¿Olvidaste tu contraseña?</button>
   </div>
 
+  <!-- PASO: Nueva contraseña (desde enlace del correo) -->
+  <div id="pasoNuevaPwd" class="step">
+    <div class="instruccion">Ingresa tu nueva contraseña.</div>
+    <label>Nueva contraseña</label>
+    <input type="password" id="nuevaPwd" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+    <label>Confirmar contraseña</label>
+    <input type="password" id="confirmarPwd" placeholder="Repite la contraseña" autocomplete="new-password">
+    <button class="btn" id="btnGuardarPwd">Guardar nueva contraseña</button>
+    <div class="msg" id="msgNuevaPwd"></div>
+  </div>
+
   <!-- PASO: Recuperar contraseña -->
   <div id="pasoReset" class="step">
     <div class="instruccion">Ingresa tu correo institucional y te enviaremos un enlace para restablecer tu contraseña.</div>
@@ -265,6 +276,33 @@ document.getElementById('totpEnroll').addEventListener('keydown', e => { if(e.ke
   document.getElementById(id).addEventListener('input', function() {
     this.value = this.value.replace(/\D/g,'').slice(0,6);
   });
+});
+
+// Detectar si viene desde enlace de recuperación (Supabase pone el token en el hash)
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    mostrarPaso('pasoNuevaPwd');
+  }
+});
+
+document.getElementById('btnGuardarPwd').addEventListener('click', async () => {
+  const pwd  = document.getElementById('nuevaPwd').value;
+  const pwd2 = document.getElementById('confirmarPwd').value;
+  const msg  = document.getElementById('msgNuevaPwd');
+  const btn  = document.getElementById('btnGuardarPwd');
+  msg.style.display = 'none';
+  if (pwd.length < 8) { msg.className='msg err'; msg.textContent='Mínimo 8 caracteres'; msg.style.display='block'; return; }
+  if (pwd !== pwd2)   { msg.className='msg err'; msg.textContent='Las contraseñas no coinciden'; msg.style.display='block'; return; }
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  const { error } = await sb.auth.updateUser({ password: pwd });
+  btn.disabled = false; btn.textContent = 'Guardar nueva contraseña';
+  if (error) {
+    msg.className='msg err'; msg.textContent='Error: ' + error.message;
+  } else {
+    msg.className='msg ok'; msg.textContent='✅ Contraseña actualizada. Redirigiendo...';
+    setTimeout(() => { window.location.href = '/login'; }, 2000);
+  }
+  msg.style.display = 'block';
 });
 
 // Recuperar contraseña
