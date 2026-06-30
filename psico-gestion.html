@@ -673,9 +673,8 @@ async function seleccionarEstudiante(est, fechaPreset, horaPreset) {
     document.getElementById('aFecha').value = fechaPreset;
     document.getElementById('aHora').value  = horaPreset.substring(0,5);
   } else {
-    const ahora = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Lima'}));
-    document.getElementById('aFecha').value = ahora.toISOString().split('T')[0];
-    document.getElementById('aHora').value  = ahora.toTimeString().slice(0,5);
+    document.getElementById('aFecha').value = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
+    document.getElementById('aHora').value  = new Date().toLocaleTimeString('en-GB', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit' });
   }
 
   // Cargar ficha

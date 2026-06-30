@@ -309,9 +309,8 @@ async function seleccionarEstudiante(est) {
     <div class="est-carrera">${est.carrera}</div>
     <div class="est-meta">Código: ${est.codigo} · Email: ${est.email||'—'}</div>`;
 
-  const ahora = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Lima'}));
-  document.getElementById('aFecha').value = ahora.toISOString().split('T')[0];
-  document.getElementById('aHora').value  = ahora.toTimeString().slice(0,5);
+  document.getElementById('aFecha').value = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
+  document.getElementById('aHora').value  = new Date().toLocaleTimeString('en-GB', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit' });
 
   const fr = await fetch(`/api/salud?accion=ficha&codigo=${est.codigo}`);
   const { ficha } = await fr.json();
