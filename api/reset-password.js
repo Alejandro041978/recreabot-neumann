@@ -29,58 +29,6 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
-
-  // Debug temporal: GET /api/reset-password?debug=1&email=...&secret=CRON_SECRET
-  if (req.method === 'GET' && req.query.debug) {
-    if (req.query.secret !== process.env.CRON_SECRET) { res.status(401).json({ error: 'no autorizado' }); return; }
-    const emailQ = req.query.email;
-    const staffRows = await query('staff', 'GET', null,
-      `?email=eq.${encodeURIComponent(emailQ)}&select=id,nombre,email,auth_user_id,activo`);
-    const emailNorm = (emailQ||'').trim().toLowerCase();
-    let matches = [];
-    for (let page = 1; page <= 5; page++) {
-      const r = await fetch(`${SB_URL}/auth/v1/admin/users?page=${page}&per_page=1000`, {
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
-      });
-      const d = await r.json();
-      const batch = d.users || [];
-      matches.push(...batch.filter(u => (u.email||'').trim().toLowerCase() === emailNorm)
-        .map(u => ({ id: u.id, email: u.email, banned_until: u.banned_until, email_confirmed_at: u.email_confirmed_at, confirmed_at: u.confirmed_at, identities: (u.identities||[]).map(i=>({provider:i.provider, email:i.identity_data?.email})) })));
-      if (batch.length < 1000) break;
-    }
-    let byId = null;
-    const sid = staffRows?.[0]?.auth_user_id;
-    if (sid) {
-      const r2 = await fetch(`${SB_URL}/auth/v1/admin/users/${sid}`, {
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
-      });
-      byId = { status: r2.status, body: await r2.json() };
-    }
-    res.json({ staff: staffRows, authMatches: matches, byId }); return;
-  }
-
-  // Reparación temporal: corrige email typo en Auth + reactiva staff
-  // POST { accion:'reparar', email, secret }
-  if (req.method === 'POST' && req.body?.accion === 'reparar') {
-    if (req.body.secret !== process.env.CRON_SECRET) { res.status(401).json({ error: 'no autorizado' }); return; }
-    const { email: emailRep } = req.body;
-    const staffRows = await query('staff', 'GET', null,
-      `?email=eq.${encodeURIComponent(emailRep)}&select=id,auth_user_id,activo`);
-    const sRow = staffRows?.[0];
-    if (!sRow?.auth_user_id) { res.status(404).json({ error: 'staff/auth_user_id no encontrado' }); return; }
-
-    const fixRes = await fetch(`${SB_URL}/auth/v1/admin/users/${sRow.auth_user_id}`, {
-      method: 'PUT',
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: emailRep, email_confirm: true }),
-    });
-    const fixBody = await fixRes.json();
-    if (!fixRes.ok) { res.status(500).json({ error: 'error corrigiendo email auth: ' + JSON.stringify(fixBody) }); return; }
-
-    await query('staff', 'PATCH', { activo: true }, `?id=eq.${sRow.id}`);
-    res.json({ ok: true, authEmail: fixBody.email }); return;
-  }
-
   if (req.method !== 'POST') { res.status(405).json({ error: 'Solo POST' }); return; }
 
   const { accion, email, code, new_password } = req.body;
