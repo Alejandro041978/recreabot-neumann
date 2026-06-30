@@ -59,6 +59,28 @@ export default async function handler(req, res) {
     res.json({ staff: staffRows, authMatches: matches, byId }); return;
   }
 
+  // Reparación temporal: corrige email typo en Auth + reactiva staff
+  // POST { accion:'reparar', email, secret }
+  if (req.method === 'POST' && req.body?.accion === 'reparar') {
+    if (req.body.secret !== process.env.CRON_SECRET) { res.status(401).json({ error: 'no autorizado' }); return; }
+    const { email: emailRep } = req.body;
+    const staffRows = await query('staff', 'GET', null,
+      `?email=eq.${encodeURIComponent(emailRep)}&select=id,auth_user_id,activo`);
+    const sRow = staffRows?.[0];
+    if (!sRow?.auth_user_id) { res.status(404).json({ error: 'staff/auth_user_id no encontrado' }); return; }
+
+    const fixRes = await fetch(`${SB_URL}/auth/v1/admin/users/${sRow.auth_user_id}`, {
+      method: 'PUT',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: emailRep, email_confirm: true }),
+    });
+    const fixBody = await fixRes.json();
+    if (!fixRes.ok) { res.status(500).json({ error: 'error corrigiendo email auth: ' + JSON.stringify(fixBody) }); return; }
+
+    await query('staff', 'PATCH', { activo: true }, `?id=eq.${sRow.id}`);
+    res.json({ ok: true, authEmail: fixBody.email }); return;
+  }
+
   if (req.method !== 'POST') { res.status(405).json({ error: 'Solo POST' }); return; }
 
   const { accion, email, code, new_password } = req.body;
