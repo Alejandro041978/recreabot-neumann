@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RecreaBot — Instituto Superior Neumann</title>
+<style id="ns-layout-pre">body{margin-left:240px!important}@media(max-width:780px){body{margin-left:0!important;padding-top:52px!important}}</style>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -35,50 +36,32 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; }
-body { font-family: var(--font); background: var(--bg); color: var(--text); display: flex; }
+html, body { height: 100%; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); }
 
-/* ── SIDEBAR ── */
-.sidebar {
-  width: var(--sidebar-w); min-width: var(--sidebar-w);
-  background: var(--surface); border-right: 1px solid var(--border);
-  display: flex; flex-direction: column; height: 100vh; overflow-y: auto;
-}
-.sidebar-brand {
-  padding: 20px 18px 14px;
-  border-bottom: 1px solid var(--border);
-}
-.brand-logo {
-  width: 36px; height: 36px; background: var(--accent);
-  border-radius: 8px; display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem; margin-bottom: 10px;
-}
-.brand-name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
-.brand-sub  { font-size: 0.72rem; color: var(--text3); margin-top: 2px; line-height: 1.4; }
-
-.sidebar-section { padding: 14px 10px 6px; }
-.sidebar-label { font-size: 0.68rem; font-weight: 600; color: var(--text3); letter-spacing: 1.2px; text-transform: uppercase; padding: 0 8px; margin-bottom: 4px; }
-
-.nav-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 10px; border-radius: 8px; cursor: pointer;
-  font-size: 0.83rem; color: var(--text2); transition: all 0.15s;
-  border: 1px solid transparent;
-}
-.nav-item:hover { background: var(--surface2); color: var(--text); }
-.nav-item.active { background: var(--accent-glow); color: var(--accent2); border-color: var(--accent); }
-.nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
-.nav-badge { margin-left: auto; background: var(--red); color: white; font-size: 0.65rem; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
-
-.sidebar-footer {
-  margin-top: auto; padding: 14px 10px;
-  border-top: 1px solid var(--border);
-}
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
+/* ── Sub-nav tabs ── */
+.subnav {
+  display: flex; align-items: center; gap: 2px; padding: 0 16px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  overflow-x: auto; flex-shrink: 0;
+}
+.subnav::-webkit-scrollbar { height: 3px; }
+.subnav::-webkit-scrollbar-thumb { background: var(--border2); }
+.subnav-item {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 14px; font-size: 0.8rem; color: var(--text3);
+  cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent;
+  transition: all .15s; user-select: none; position: relative;
+}
+.subnav-item:hover { color: var(--text); }
+.subnav-item.active { color: var(--accent2); border-bottom-color: var(--accent); }
+.nav-badge { background: var(--red); color: white; font-size: 0.62rem; font-weight: 700; padding: 1px 5px; border-radius: 8px; }
+
 /* ── MAIN ── */
-.main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
 .topbar {
   height: 52px; min-height: 52px;
@@ -292,7 +275,6 @@ select option { background: var(--surface2); }
 
 /* responsive */
 @media (max-width: 900px) {
-  .sidebar { display: none; }
   .g4, .g3 { grid-template-columns: 1fr 1fr; }
   .chat-layout { grid-template-columns: 1fr; }
   .chat-sidebar { display: none; }
@@ -301,89 +283,31 @@ select option { background: var(--surface2); }
 </head>
 <body>
 
-<!-- ══════════════════════════════════ SIDEBAR ══════════════════════════════════ -->
-<aside class="sidebar">
-  <div class="sidebar-brand">
-    <div class="brand-logo">🎮</div>
-    <div class="brand-name">RecreaBot</div>
-    <div class="brand-sub">Instituto Superior<br>Neumann</div>
-  </div>
-
-  <div class="sidebar-section">
-    <div class="sidebar-label">Principal</div>
-    <div class="nav-item active" onclick="nav('dashboard', this)">
-      <span class="icon">📊</span> Dashboard
-    </div>
-
-    <div class="nav-item" onclick="nav('registro', this)">
-      <span class="icon">📝</span> Nuevo Registro
-    </div>
-  </div>
-
-  <div class="sidebar-section">
-    <div class="sidebar-label">Gestión</div>
-    <div class="nav-item" onclick="nav('historial', this)">
-      <span class="icon">📋</span> Historial de Uso
-    </div>
-    <div class="nav-item" onclick="nav('incidencias', this)" id="nav-inc">
-      <span class="icon">🔧</span> Incidencias
-      <span class="nav-badge" id="inc-badge">0</span>
-    </div>
-    <div class="nav-item" onclick="nav('campanas', this)">
-      <span class="icon">📣</span> Campañas
-    </div>
-    <div class="nav-item" onclick="nav('estudiantes', this)">
-      <span class="icon">🎓</span> Estudiantes
-    </div>
-  </div>
-
-  <div class="sidebar-section">
-    <div class="sidebar-label">Sistema</div>
-    <div class="nav-item" onclick="nav('config', this)">
-      <span class="icon">⚙️</span> Configuración
-    </div>
-    <div class="nav-item" onclick="nav('conectar', this)">
-      <span class="icon">🔌</span> Conectar APIs
-    </div>
-  </div>
-
-  <div class="sidebar-section">
-    <div class="sidebar-label">Accesos rápidos</div>
-    <div class="nav-item" onclick="window.open('/config','_blank')">
-      <span class="icon">🕐</span> Horarios
-      <span style="margin-left:auto;font-size:0.65rem;color:var(--text3)">↗</span>
-    </div>
-    <div class="nav-item" onclick="window.open('/qr','_blank')">
-      <span class="icon">🔲</span> Imprimir QR
-      <span style="margin-left:auto;font-size:0.65rem;color:var(--text3)">↗</span>
-    </div>
-    <div class="nav-item" onclick="window.open('/bot','_blank')">
-      <span class="icon">📱</span> Ver Bot
-      <span style="margin-left:auto;font-size:0.65rem;color:var(--text3)">↗</span>
-    </div>
-  </div>
-
-  <div class="sidebar-footer">
-    <div style="font-size:0.75rem; color:var(--text3); display:flex; align-items:center; gap:6px;">
-      <span class="status-dot"></span> Sistema activo
-    </div>
-    <div class="live-clock" id="clock" style="margin-top:6px;"></div>
-  </div>
-</aside>
-
 <!-- ══════════════════════════════════ MAIN ══════════════════════════════════ -->
 <div class="main">
   <div class="topbar">
-    <span class="topbar-title" id="topbar-title">Dashboard</span>
-    <span class="topbar-sub" id="topbar-sub">Visión general del sistema</span>
+    <span class="topbar-title" id="topbar-title">🏃 Recreativos</span>
+    <span class="topbar-sub" id="topbar-sub">Gestión de espacios recreativos</span>
     <div class="topbar-right">
       <span id="staff-nombre" style="font-size:0.78rem;color:var(--text3);margin-right:8px"></span>
-      <a href="/ejecutivo" style="font-size:0.75rem;font-weight:600;color:var(--text3);border:1px solid var(--border);border-radius:6px;padding:5px 12px;text-decoration:none">← Volver</a>
       <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ Exportar</button>
       <button class="btn btn-ghost btn-sm" onclick="enviarReporte()" id="btn-reporte">📧 Enviar reporte</button>
-      <button class="btn btn-primary btn-sm" onclick="nav('registro', document.querySelector('.nav-item:nth-child(3)'))">+ Nuevo registro</button>
-      <button class="btn btn-ghost btn-sm" id="btnLogout" style="display:none;border-color:var(--red);color:var(--red)" onclick="staffLogout()">Salir</button>
+      <button class="btn btn-primary btn-sm" onclick="navTab('registro')">+ Nuevo registro</button>
     </div>
+  </div>
+
+  <!-- Sub-navegación interna -->
+  <div class="subnav">
+    <div class="subnav-item active" data-view="dashboard" onclick="navTab('dashboard')">📊 Dashboard</div>
+    <div class="subnav-item" data-view="registro" onclick="navTab('registro')">📝 Nuevo registro</div>
+    <div class="subnav-item" data-view="historial" onclick="navTab('historial')">📋 Historial</div>
+    <div class="subnav-item" data-view="incidencias" onclick="navTab('incidencias')">🔧 Incidencias <span class="nav-badge" id="inc-badge" style="display:none">0</span></div>
+    <div class="subnav-item" data-view="campanas" onclick="navTab('campanas')">📣 Campañas</div>
+    <div class="subnav-item" data-view="estudiantes" onclick="navTab('estudiantes')">🎓 Estudiantes</div>
+    <div class="subnav-item" data-view="config" onclick="navTab('config')">⚙️ Configuración</div>
+    <div class="subnav-item" data-view="conectar" onclick="navTab('conectar')">🔌 Conectar APIs</div>
+    <div class="subnav-item" onclick="window.open('/qr','_blank')" style="margin-left:auto">🔲 QR ↗</div>
+    <div class="subnav-item" onclick="window.open('/bot','_blank')">📱 Bot ↗</div>
   </div>
 
   <div class="content">
@@ -884,8 +808,7 @@ async function cargarRegistrosDeSheets() {
       STATE.registros = d.registros;
       renderDashboard();
       renderHistorial();
-      document.getElementById('inc-badge').textContent =
-        STATE.registros.filter(r => r.estado === 'problema').length;
+      setIncBadge(STATE.registros.filter(r => r.estado === 'problema').length);
     }
   } catch(e) {
     console.warn('No se pudo leer Sheets, usando localStorage:', e.message);
@@ -931,33 +854,37 @@ const TITLES = {
   conectar:    ['Conectar APIs','WhatsApp · Google Sheets · Email'],
 };
 
-function nav(id, el) {
+function setIncBadge(n) {
+  const el = document.getElementById('inc-badge');
+  if (!el) return;
+  el.textContent = n;
+  el.style.display = n > 0 ? '' : 'none';
+}
+function navTab(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('view-' + id).classList.add('active');
-  if (el) el.classList.add('active');
-  const [title, sub] = TITLES[id] || [id, ''];
-  document.getElementById('topbar-title').textContent = title;
-  document.getElementById('topbar-sub').textContent   = sub;
+  document.querySelectorAll('.subnav-item').forEach(n => n.classList.remove('active'));
+  const viewEl = document.getElementById('view-' + id);
+  if (viewEl) viewEl.classList.add('active');
+  const tab = document.querySelector(`.subnav-item[data-view="${id}"]`);
+  if (tab) tab.classList.add('active');
   if (id === 'dashboard')   renderDashboard();
   if (id === 'historial')   renderHistorial();
   if (id === 'incidencias') renderIncidencias();
   if (id === 'conectar')    loadConfig();
   if (id === 'estudiantes') cargarEstudiantes();
   if (id === 'registro') {
-    // Setear fecha de hoy por defecto
     const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
     document.getElementById('r-fecha').value = hoy;
   }
 }
+function nav(id, el) { navTab(id); }
 
 // ═══════════════════════════════════════════════
 // RELOJ
 // ═══════════════════════════════════════════════
 function tick() {
-  const now = new Date();
-  document.getElementById('clock').textContent =
-    now.toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const el = document.getElementById('clock');
+  if (el) el.textContent = new Date().toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }
 setInterval(tick, 1000); tick();
 
@@ -1077,7 +1004,7 @@ function renderDashboard() {
   document.getElementById('kpi-hoy').textContent    = hoyRegs.length;
   document.getElementById('kpi-semana').textContent = semRegs.length;
   document.getElementById('kpi-inc').textContent    = incRegs.length;
-  document.getElementById('inc-badge').textContent  = incRegs.length;
+  setIncBadge(incRegs.length);
 
   // uso por área
   const areaCounts = {};
@@ -1353,8 +1280,7 @@ async function guardarRegistro() {
   }
 
   limpiarForm();
-  document.getElementById('inc-badge').textContent =
-    STATE.registros.filter(r => r.estado==='problema').length;
+  setIncBadge(STATE.registros.filter(r => r.estado==='problema').length);
   // Refrescar slots para mostrar el nuevo ocupado
   actualizarSlotsDisponibles();
 }
@@ -1838,11 +1764,12 @@ window.addEventListener('load', () => {
     });
     saveState();
     renderDashboard();
-    document.getElementById('inc-badge').textContent = 1;
+    setIncBadge(1);
   }
 });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/sidebar.js"></script>
 <script>
 const sb = supabase.createClient(
   'https://exjaxhrylfdwehzjfjut.supabase.co',
