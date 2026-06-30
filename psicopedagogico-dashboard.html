@@ -215,7 +215,7 @@ async function initAuth() {
 
 async function cargarKpis() {
   try {
-    const r = await fetch('/api/psico_dashboard?accion=kpis');
+    const r = await fetch('/api/psicopedagogico?accion=kpis');
     const { reservas, charlas, eval_atenciones } = await r.json();
 
     // ── Cálculos sesiones ──
