@@ -150,7 +150,7 @@ export default async function handler(req, res) {
       const { desde } = req.query;
       const filtroFecha = desde ? `&fecha=gte.${desde}` : '';
       const data = await query('psico_reservas', 'GET', null,
-        `?order=fecha.asc,hora_inicio.asc&limit=300${filtroFecha}`);
+        `?order=fecha.desc,hora_inicio.desc&limit=20${filtroFecha}`);
       res.json(data || []); return;
     }
 
