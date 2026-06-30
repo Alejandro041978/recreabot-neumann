@@ -48,7 +48,15 @@ export default async function handler(req, res) {
         .map(u => ({ id: u.id, email: u.email, banned_until: u.banned_until, email_confirmed_at: u.email_confirmed_at, confirmed_at: u.confirmed_at, identities: (u.identities||[]).map(i=>({provider:i.provider, email:i.identity_data?.email})) })));
       if (batch.length < 1000) break;
     }
-    res.json({ staff: staffRows, authMatches: matches }); return;
+    let byId = null;
+    const sid = staffRows?.[0]?.auth_user_id;
+    if (sid) {
+      const r2 = await fetch(`${SB_URL}/auth/v1/admin/users/${sid}`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+      });
+      byId = { status: r2.status, body: await r2.json() };
+    }
+    res.json({ staff: staffRows, authMatches: matches, byId }); return;
   }
 
   if (req.method !== 'POST') { res.status(405).json({ error: 'Solo POST' }); return; }
