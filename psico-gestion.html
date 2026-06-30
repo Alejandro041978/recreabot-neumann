@@ -270,6 +270,30 @@ tbody tr:last-child td{border-bottom:none}
       <div class="form-field"><label>Hora inicio</label><input type="time" id="rHoraInicio"></div>
     </div>
     <div class="form-field"><label>Hora fin</label><input type="time" id="rHoraFin"></div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Ciclo</label>
+        <select id="rCiclo">
+          <option value="">—</option>
+          <option>I</option><option>II</option><option>III</option><option>IV</option>
+          <option>V</option><option>VI</option><option>VII</option><option>VIII</option>
+          <option>IX</option><option>X</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Turno</label>
+        <select id="rTurno">
+          <option value="">—</option>
+          <option>Mañana</option><option>Tarde</option><option>Noche</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label>Sección</label><input type="text" id="rSeccion" placeholder="Ej: A, B…"></div>
+      <div class="form-field"><label>Teléfono</label><input type="tel" id="rTelefono" placeholder="987654321"></div>
+    </div>
+    <div class="form-field"><label>¿Con quién vive?</label><textarea id="rConQuienVive" rows="2" placeholder="Ej: mis padres, solo…"></textarea></div>
+    <div class="form-field"><label>Motivo de consulta</label><textarea id="rMotivoConsulta" rows="3" placeholder="Cuéntanos el motivo…"></textarea></div>
     <button class="btn btn-acc" style="width:100%" onclick="crearReservaDirecta()">Crear reserva</button>
     <div class="msg-ok" id="reservaDirOk">✅ Reserva creada</div>
     <div class="msg-err" id="reservaDirErr"></div>
@@ -558,6 +582,12 @@ async function crearReservaDirecta() {
         nombre: `${estudianteActual.nombre} ${estudianteActual.apellido||''}`.trim(),
         email:  estudianteActual.email || null,
         fecha, hora_inicio, hora_fin,
+        ciclo:           document.getElementById('rCiclo').value || null,
+        turno:           document.getElementById('rTurno').value || null,
+        seccion:         document.getElementById('rSeccion').value.trim() || null,
+        telefono:        document.getElementById('rTelefono').value.trim() || null,
+        con_quien_vive:  document.getElementById('rConQuienVive').value.trim() || null,
+        motivo_consulta: document.getElementById('rMotivoConsulta').value.trim() || null,
       }),
     });
     const data = await r.json();
@@ -566,6 +596,12 @@ async function crearReservaDirecta() {
     ok.style.display='block';
     document.getElementById('rHoraInicio').value = '';
     document.getElementById('rHoraFin').value = '';
+    document.getElementById('rCiclo').value = '';
+    document.getElementById('rTurno').value = '';
+    document.getElementById('rSeccion').value = '';
+    document.getElementById('rTelefono').value = '';
+    document.getElementById('rConQuienVive').value = '';
+    document.getElementById('rMotivoConsulta').value = '';
     cargarReservas();
     setTimeout(()=>ok.style.display='none',4000);
   } catch(e) {
