@@ -216,7 +216,7 @@ async function initAuth() {
   if (!r.ok) { window.location.href = '/login'; return; }
   const info = await r.json();
   if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('calidad_dashboard')) { window.location.href = '/ejecutivo'; return; }
-  document.getElementById('topbar-user').innerHTML = `<strong>${info.nombre}</strong>`; window.location.href = '/login'; });
+  document.getElementById('topbar-user').innerHTML = `<strong>${info.nombre}</strong>`;
   await cargarPeriodos();
 }
 

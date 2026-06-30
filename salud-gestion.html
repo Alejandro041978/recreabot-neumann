@@ -273,7 +273,7 @@ async function initAuth() {
   if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('salud_gestion')) {
     window.location.href = '/ejecutivo'; return false;
   }
-  document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`; window.location.href = '/login'; });
+  document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
   return true;
 }
 
