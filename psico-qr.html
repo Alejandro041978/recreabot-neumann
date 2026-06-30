@@ -52,8 +52,6 @@ body{padding:20px 16px 60px;max-width:980px;margin:0 auto}
   </div>
   <div style="display:flex;align-items:center;gap:8px">
     <div class="topbar-user" id="topbar-user"></div>
-    <a href="/psico-gestion" class="btn-link">← Gestión de sesiones</a>
-    <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
   </div>
 </div>
 
@@ -122,9 +120,7 @@ async function initAuth() {
     window.location.href = '/ejecutivo'; return false;
   }
   document.getElementById('topbar-user').innerHTML =
-    `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
-  document.getElementById('btnLogout').addEventListener('click', async () => {
-    await sb.auth.signOut(); window.location.href = '/login';
+    `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`; window.location.href = '/login';
   });
   return true;
 }

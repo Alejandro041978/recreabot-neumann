@@ -65,8 +65,6 @@ tr:hover td{background:var(--s2)}
   <div class="topbar-logo">Instituto Neumann</div>
   <div class="topbar-user" id="topbar-user"></div>
   <div style="display:flex;gap:8px">
-    <a href="/ejecutivo" style="font-size:0.75rem;font-weight:600;color:var(--t3);border:1px solid var(--b);border-radius:6px;padding:5px 12px;text-decoration:none">← Volver</a>
-    <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
   </div>
 </div>
 
@@ -141,8 +139,7 @@ async function initAuth() {
     window.location.href = '/ejecutivo'; return false;
   }
   document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
-  document.getElementById('topbar').style.display = 'flex';
-  document.getElementById('btnLogout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = '/login'; });
+  document.getElementById('topbar').style.display = 'flex'; window.location.href = '/login'; });
   return true;
 }
 

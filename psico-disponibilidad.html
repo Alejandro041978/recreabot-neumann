@@ -78,8 +78,6 @@ body{padding:20px 16px 60px;max-width:900px;margin:0 auto}
     <div class="topbar-user" id="topbar-user"></div>
     <a href="/psico-gestion" class="btn-link">⚙️ Gestión</a>
     <a href="/psicopedagogico-dashboard" class="btn-link">📊 Dashboard</a>
-    <a href="/ejecutivo" class="btn-link">← Volver</a>
-    <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
   </div>
 </div>
 
@@ -290,8 +288,7 @@ async function initAuth() {
   if (!r.ok) { window.location.href = '/login'; return; }
   const info = await r.json();
   if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('psico_disponibilidad')) { window.location.href = '/ejecutivo'; return; }
-  document.getElementById('topbar-user').innerHTML = `<strong>${info.nombre}</strong>`;
-  document.getElementById('btnLogout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = '/login'; });
+  document.getElementById('topbar-user').innerHTML = `<strong>${info.nombre}</strong>`; window.location.href = '/login'; });
   buildGrid();
   cargarDisponibilidad();
   cargarNoLaborables();

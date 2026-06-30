@@ -59,8 +59,6 @@ header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
   <div class="topbar-user" id="topbar-user"></div>
   <div class="topbar-actions">
     <a href="/qr#banos" style="font-size:0.75rem;font-weight:600;color:#a5b4fc;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.3);border-radius:6px;padding:5px 12px;text-decoration:none">📲 Ver QR</a>
-    <a href="/ejecutivo" class="btn-volver">← Volver</a>
-    <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
   </div>
 </div>
 
@@ -112,9 +110,7 @@ async function initAuth() {
   const info = await r.json();
   if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('bano_dashboard')) { window.location.href = '/ejecutivo'; return false; }
   document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong>`;
-  document.getElementById('topbar').style.display = 'flex';
-  document.getElementById('btnLogout').addEventListener('click', async () => {
-    await sb.auth.signOut(); window.location.href = '/login';
+  document.getElementById('topbar').style.display = 'flex'; window.location.href = '/login';
   });
   return true;
 }

@@ -91,8 +91,6 @@ tbody tr:last-child td{border-bottom:none}
   <div style="display:flex;align-items:center;gap:8px">
     <div class="topbar-user" id="topbar-user"></div>
     <a href="/calidad-dashboard" class="btn-link">📊 Dashboard</a>
-    <a href="/ejecutivo" class="btn-link">← Volver</a>
-    <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
   </div>
 </div>
 
@@ -289,8 +287,7 @@ async function initAuth() {
   if (!r.ok) { window.location.href = '/login'; return; }
   const info = await r.json();
   if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('calidad_config')) { window.location.href = '/ejecutivo'; return; }
-  document.getElementById('topbar-user').innerHTML = `<strong>${info.nombre}</strong>`;
-  document.getElementById('btnLogout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = '/login'; });
+  document.getElementById('topbar-user').innerHTML = `<strong>${info.nombre}</strong>`; window.location.href = '/login'; });
   await Promise.all([cargarPeriodos(), cargarStaff()]);
 }
 

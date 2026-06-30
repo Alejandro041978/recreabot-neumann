@@ -101,8 +101,6 @@ tbody tr:last-child td{border-bottom:none}
   <div style="display:flex;align-items:center;gap:8px">
     <div class="topbar-user" id="topbar-user"></div>
     <a href="/salud-dashboard" class="btn-link">📊 Dashboard</a>
-    <a href="/ejecutivo" class="btn-link">← Volver</a>
-    <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
   </div>
 </div>
 
@@ -275,8 +273,7 @@ async function initAuth() {
   if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('salud_gestion')) {
     window.location.href = '/ejecutivo'; return false;
   }
-  document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
-  document.getElementById('btnLogout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = '/login'; });
+  document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`; window.location.href = '/login'; });
   return true;
 }
 
