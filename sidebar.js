@@ -28,7 +28,7 @@
           { icon: '📋', text: 'Reservas',        href: '/psico-reservas-gestion',    modulo: 'psico_reservas_gestion' },
           { icon: '🗓️', text: 'Sesiones',        href: '/psico-gestion',             modulo: 'psico_gestion' },
           { icon: '⏰', text: 'Disponibilidad',  href: '/psico-disponibilidad',      modulo: 'psico_disponibilidad' },
-          { icon: '📲', text: 'Códigos QR',      href: '/psico-qr',                  modulo: 'psico_gestion' },
+          { icon: '📲', text: 'Códigos QR',      href: '/psico-qr',                  modulo: 'psico_qr' },
         ],
       },
       { icon: '🏥', text: 'Salud', group: true,

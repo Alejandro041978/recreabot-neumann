@@ -251,40 +251,48 @@ const sb = supabase.createClient(
 );
 
 const MODULOS_GRUPOS = [
-  { grupo: '🧠 Psicopedagógico', paginas: {
-    psico_dashboard:         'Dashboard Psicopedagógico',
-    psico_gestion:           'Gestión de sesiones',
-    psico_reservas_gestion:  'Gestión de reservas',
-    psico_disponibilidad:    'Configurador disponibilidad',
-  }},
-  { grupo: '🏥 Salud / Tópico', paginas: {
-    salud_dashboard: 'Dashboard Salud',
-    salud_gestion:   'Gestión atenciones',
-  }},
-  { grupo: '⚽ Recreativos', paginas: {
-    recreativos_panel: 'Panel de reservas',
+  // ── Servicios ──────────────────────────────────────────
+  { grupo: '🏃 Recreativos', paginas: {
+    recreativos_panel:   'Panel de reservas y gestión',
   }},
   { grupo: '☕ Cafetería', paginas: {
     cafeteria_dashboard: 'Dashboard Cafetería',
   }},
-  { grupo: '🎭 Cultura', paginas: {
-    cultura_dashboard: 'Dashboard Cultura',
-  }},
-  { grupo: '🎓 Becas', paginas: {
-    beca_dashboard: 'Dashboard Becas',
+  { grupo: '🏛️ Museos', paginas: {
+    museos_dashboard:    'Dashboard Museos',
   }},
   { grupo: '🚻 Baños', paginas: {
-    bano_dashboard: 'Dashboard Baños',
+    bano_dashboard:      'Dashboard Baños',
   }},
+  { grupo: '🧠 Psicopedagógico', paginas: {
+    psico_dashboard:         'Dashboard',
+    psico_reservas_gestion:  'Gestión de reservas',
+    psico_gestion:           'Gestión de sesiones',
+    psico_disponibilidad:    'Configurador de disponibilidad',
+    psico_qr:                'Códigos QR',
+  }},
+  { grupo: '🏥 Salud / Tópico', paginas: {
+    salud_dashboard: 'Dashboard',
+    salud_gestion:   'Gestión de atenciones',
+  }},
+  // ── Estudiantes ────────────────────────────────────────
   { grupo: '📊 Asistencia', paginas: {
     asistencia_dashboard: 'Dashboard Asistencia',
   }},
+  { grupo: '🏅 Becas', paginas: {
+    beca_dashboard: 'Dashboard Becas',
+  }},
+  { grupo: '🎭 Cultura', paginas: {
+    cultura_dashboard: 'Dashboard Cultura',
+  }},
+  // ── Calidad ────────────────────────────────────────────
   { grupo: '⭐ Calidad', paginas: {
     calidad_dashboard: 'Dashboard Mes Calidad',
     calidad_config:    'Configuración Calidad',
   }},
+  // ── Administración ─────────────────────────────────────
   { grupo: '⚙️ Administración', paginas: {
-    admin_usuarios: 'Administración de Usuarios',
+    admin_usuarios: 'Usuarios y Permisos',
   }},
 ];
 
