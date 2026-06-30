@@ -96,6 +96,7 @@
     { "src": "/calidad-config",           "dest": "/calidad-config.html"           },
     { "src": "/calidad-dashboard",        "dest": "/calidad-dashboard.html"        },
     { "src": "/bot.html",                   "dest": "/bot.html"                        },
+    { "src": "/sidebar.js",                 "dest": "/sidebar.js"                      },
     { "src": "/",                       "dest": "/login.html"                },
     { "src": "/(.*)",                   "dest": "/index.html"                }
   ]
