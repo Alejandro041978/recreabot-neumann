@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Códigos QR — Psicopedagógico — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#6366f1;--acc2:#a5b4fc;--red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6;--green:#10b981;
+  --text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{padding:20px 16px 60px;max-width:980px;margin:0 auto}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:10px 16px;background:var(--s);border:1px solid var(--b);border-radius:10px}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-icon{font-size:1.4rem}
+.topbar-titulo{font-size:1rem;font-weight:800;color:var(--acc2)}
+.topbar-user{font-size:0.78rem;color:var(--t2)}.topbar-user strong{color:var(--text)}
+.btn-link{font-size:0.75rem;font-weight:600;color:var(--t3);background:none;border:1px solid var(--b);border-radius:6px;padding:5px 12px;text-decoration:none;transition:all .15s}
+.btn-link:hover{border-color:var(--acc);color:var(--acc2)}
+.btn-logout{font-size:0.75rem;font-weight:600;color:var(--t3);background:none;border:1px solid var(--b);border-radius:6px;padding:5px 12px;cursor:pointer;transition:all .15s}
+.btn-logout:hover{border-color:var(--red);color:var(--red)}
+
+.seccion{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px;margin-bottom:16px}
+.seccion-titulo{font-size:0.85rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+
+.form-field{margin-bottom:12px}
+.form-field label{font-size:0.7rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
+.form-field input,.form-field select,.form-field textarea{width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:7px;padding:9px 12px;color:var(--text);font-size:0.85rem;font-family:'Inter',sans-serif;outline:none}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--acc)}
+
+.msg-err{background:rgba(239,68,68,.12);border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:0.83rem;font-weight:600;margin-top:10px;display:none;text-align:center}
+
+.btn{padding:10px 18px;border-radius:8px;border:none;font-size:0.85rem;font-weight:700;cursor:pointer;transition:opacity .15s;font-family:'Inter',sans-serif}
+.btn-acc{background:var(--acc);color:#fff}.btn-acc:hover{opacity:.85}
+.btn-sec{background:var(--s2);color:var(--t2);border:1px solid var(--b)}.btn-sec:hover{border-color:var(--acc);color:var(--text)}
+.btn-sm{padding:6px 12px;font-size:0.78rem}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-icon">📲</div>
+    <div class="topbar-titulo">Códigos QR — Psicopedagógico</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="topbar-user" id="topbar-user"></div>
+    <a href="/psico-gestion" class="btn-link">← Gestión de sesiones</a>
+    <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- QR para charla -->
+<div class="seccion">
+  <div class="seccion-titulo"><span>📲 Generar QR para charla psicopedagógica</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+    <div class="form-field" style="margin:0"><label>Fecha</label><input type="date" id="qFecha"></div>
+    <div class="form-field" style="margin:0"><label>Hora inicio</label><input type="time" id="qInicio"></div>
+    <div class="form-field" style="margin:0"><label>Hora fin</label><input type="time" id="qFin"></div>
+  </div>
+  <div style="font-size:0.75rem;color:var(--t3);margin-bottom:12px">⏱️ El período entre hora inicio y hora fin no puede superar <strong>1 hora</strong>.</div>
+  <button class="btn btn-acc btn-sm" onclick="generarQR()">Generar QR</button>
+  <div id="qrResult" style="display:none;margin-top:20px;text-align:center">
+    <div id="qrCanvas" style="display:inline-block;padding:12px;background:white;border-radius:10px;margin-bottom:12px"></div>
+    <div style="font-size:0.78rem;color:var(--t3);margin-bottom:8px" id="qrInfo"></div>
+    <button class="btn btn-sec btn-sm" onclick="imprimirQR()">🖨️ Imprimir QR</button>
+  </div>
+  <div class="msg-err" id="qrErr"></div>
+</div>
+
+<!-- QR de reservas para estudiantes -->
+<div class="seccion">
+  <div class="seccion-titulo"><span>🔗 QR de reservas en línea para estudiantes</span></div>
+  <div style="font-size:0.8rem;color:var(--t3);margin-bottom:16px">Los estudiantes escanean este QR para reservar su sesión psicopedagógica en línea. Imprime el cartel y colócalo en un lugar visible del campus.</div>
+  <div style="display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap">
+    <div style="text-align:center">
+      <div id="qrReservaCanvas" style="display:inline-block;padding:14px;background:white;border-radius:12px;margin-bottom:10px"></div>
+      <div style="font-size:0.72rem;color:var(--t3);margin-bottom:10px">recreabot-neumann.vercel.app/psico-reserva</div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn btn-sec btn-sm" onclick="imprimirQRReserva()">🖨️ Imprimir</button>
+        <button class="btn btn-acc btn-sm" onclick="descargarQRReserva()">⬇️ Descargar</button>
+      </div>
+    </div>
+    <div style="flex:1;min-width:180px">
+      <div style="font-size:0.78rem;color:var(--t2);line-height:1.7">
+        <div style="margin-bottom:6px"><strong style="color:var(--text)">¿Qué verá el estudiante?</strong></div>
+        <div>1. Ingresa su código de alumno</div>
+        <div>2. Elige un slot disponible</div>
+        <div>3. Confirma su reserva</div>
+        <div style="margin-top:10px;font-size:0.72rem;color:var(--t3)">Solo pueden tener una sesión pendiente o confirmada a la vez. Los slots disponibles dependen de tu disponibilidad configurada en ⏰.</div>
+      </div>
+      <a href="/psico-reserva" target="_blank" style="display:inline-block;margin-top:14px;font-size:0.78rem;font-weight:700;color:var(--acc2);text-decoration:none;border:1px solid rgba(99,102,241,.3);border-radius:6px;padding:5px 12px;background:rgba(99,102,241,.08)">↗ Abrir página de reserva</a>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const sb = supabase.createClient(
+  'https://exjaxhrylfdwehzjfjut.supabase.co',
+  'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
+);
+
+// ── Auth ──
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/login'; return false; }
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal.currentLevel !== 'aal2') { await sb.auth.signOut(); window.location.href = '/login'; return false; }
+  const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
+  if (!r.ok) { window.location.href = '/login'; return false; }
+  const info = await r.json();
+  if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('psico_gestion')) {
+    window.location.href = '/ejecutivo'; return false;
+  }
+  document.getElementById('topbar-user').innerHTML =
+    `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
+  document.getElementById('btnLogout').addEventListener('click', async () => {
+    await sb.auth.signOut(); window.location.href = '/login';
+  });
+  return true;
+}
+
+// ── QR para charla ──
+async function generarQR() {
+  const fecha  = document.getElementById('qFecha').value;
+  const inicio = document.getElementById('qInicio').value;
+  const fin    = document.getElementById('qFin').value;
+  const errEl  = document.getElementById('qrErr');
+  errEl.style.display = 'none';
+  if (!fecha||!inicio||!fin) { errEl.textContent='Completa fecha, hora inicio y hora fin'; errEl.style.display='block'; return; }
+  if (inicio >= fin) { errEl.textContent='La hora de fin debe ser mayor que la de inicio'; errEl.style.display='block'; return; }
+  const [hi,hm] = inicio.split(':').map(Number);
+  const [fi,fm] = fin.split(':').map(Number);
+  if ((fi*60+fm)-(hi*60+hm) > 60) { errEl.textContent='El período máximo es 1 hora'; errEl.style.display='block'; return; }
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const r = await fetch('/api/sesiones-charla', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${session?.access_token||''}`},
+      body: JSON.stringify({ modulo:'psico_gestion', fecha, hora_inicio:inicio, hora_fin:fin }),
+    });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error||'Error al crear sesión');
+    const url = `${window.location.origin}/psico-charla-eval?token=${data.token}`;
+    document.getElementById('qrCanvas').innerHTML =
+      `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}" alt="QR charla" style="display:block">`;
+    document.getElementById('qrInfo').textContent = `Válido el ${fecha} de ${inicio} a ${fin}`;
+    document.getElementById('qrResult').style.display = 'block';
+  } catch(e) {
+    errEl.textContent='Error: '+e.message; errEl.style.display='block';
+  }
+}
+
+function imprimirQR() {
+  const canvas = document.getElementById('qrCanvas');
+  const info   = document.getElementById('qrInfo').textContent;
+  const win = window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>QR Charla Psicopedagógica</title>
+  <style>body{font-family:Arial,sans-serif;text-align:center;padding:40px}
+  h2{font-size:1.4rem;margin-bottom:6px}p{font-size:0.9rem;color:#555;margin-bottom:20px}
+  img{width:260px;height:260px}</style></head><body>
+  <h2>🧠 Charla Psicopedagógica — Instituto Neumann</h2>
+  <p>Escanea el QR para evaluar la charla</p>
+  ${canvas.innerHTML}
+  <p style="margin-top:16px;font-size:0.8rem;color:#888">${info}</p>
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  win.document.close();
+}
+
+// ── QR de reservas para estudiantes ──
+const URL_RESERVA = `${location.origin}/psico-reserva`;
+
+function buildQRReserva() {
+  document.getElementById('qrReservaCanvas').innerHTML =
+    `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(URL_RESERVA)}" alt="QR reservas" style="display:block;border-radius:4px">`;
+}
+
+function imprimirQRReserva() {
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>QR Reservas Psicopedagógicas</title>
+  <style>body{font-family:Arial,sans-serif;text-align:center;padding:50px}
+  h2{font-size:1.5rem;margin-bottom:8px}
+  p{font-size:1rem;color:#444;margin-bottom:24px;max-width:340px;margin-left:auto;margin-right:auto}
+  img{width:280px;height:280px}
+  .url{font-size:0.78rem;color:#888;margin-top:16px}</style></head><body>
+  <h2>🧠 Psicopedagógico — Instituto Neumann</h2>
+  <p>Escanea el código QR para reservar tu sesión psicopedagógica en línea</p>
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(URL_RESERVA)}" alt="QR">
+  <p class="url">${URL_RESERVA}</p>
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  win.document.close();
+}
+
+function descargarQRReserva() {
+  const a = document.createElement('a');
+  a.href = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&format=png&data=${encodeURIComponent(URL_RESERVA)}`;
+  a.download = 'qr-reservas-psicopedagogico.png';
+  a.target = '_blank';
+  a.click();
+}
+
+// ── Init ──
+initAuth().then(ok => { if (ok) { buildQRReserva(); } });
+</script>
+</body>
+</html>

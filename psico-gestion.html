@@ -121,54 +121,11 @@ tbody tr:last-child td{border-bottom:none}
   </div>
   <div style="display:flex;align-items:center;gap:8px">
     <div class="topbar-user" id="topbar-user"></div>
+    <a href="/psico-qr" class="btn-link">📲 Códigos QR</a>
     <a href="/psico-disponibilidad" class="btn-link">⏰ Disponibilidad</a>
     <a href="/psicopedagogico-dashboard" class="btn-link">📊 Dashboard</a>
     <a href="/ejecutivo" class="btn-link">← Volver</a>
     <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
-  </div>
-</div>
-
-<!-- QR para charla -->
-<div class="seccion">
-  <div class="seccion-titulo"><span>📲 Generar QR para charla psicopedagógica</span></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
-    <div class="form-field" style="margin:0"><label>Fecha</label><input type="date" id="qFecha"></div>
-    <div class="form-field" style="margin:0"><label>Hora inicio</label><input type="time" id="qInicio"></div>
-    <div class="form-field" style="margin:0"><label>Hora fin</label><input type="time" id="qFin"></div>
-  </div>
-  <div style="font-size:0.75rem;color:var(--t3);margin-bottom:12px">⏱️ El período entre hora inicio y hora fin no puede superar <strong>1 hora</strong>.</div>
-  <button class="btn btn-acc btn-sm" onclick="generarQR()">Generar QR</button>
-  <div id="qrResult" style="display:none;margin-top:20px;text-align:center">
-    <div id="qrCanvas" style="display:inline-block;padding:12px;background:white;border-radius:10px;margin-bottom:12px"></div>
-    <div style="font-size:0.78rem;color:var(--t3);margin-bottom:8px" id="qrInfo"></div>
-    <button class="btn btn-sec btn-sm" onclick="imprimirQR()">🖨️ Imprimir QR</button>
-  </div>
-  <div class="msg-err" id="qrErr"></div>
-</div>
-
-<!-- QR de reservas para estudiantes -->
-<div class="seccion">
-  <div class="seccion-titulo"><span>🔗 QR de reservas en línea para estudiantes</span></div>
-  <div style="font-size:0.8rem;color:var(--t3);margin-bottom:16px">Los estudiantes escanean este QR para reservar su sesión psicopedagógica en línea. Imprime el cartel y colócalo en un lugar visible del campus.</div>
-  <div style="display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap">
-    <div style="text-align:center">
-      <div id="qrReservaCanvas" style="display:inline-block;padding:14px;background:white;border-radius:12px;margin-bottom:10px"></div>
-      <div style="font-size:0.72rem;color:var(--t3);margin-bottom:10px">recreabot-neumann.vercel.app/psico-reserva</div>
-      <div style="display:flex;gap:8px;justify-content:center">
-        <button class="btn btn-sec btn-sm" onclick="imprimirQRReserva()">🖨️ Imprimir</button>
-        <button class="btn btn-acc btn-sm" onclick="descargarQRReserva()">⬇️ Descargar</button>
-      </div>
-    </div>
-    <div style="flex:1;min-width:180px">
-      <div style="font-size:0.78rem;color:var(--t2);line-height:1.7">
-        <div style="margin-bottom:6px"><strong style="color:var(--text)">¿Qué verá el estudiante?</strong></div>
-        <div>1. Ingresa su código de alumno</div>
-        <div>2. Elige un slot disponible</div>
-        <div>3. Confirma su reserva</div>
-        <div style="margin-top:10px;font-size:0.72rem;color:var(--t3)">Solo pueden tener una sesión pendiente o confirmada a la vez. Los slots disponibles dependen de tu disponibilidad configurada en ⏰.</div>
-      </div>
-      <a href="/psico-reserva" target="_blank" style="display:inline-block;margin-top:14px;font-size:0.78rem;font-weight:700;color:var(--acc2);text-decoration:none;border:1px solid rgba(99,102,241,.3);border-radius:6px;padding:5px 12px;background:rgba(99,102,241,.08)">↗ Abrir página de reserva</a>
-    </div>
   </div>
 </div>
 
@@ -622,87 +579,8 @@ async function crearReservaDirecta() {
   }
 }
 
-// ── QR para charla ──
-async function generarQR() {
-  const fecha  = document.getElementById('qFecha').value;
-  const inicio = document.getElementById('qInicio').value;
-  const fin    = document.getElementById('qFin').value;
-  const errEl  = document.getElementById('qrErr');
-  errEl.style.display = 'none';
-  if (!fecha||!inicio||!fin) { errEl.textContent='Completa fecha, hora inicio y hora fin'; errEl.style.display='block'; return; }
-  if (inicio >= fin) { errEl.textContent='La hora de fin debe ser mayor que la de inicio'; errEl.style.display='block'; return; }
-  const [hi,hm] = inicio.split(':').map(Number);
-  const [fi,fm] = fin.split(':').map(Number);
-  if ((fi*60+fm)-(hi*60+hm) > 60) { errEl.textContent='El período máximo es 1 hora'; errEl.style.display='block'; return; }
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const r = await fetch('/api/sesiones-charla', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${session?.access_token||''}`},
-      body: JSON.stringify({ modulo:'psico_gestion', fecha, hora_inicio:inicio, hora_fin:fin }),
-    });
-    const data = await r.json();
-    if (!data.ok) throw new Error(data.error||'Error al crear sesión');
-    const url = `${window.location.origin}/psico-charla-eval?token=${data.token}`;
-    document.getElementById('qrCanvas').innerHTML =
-      `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}" alt="QR charla" style="display:block">`;
-    document.getElementById('qrInfo').textContent = `Válido el ${fecha} de ${inicio} a ${fin}`;
-    document.getElementById('qrResult').style.display = 'block';
-  } catch(e) {
-    errEl.textContent='Error: '+e.message; errEl.style.display='block';
-  }
-}
-
-function imprimirQR() {
-  const canvas = document.getElementById('qrCanvas');
-  const info   = document.getElementById('qrInfo').textContent;
-  const win = window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html><head><title>QR Charla Psicopedagógica</title>
-  <style>body{font-family:Arial,sans-serif;text-align:center;padding:40px}
-  h2{font-size:1.4rem;margin-bottom:6px}p{font-size:0.9rem;color:#555;margin-bottom:20px}
-  img{width:260px;height:260px}</style></head><body>
-  <h2>🧠 Charla Psicopedagógica — Instituto Neumann</h2>
-  <p>Escanea el QR para evaluar la charla</p>
-  ${canvas.innerHTML}
-  <p style="margin-top:16px;font-size:0.8rem;color:#888">${info}</p>
-  <script>window.onload=()=>window.print()<\/script></body></html>`);
-  win.document.close();
-}
-
-// ── QR de reservas para estudiantes ──
-const URL_RESERVA = `${location.origin}/psico-reserva`;
-
-function buildQRReserva() {
-  document.getElementById('qrReservaCanvas').innerHTML =
-    `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(URL_RESERVA)}" alt="QR reservas" style="display:block;border-radius:4px">`;
-}
-
-function imprimirQRReserva() {
-  const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html><head><title>QR Reservas Psicopedagógicas</title>
-  <style>body{font-family:Arial,sans-serif;text-align:center;padding:50px}
-  h2{font-size:1.5rem;margin-bottom:8px}
-  p{font-size:1rem;color:#444;margin-bottom:24px;max-width:340px;margin-left:auto;margin-right:auto}
-  img{width:280px;height:280px}
-  .url{font-size:0.78rem;color:#888;margin-top:16px}</style></head><body>
-  <h2>🧠 Psicopedagógico — Instituto Neumann</h2>
-  <p>Escanea el código QR para reservar tu sesión psicopedagógica en línea</p>
-  <img src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(URL_RESERVA)}" alt="QR">
-  <p class="url">${URL_RESERVA}</p>
-  <script>window.onload=()=>window.print()<\/script></body></html>`);
-  win.document.close();
-}
-
-function descargarQRReserva() {
-  const a = document.createElement('a');
-  a.href = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&format=png&data=${encodeURIComponent(URL_RESERVA)}`;
-  a.download = 'qr-reservas-psicopedagogico.png';
-  a.target = '_blank';
-  a.click();
-}
-
 // ── Init ──
-initAuth().then(ok => { if (ok) { buildQRReserva(); cargarReservas(); } });
+initAuth().then(ok => { if (ok) { cargarReservas(); } });
 </script>
 </body>
 </html>

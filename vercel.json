@@ -82,6 +82,7 @@
     { "src": "/portal-estudiante",          "dest": "/portal-estudiante.html"          },
     { "src": "/psicopedagogico-dashboard",  "dest": "/psicopedagogico-dashboard.html"  },
     { "src": "/psico-gestion",              "dest": "/psico-gestion.html"              },
+    { "src": "/psico-qr",                   "dest": "/psico-qr.html"                   },
     { "src": "/api/psico-reservas",         "dest": "/api/psico-reservas.js"           },
     { "src": "/psico-disponibilidad",       "dest": "/psico-disponibilidad.html"       },
     { "src": "/psico-reserva",              "dest": "/psico-reserva.html"              },
