@@ -308,121 +308,17 @@ tbody tr:last-child td{border-bottom:none}
 
 <!-- Panel principal (visible cuando hay estudiante seleccionado) -->
 <div id="panelEstudiante" style="display:none">
-
-  <!-- Chip de contexto cuando viene de una reserva -->
-  <div id="reservaCtx" style="display:none;background:rgba(99,102,241,.1);border:1.5px solid rgba(99,102,241,.3);border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
-    <span style="font-size:1.1rem">📅</span>
-    <div style="flex:1;font-size:0.8rem;color:var(--acc2)" id="reservaCtxTexto"></div>
-  </div>
-
-  <div class="main-grid">
-
-    <!-- Ficha psicopedagógica -->
-    <div class="panel">
-      <div class="panel-titulo">📋 Ficha psicopedagógica</div>
-      <div class="est-card" id="estCard"></div>
-      <div class="ficha-grid">
-        <div class="ficha-field">
-          <label>Derivado por</label>
-          <select id="fDerivado">
-            <option value="">—</option>
-            <option>Docente</option><option>Administración</option>
-            <option>Iniciativa propia</option><option>Familia</option>
-          </select>
-        </div>
-        <div class="ficha-field">
-          <label>Situación académica</label>
-          <select id="fSituacion">
-            <option value="">—</option>
-            <option>Regular</option><option>En riesgo</option><option>Observado</option>
-          </select>
-        </div>
-        <div class="ficha-field full">
-          <label>Observaciones generales</label>
-          <textarea id="fObservaciones" rows="3" placeholder="Contexto general del estudiante..."></textarea>
-        </div>
-      </div>
-      <button class="btn btn-acc btn-sm" onclick="guardarFicha()">Guardar ficha</button>
-      <div class="msg-ok" id="fichaOk">✅ Ficha guardada</div>
-      <div class="msg-err" id="fichaErr"></div>
+  <div class="panel" style="max-width:480px">
+    <div class="panel-titulo">📅 Crear reserva</div>
+    <div class="est-card" id="estCard"></div>
+    <div class="form-row">
+      <div class="form-field"><label>Fecha</label><input type="date" id="rFecha"></div>
+      <div class="form-field"><label>Hora inicio</label><input type="time" id="rHoraInicio"></div>
     </div>
-
-    <!-- Registrar atención -->
-    <div class="panel">
-      <div class="panel-titulo">➕ Registrar atención</div>
-      <div class="form-row">
-        <div class="form-field"><label>Fecha</label><input type="date" id="aFecha"></div>
-        <div class="form-field"><label>Hora</label><input type="time" id="aHora"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-field">
-          <label>Tipo de atención</label>
-          <select id="aTipo">
-            <option value="">Selecciona...</option>
-            <option>Primera atención</option><option>Seguimiento</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>Canal</label>
-          <select id="aCanal">
-            <option value="">Selecciona...</option>
-            <option>Presencial</option><option>Virtual</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-field">
-        <label>Área afectada</label>
-        <select id="aArea">
-          <option value="">Selecciona...</option>
-          <option>Académica</option><option>Personal</option><option>Familiar</option>
-          <option>Social</option><option>Económica</option>
-          <option>Salud emocional</option><option>Vocacional</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label>Acción realizada</label>
-        <select id="aAccion">
-          <option value="">Selecciona...</option>
-          <option>Orientación psicológica</option><option>Contención emocional</option>
-          <option>Consejería breve</option><option>Evaluación inicial</option><option>Otros</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label>Resultado de la atención</label>
-        <select id="aResultado">
-          <option value="">Selecciona...</option>
-          <option>Resuelto en sesión</option>
-          <option>Requiere seguimiento</option>
-          <option>Derivado externamente</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label>Notas (confidencial)</label>
-        <textarea id="aNotas" rows="2" placeholder="Observaciones opcionales..."></textarea>
-      </div>
-      <button class="btn btn-acc" style="width:100%" onclick="registrarAtencion()">Registrar atención</button>
-      <div class="msg-ok" id="atencionOk">✅ Atención registrada</div>
-      <div class="msg-err" id="atencionErr"></div>
-    </div>
-
-  </div>
-
-  <!-- Historial del estudiante -->
-  <div class="seccion">
-    <div class="seccion-titulo">
-      <span>🕐 Historial de atenciones</span>
-      <span id="historial-nombre" style="font-size:0.78rem;color:var(--t3);font-weight:400"></span>
-    </div>
-    <div style="overflow-x:auto">
-      <table>
-        <thead><tr>
-          <th>Fecha</th><th>Tipo</th><th>Canal</th><th>Área</th><th>Acción</th><th>Resultado</th><th>Notas</th>
-        </tr></thead>
-        <tbody id="tbodyHistorial">
-          <tr><td colspan="7" style="text-align:center;color:var(--t3);padding:20px">Sin atenciones registradas</td></tr>
-        </tbody>
-      </table>
-    </div>
+    <div class="form-field"><label>Hora fin</label><input type="time" id="rHoraFin"></div>
+    <button class="btn btn-acc" style="width:100%" onclick="crearReservaDirecta()">Crear reserva</button>
+    <div class="msg-ok" id="reservaDirOk">✅ Reserva creada</div>
+    <div class="msg-err" id="reservaDirErr"></div>
   </div>
 </div>
 
@@ -434,7 +330,6 @@ const sb = supabase.createClient(
 );
 
 let estudianteActual = null;
-let reservaActivaId  = null; // id de la reserva que originó la sesión actual
 
 // ── Helpers de fecha/hora ──
 const DIAS_ES   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
@@ -651,14 +546,8 @@ async function buscar() {
 
 document.getElementById('searchInput').addEventListener('keydown', e => { if(e.key==='Enter') buscar(); });
 
-// ── Seleccionar estudiante (desde búsqueda o desde reserva) ──
-async function seleccionarEstudiante(est, fechaPreset, horaPreset) {
-  // Si viene de búsqueda directa, limpiar contexto de reserva
-  if (!fechaPreset) {
-    reservaActivaId = null;
-    document.getElementById('reservaCtx').style.display = 'none';
-  }
-
+// ── Seleccionar estudiante (desde búsqueda directa) ──
+function seleccionarEstudiante(est) {
   estudianteActual = est;
   document.getElementById('resultados').style.display = 'none';
   document.getElementById('searchInput').value = `${est.nombre} ${est.apellido||''} (${est.codigo})`;
@@ -668,145 +557,55 @@ async function seleccionarEstudiante(est, fechaPreset, horaPreset) {
     <div class="est-carrera">${est.carrera||''}</div>
     <div class="est-meta">Código: ${est.codigo} · Email: ${est.email||'—'}</div>`;
 
-  // Fecha/hora: desde la reserva o la hora actual Lima
-  if (fechaPreset && horaPreset) {
-    document.getElementById('aFecha').value = fechaPreset;
-    document.getElementById('aHora').value  = horaPreset.substring(0,5);
-  } else {
-    document.getElementById('aFecha').value = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
-    document.getElementById('aHora').value  = new Date().toLocaleTimeString('en-GB', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit' });
-  }
-
-  // Cargar ficha
-  const fr = await fetch(`/api/psicopedagogico?accion=ficha&codigo=${est.codigo}`);
-  const { ficha } = await fr.json();
-  if (ficha) {
-    document.getElementById('fDerivado').value      = ficha.derivado_por || '';
-    document.getElementById('fSituacion').value     = ficha.situacion_academica || '';
-    document.getElementById('fObservaciones').value = ficha.observaciones || '';
-  } else {
-    ['fDerivado','fSituacion','fObservaciones'].forEach(id => document.getElementById(id).value='');
-  }
-
-  document.getElementById('historial-nombre').textContent = `${est.nombre} ${est.apellido||''}`;
-  await cargarHistorial(est.codigo);
+  document.getElementById('rFecha').value = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
+  document.getElementById('rHoraInicio').value = '';
+  document.getElementById('rHoraFin').value = '';
+  ['reservaDirOk','reservaDirErr'].forEach(id => document.getElementById(id).style.display='none');
 
   document.getElementById('panelEstudiante').style.display = 'block';
   document.getElementById('panelEstudiante').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-// ── Historial ──
-async function cargarHistorial(codigo) {
-  const r = await fetch(`/api/psicopedagogico?accion=atenciones&codigo=${codigo}`);
-  const { atenciones } = await r.json();
-  document.getElementById('tbodyHistorial').innerHTML = atenciones.length
-    ? atenciones.map(a=>`<tr>
-        <td style="color:var(--text)">${a.fecha_atencion}</td>
-        <td>${badgeTipo(a.tipo_atencion)}</td>
-        <td><span style="font-size:0.75rem;color:var(--t2)">${a.canal||'—'}</span></td>
-        <td><span style="font-size:0.75rem;color:var(--t2)">${a.area_afectada||'—'}</span></td>
-        <td><span style="font-size:0.75rem;color:var(--t2)">${a.accion_realizada||'—'}</span></td>
-        <td>${badgeResultado(a.resultado)}</td>
-        <td style="max-width:180px;font-size:0.75rem">${a.notas||'—'}</td>
-      </tr>`).join('')
-    : '<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:16px">Sin atenciones registradas</td></tr>';
-}
-
-// ── Registrar atención ──
-async function registrarAtencion() {
+// ── Crear reserva libre (atención directa) ──
+async function crearReservaDirecta() {
   if (!estudianteActual) return;
-  const ok = document.getElementById('atencionOk');
-  const err = document.getElementById('atencionErr');
+  const ok  = document.getElementById('reservaDirOk');
+  const err = document.getElementById('reservaDirErr');
   ok.style.display='none'; err.style.display='none';
 
-  const body = {
-    accion: 'atencion',
-    codigo: estudianteActual.codigo,
-    nombre: `${estudianteActual.nombre} ${estudianteActual.apellido||''}`.trim(),
-    fecha_atencion:   document.getElementById('aFecha').value,
-    hora_atencion:    document.getElementById('aHora').value,
-    tipo_atencion:    document.getElementById('aTipo').value,
-    canal:            document.getElementById('aCanal').value,
-    area_afectada:    document.getElementById('aArea').value,
-    accion_realizada: document.getElementById('aAccion').value,
-    resultado:        document.getElementById('aResultado').value,
-    notas:            document.getElementById('aNotas').value.trim(),
-  };
+  const fecha       = document.getElementById('rFecha').value;
+  const hora_inicio = document.getElementById('rHoraInicio').value;
+  const hora_fin    = document.getElementById('rHoraFin').value;
 
-  if (!body.fecha_atencion||!body.hora_atencion||!body.tipo_atencion||!body.canal||
-      !body.area_afectada||!body.accion_realizada||!body.resultado) {
-    err.textContent='Completa todos los campos obligatorios'; err.style.display='block'; return;
+  if (!fecha || !hora_inicio || !hora_fin) {
+    err.textContent='Completa fecha, hora inicio y hora fin'; err.style.display='block'; return;
+  }
+  if (hora_inicio >= hora_fin) {
+    err.textContent='La hora de fin debe ser mayor que la de inicio'; err.style.display='block'; return;
   }
 
   try {
-    const r = await fetch('/api/psicopedagogico', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+    const r = await fetch('/api/psico-reservas', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        accion: 'reservar-directa',
+        codigo: estudianteActual.codigo,
+        nombre: `${estudianteActual.nombre} ${estudianteActual.apellido||''}`.trim(),
+        email:  estudianteActual.email || null,
+        fecha, hora_inicio, hora_fin,
+      }),
     });
     const data = await r.json();
     if (!data.ok) throw new Error(data.error);
 
     ok.style.display='block';
-    ['aTipo','aCanal','aArea','aAccion','aResultado'].forEach(id => document.getElementById(id).value='');
-    document.getElementById('aNotas').value='';
-    await cargarHistorial(estudianteActual.codigo);
-
-    // Si venía de una reserva, marcarla como completada
-    if (reservaActivaId) {
-      await fetch('/api/psico-reservas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion: 'estado', id: reservaActivaId, estado: 'completada' }),
-      });
-      reservaActivaId = null;
-      document.getElementById('reservaCtx').style.display = 'none';
-      cargarReservas();
-    }
-
+    document.getElementById('rHoraInicio').value = '';
+    document.getElementById('rHoraFin').value = '';
+    cargarReservas();
     setTimeout(()=>ok.style.display='none',4000);
   } catch(e) {
     err.textContent='Error: '+e.message; err.style.display='block';
   }
-}
-
-// ── Guardar ficha ──
-async function guardarFicha() {
-  if (!estudianteActual) return;
-  const ok = document.getElementById('fichaOk');
-  const err = document.getElementById('fichaErr');
-  ok.style.display='none'; err.style.display='none';
-  const body = {
-    accion: 'ficha', codigo: estudianteActual.codigo,
-    derivado_por:        document.getElementById('fDerivado').value||null,
-    situacion_academica: document.getElementById('fSituacion').value||null,
-    observaciones:       document.getElementById('fObservaciones').value||null,
-  };
-  try {
-    const r = await fetch('/api/psicopedagogico', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
-    });
-    const data = await r.json();
-    if (data.ok) { ok.style.display='block'; setTimeout(()=>ok.style.display='none',3000); }
-    else throw new Error(data.error);
-  } catch(e) {
-    err.textContent='Error: '+e.message; err.style.display='block';
-  }
-}
-
-// ── Helpers de badges ──
-function badgeResultado(r) {
-  const map = {
-    'Resuelto en sesión':   ['badge-green','Resuelto'],
-    'Requiere seguimiento': ['badge-yellow','Seguimiento'],
-    'Derivado externamente':['badge-red','Derivado'],
-  };
-  const [cls,txt] = map[r]||['badge-purple', r||'—'];
-  return `<span class="badge ${cls}">${txt}</span>`;
-}
-
-function badgeTipo(t) {
-  if (t === 'Primera atención') return `<span class="badge badge-blue">1ª atención</span>`;
-  if (t === 'Seguimiento')      return `<span class="badge badge-purple">Seguimiento</span>`;
-  return `<span style="font-size:0.75rem;color:var(--t3)">${t||'—'}</span>`;
 }
 
 // ── QR para charla ──

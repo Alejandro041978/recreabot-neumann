@@ -316,6 +316,28 @@ export default async function handler(req, res) {
       res.json({ ok: true, nombre: nombreCompleto }); return;
     }
 
+    // ── POST crear reserva libre (staff, atención directa — sin slots) ──
+    if (req.method === 'POST' && req.body?.accion === 'reservar-directa') {
+      const { codigo, nombre, email, fecha, hora_inicio, hora_fin } = req.body;
+      if (!codigo || !fecha || !hora_inicio || !hora_fin) {
+        res.json({ ok: false, error: 'Faltan datos obligatorios' }); return;
+      }
+
+      const est = await query('estudiantes', 'GET', null,
+        `?codigo=eq.${encodeURIComponent(codigo)}&limit=1`);
+      const e = est?.[0];
+      const nombreCompleto = nombre || (e ? `${e.nombre} ${e.apellido || ''}`.trim() : codigo);
+      const emailFinal = email || e?.email || null;
+
+      await query('psico_reservas', 'POST', [{
+        codigo, nombre: nombreCompleto, email: emailFinal,
+        fecha, hora_inicio, hora_fin,
+        estado: 'confirmada',
+      }]);
+
+      res.json({ ok: true, nombre: nombreCompleto }); return;
+    }
+
     // ── POST cancelar reserva propia (estudiante) ──
     if (req.method === 'POST' && req.body?.accion === 'cancelar-propia') {
       const { codigo, id } = req.body;
