@@ -89,6 +89,7 @@ tbody tr:last-child td{border-bottom:none}
 .msg-ok{background:rgba(16,185,129,.12);border:1px solid var(--acc);color:var(--acc);padding:10px 14px;border-radius:8px;font-size:0.83rem;font-weight:600;margin-top:10px;display:none;text-align:center}
 .msg-err{background:rgba(239,68,68,.12);border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:0.83rem;font-weight:600;margin-top:10px;display:none;text-align:center}
 </style>
+<style id="ns-layout-pre">body{margin-left:240px!important}@media(max-width:780px){body{margin-left:0!important;padding-top:52px!important}}</style>
 </head>
 <body>
 
@@ -464,7 +465,8 @@ function imprimirQR() {
   win.document.write(`<!DOCTYPE html><html><head><title>QR Charla Salud</title>
   <style>body{font-family:Arial,sans-serif;text-align:center;padding:40px}
   h2{font-size:1.4rem;margin-bottom:6px}p{font-size:0.9rem;color:#555;margin-bottom:20px}
-  img{width:260px;height:260px}</style></head><body>
+  img{width:260px;height:260px}</style><style id="ns-layout-pre">body{margin-left:240px!important}@media(max-width:780px){body{margin-left:0!important;padding-top:52px!important}}</style>
+</head><body>
   <h2>🏥 Charla de Salud — Instituto Neumann</h2>
   <p>Escanea el QR para evaluar la charla</p>
   ${canvas.innerHTML}

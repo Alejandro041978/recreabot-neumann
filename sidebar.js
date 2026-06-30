@@ -1,32 +1,49 @@
 // sidebar.js — Menú lateral compartido para todas las páginas de staff.
-// Se auto-inicializa: obtiene sesión + permisos y se inyecta en <body> sin que
-// cada página tenga que hacer nada más que incluir este script.
 (function () {
+
+  // ── 1. Inyectar CSS de layout SINCRÓNICAMENTE para evitar salto visual ──
+  const layoutStyle = document.createElement('style');
+  layoutStyle.id = 'ns-layout';
+  layoutStyle.textContent = [
+    'body{margin-left:240px !important}',
+    '@media(max-width:780px){body{margin-left:0 !important;padding-top:52px !important}}',
+  ].join('');
+  document.head.appendChild(layoutStyle);
+
+  // ── 2. Estructura de navegación 3 niveles ──
   const NAV = [
     { label: 'General', items: [
       { icon: '🏠', text: 'Dashboard Ejecutivo', href: '/ejecutivo', modulo: null },
     ]},
-    { label: 'Campus', items: [
+    { label: 'Servicios', items: [
       { icon: '🏃', text: 'Recreativos',  href: '/recreativos-dashboard', modulo: 'recreativos_panel' },
       { icon: '☕', text: 'Cafetería',    href: '/cafeteria-dashboard',   modulo: 'cafeteria_dashboard' },
+      { icon: '🏛️', text: 'Museos',       href: '/museos-dashboard',      modulo: 'museos_dashboard' },
       { icon: '🚻', text: 'Baños',        href: '/bano-dashboard',        modulo: 'bano_dashboard' },
-    ]},
-    { label: 'Salud', items: [
-      { icon: '🏥', text: 'Dashboard',           href: '/salud-dashboard', modulo: 'salud_dashboard' },
-      { icon: '🩺', text: 'Gestión de atenciones', href: '/salud-gestion',  modulo: 'salud_gestion' },
-    ]},
-    { label: 'Psicopedagógico', items: [
-      { icon: '🧠', text: 'Dashboard',            href: '/psicopedagogico-dashboard', modulo: 'psico_dashboard' },
-      { icon: '🗓️', text: 'Gestión de sesiones',  href: '/psico-gestion',             modulo: 'psico_gestion' },
-      { icon: '📋', text: 'Gestión de reservas',  href: '/psico-reservas-gestion',    modulo: 'psico_reservas_gestion' },
-      { icon: '⏰', text: 'Disponibilidad',       href: '/psico-disponibilidad',      modulo: 'psico_disponibilidad' },
-      { icon: '📲', text: 'Códigos QR',           href: '/psico-qr',                  modulo: 'psico_gestion' },
+      // Grupos expandibles
+      { icon: '🧠', text: 'Psicopedagógico', group: true,
+        anyModulo: ['psico_dashboard','psico_gestion','psico_reservas_gestion','psico_disponibilidad'],
+        children: [
+          { icon: '📊', text: 'Dashboard',      href: '/psicopedagogico-dashboard', modulo: 'psico_dashboard' },
+          { icon: '📋', text: 'Reservas',        href: '/psico-reservas-gestion',    modulo: 'psico_reservas_gestion' },
+          { icon: '🗓️', text: 'Sesiones',        href: '/psico-gestion',             modulo: 'psico_gestion' },
+          { icon: '⏰', text: 'Disponibilidad',  href: '/psico-disponibilidad',      modulo: 'psico_disponibilidad' },
+          { icon: '📲', text: 'Códigos QR',      href: '/psico-qr',                  modulo: 'psico_gestion' },
+        ],
+      },
+      { icon: '🏥', text: 'Salud', group: true,
+        anyModulo: ['salud_dashboard','salud_gestion'],
+        children: [
+          { icon: '📊', text: 'Dashboard',  href: '/salud-dashboard', modulo: 'salud_dashboard' },
+          { icon: '🩺', text: 'Atenciones', href: '/salud-gestion',   modulo: 'salud_gestion' },
+        ],
+      },
     ]},
     { label: 'Estudiantes', items: [
-      { icon: '🎓', text: 'Asistencia',  href: '/asistencia-dashboard', modulo: 'asistencia_dashboard' },
-      { icon: '🎓', text: 'Becas',       href: '/beca-dashboard',       modulo: 'beca_dashboard' },
-      { icon: '🏛️', text: 'Cultura',     href: '/cultura-dashboard',    modulo: 'cultura_dashboard' },
-      { icon: '📚', text: 'Conocimientos', href: '/conocimientos',      modulo: null },
+      { icon: '🎓', text: 'Asistencia',    href: '/asistencia-dashboard', modulo: 'asistencia_dashboard' },
+      { icon: '🏅', text: 'Becas',          href: '/beca-dashboard',       modulo: 'beca_dashboard' },
+      { icon: '🎭', text: 'Cultura',        href: '/cultura-dashboard',    modulo: 'cultura_dashboard' },
+      { icon: '📚', text: 'Conocimientos',  href: '/conocimientos',        modulo: null },
     ]},
     { label: 'Calidad', items: [
       { icon: '⭐', text: 'Dashboard Mes Calidad', href: '/calidad-dashboard', modulo: 'calidad_dashboard' },
@@ -37,58 +54,152 @@
     ]},
   ];
 
+  // ── 3. CSS del sidebar ──
   const CSS = `
-  #ns-sidebar{position:fixed;top:0;left:0;width:240px;min-width:240px;height:100vh;
-    background:#1a2235;border-right:1px solid #2a3a52;display:flex;flex-direction:column;
-    overflow-y:auto;z-index:1000;font-family:'Inter',sans-serif}
+  #ns-sidebar{
+    position:fixed;top:0;left:0;width:240px;height:100vh;
+    background:#131b2a;border-right:1px solid #1e2d45;
+    display:flex;flex-direction:column;overflow-y:auto;
+    z-index:1000;font-family:'Inter',sans-serif;
+    scrollbar-width:thin;scrollbar-color:#1e2d45 transparent;
+  }
   #ns-sidebar *{box-sizing:border-box}
-  .ns-brand{padding:20px 18px 14px;border-bottom:1px solid #2a3a52}
-  .ns-brand-logo{width:36px;height:36px;background:#6366f1;border-radius:8px;display:flex;
-    align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:10px}
-  .ns-brand-name{font-size:0.92rem;font-weight:700;color:#e2e8f0}
-  .ns-brand-sub{font-size:0.7rem;color:#64748b;margin-top:2px;line-height:1.4}
-  .ns-section{padding:14px 10px 6px}
-  .ns-label{font-size:0.66rem;font-weight:600;color:#64748b;letter-spacing:1.1px;
-    text-transform:uppercase;padding:0 8px;margin-bottom:4px}
-  .ns-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;
-    cursor:pointer;font-size:0.82rem;color:#94a3b8;transition:all .15s;border:1px solid transparent;
-    text-decoration:none}
-  .ns-item:hover{background:#212d42;color:#e2e8f0}
-  .ns-item.ns-active{background:rgba(99,102,241,.12);color:#a5b4fc;border-color:#6366f1}
-  .ns-item .ns-icon{font-size:0.95rem;width:18px;text-align:center;flex-shrink:0}
-  .ns-footer{margin-top:auto;padding:14px 14px;border-top:1px solid #2a3a52}
-  .ns-user{font-size:0.76rem;color:#94a3b8;margin-bottom:8px}
-  .ns-user strong{color:#e2e8f0;display:block;font-size:0.8rem;margin-bottom:1px}
-  .ns-logout{width:100%;font-size:0.74rem;font-weight:600;color:#64748b;background:none;
-    border:1px solid #2a3a52;border-radius:6px;padding:7px 10px;cursor:pointer;transition:all .15s}
+  #ns-sidebar::-webkit-scrollbar{width:4px}
+  #ns-sidebar::-webkit-scrollbar-track{background:transparent}
+  #ns-sidebar::-webkit-scrollbar-thumb{background:#1e2d45;border-radius:4px}
+
+  .ns-brand{
+    padding:18px 16px 14px;border-bottom:1px solid #1e2d45;
+    display:flex;align-items:center;gap:10px;flex-shrink:0;
+  }
+  .ns-brand-logo{
+    width:34px;height:34px;background:#6366f1;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;
+  }
+  .ns-brand-name{font-size:0.88rem;font-weight:700;color:#e2e8f0;line-height:1.2}
+  .ns-brand-sub{font-size:0.66rem;color:#4b6080;margin-top:1px}
+
+  .ns-section{padding:10px 8px 4px}
+  .ns-label{
+    font-size:0.6rem;font-weight:700;color:#3d5470;letter-spacing:1.2px;
+    text-transform:uppercase;padding:0 8px;margin-bottom:3px;
+  }
+
+  /* Ítem de nivel 2 (leaf) */
+  .ns-item{
+    display:flex;align-items:center;gap:9px;padding:7px 9px;
+    border-radius:7px;cursor:pointer;font-size:0.8rem;color:#7a94b0;
+    transition:all .12s;border:1px solid transparent;text-decoration:none;
+  }
+  .ns-item:hover{background:#192536;color:#c4d4e8}
+  .ns-item.ns-active{background:rgba(99,102,241,.14);color:#a5b4fc;border-color:rgba(99,102,241,.35)}
+  .ns-item .ns-icon{font-size:0.9rem;width:16px;text-align:center;flex-shrink:0;line-height:1}
+
+  /* Ítem de nivel 2 que tiene hijos (grupo expandible) */
+  .ns-group-header{
+    display:flex;align-items:center;gap:9px;padding:7px 9px;
+    border-radius:7px;cursor:pointer;font-size:0.8rem;color:#7a94b0;
+    transition:all .12s;border:1px solid transparent;
+    user-select:none;
+  }
+  .ns-group-header:hover{background:#192536;color:#c4d4e8}
+  .ns-group-header.ns-group-open{color:#c4d4e8}
+  .ns-group-header .ns-icon{font-size:0.9rem;width:16px;text-align:center;flex-shrink:0;line-height:1}
+  .ns-group-chevron{
+    margin-left:auto;font-size:0.6rem;color:#3d5470;
+    transition:transform .15s;line-height:1;
+  }
+  .ns-group-header.ns-group-open .ns-group-chevron{transform:rotate(90deg);color:#6b7fa0}
+
+  /* Contenedor de sub-ítems */
+  .ns-children{
+    overflow:hidden;max-height:0;transition:max-height .2s ease;
+    padding-left:12px;
+  }
+  .ns-children.ns-open{max-height:300px}
+
+  /* Sub-ítem de nivel 3 */
+  .ns-child{
+    display:flex;align-items:center;gap:8px;padding:5px 9px 5px 6px;
+    border-radius:6px;cursor:pointer;font-size:0.75rem;color:#5d7a96;
+    transition:all .12s;text-decoration:none;
+    border-left:2px solid #1e2d45;margin-bottom:1px;
+  }
+  .ns-child:hover{color:#a0b8d0;border-left-color:#3d5470}
+  .ns-child.ns-active{color:#a5b4fc;border-left-color:#6366f1;background:rgba(99,102,241,.08)}
+  .ns-child .ns-icon{font-size:0.78rem;width:14px;text-align:center;flex-shrink:0}
+
+  /* Footer */
+  .ns-footer{margin-top:auto;padding:12px;border-top:1px solid #1e2d45;flex-shrink:0}
+  .ns-user{font-size:0.72rem;color:#5d7a96;margin-bottom:7px;line-height:1.4}
+  .ns-user strong{color:#c4d4e8;display:block;font-size:0.76rem;margin-bottom:1px}
+  .ns-logout{
+    width:100%;font-size:0.72rem;font-weight:600;color:#3d5470;
+    background:none;border:1px solid #1e2d45;border-radius:6px;
+    padding:6px 10px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;
+  }
   .ns-logout:hover{border-color:#ef4444;color:#ef4444}
+
+  /* Hamburguesa móvil */
+  #ns-toggle{
+    display:none;position:fixed;top:10px;left:10px;z-index:1001;
+    width:36px;height:36px;background:#131b2a;border:1px solid #1e2d45;
+    border-radius:7px;color:#e2e8f0;font-size:1rem;
+    align-items:center;justify-content:center;cursor:pointer;
+  }
   @media(max-width:780px){
-    #ns-sidebar{transform:translateX(-100%);transition:transform .2s;box-shadow:4px 0 24px rgba(0,0,0,.4)}
+    #ns-sidebar{transform:translateX(-100%);transition:transform .2s;box-shadow:4px 0 24px rgba(0,0,0,.5)}
     #ns-sidebar.ns-open{transform:translateX(0)}
     #ns-toggle{display:flex !important}
   }
-  #ns-toggle{display:none;position:fixed;top:14px;left:14px;z-index:1001;width:38px;height:38px;
-    background:#1a2235;border:1px solid #2a3a52;border-radius:8px;color:#e2e8f0;font-size:1.1rem;
-    align-items:center;justify-content:center;cursor:pointer}
   `;
 
+  // ── 4. Construcción del HTML ──
   function buildHtml(info, currentPath, isAdmin) {
     const allowed = (m) => !m || isAdmin || (info.modulos || []).includes(m);
+    const allowedAny = (arr) => isAdmin || (arr || []).some(m => (info.modulos || []).includes(m));
+
+    function isChildActive(children) {
+      return children.some(c => c.href === currentPath);
+    }
+
     const sections = NAV.map(sec => {
-      const items = sec.items.filter(it => allowed(it.modulo));
-      if (!items.length) return '';
-      const itemsHtml = items.map(it => {
+      const itemsHtml = sec.items.map(it => {
+        if (it.group) {
+          // Grupo expandible: visible si al menos un hijo está permitido
+          const visibleChildren = it.children.filter(c => allowed(c.modulo));
+          if (!visibleChildren.length && !isAdmin) return '';
+          if (!allowedAny(it.anyModulo) && !isAdmin) return '';
+
+          const open = isChildActive(it.children);
+          const childrenHtml = (isAdmin ? it.children : visibleChildren).map(c => {
+            const active = currentPath === c.href ? ' ns-active' : '';
+            return `<a class="ns-child${active}" href="${c.href}"><span class="ns-icon">${c.icon}</span><span>${c.text}</span></a>`;
+          }).join('');
+
+          return `
+            <div class="ns-group-header${open ? ' ns-group-open' : ''}" onclick="this.classList.toggle('ns-group-open');this.nextElementSibling.classList.toggle('ns-open')">
+              <span class="ns-icon">${it.icon}</span>
+              <span>${it.text}</span>
+              <span class="ns-group-chevron">▶</span>
+            </div>
+            <div class="ns-children${open ? ' ns-open' : ''}">${childrenHtml}</div>
+          `;
+        }
+        // Ítem normal
+        if (!allowed(it.modulo)) return '';
         const active = currentPath === it.href ? ' ns-active' : '';
         return `<a class="ns-item${active}" href="${it.href}"><span class="ns-icon">${it.icon}</span><span>${it.text}</span></a>`;
       }).join('');
+
+      if (!itemsHtml.trim()) return '';
       return `<div class="ns-section"><div class="ns-label">${sec.label}</div>${itemsHtml}</div>`;
     }).join('');
 
     return `
       <div class="ns-brand">
         <div class="ns-brand-logo">🏫</div>
-        <div class="ns-brand-name">Instituto Neumann</div>
-        <div class="ns-brand-sub">Sistema de gestión</div>
+        <div><div class="ns-brand-name">Instituto Neumann</div><div class="ns-brand-sub">Sistema de gestión</div></div>
       </div>
       ${sections}
       <div class="ns-footer">
@@ -98,6 +209,7 @@
     `;
   }
 
+  // ── 5. Init asíncrono ──
   async function init() {
     if (!window.supabase) return;
     const sb = window.supabase.createClient(
@@ -105,7 +217,7 @@
       'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
     );
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) return; // la propia página ya redirige a /login
+    if (!session) return;
 
     let info;
     try {
@@ -130,10 +242,6 @@
     aside.id = 'ns-sidebar';
     aside.innerHTML = buildHtml(info, currentPath, isAdmin);
     document.body.insertBefore(aside, document.body.firstChild);
-
-    const marginStyle = document.createElement('style');
-    marginStyle.textContent = `body{margin-left:240px !important}@media(max-width:780px){body{margin-left:0 !important}}`;
-    document.head.appendChild(marginStyle);
 
     toggle.addEventListener('click', () => aside.classList.toggle('ns-open'));
 

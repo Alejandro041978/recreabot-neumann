@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -41,6 +41,7 @@ body{padding:20px 16px 60px;max-width:980px;margin:0 auto}
 .btn-sec{background:var(--s2);color:var(--t2);border:1px solid var(--b)}.btn-sec:hover{border-color:var(--acc);color:var(--text)}
 .btn-sm{padding:6px 12px;font-size:0.78rem}
 </style>
+<style id="ns-layout-pre">body{margin-left:240px!important}@media(max-width:780px){body{margin-left:0!important;padding-top:52px!important}}</style>
 </head>
 <body>
 
@@ -166,7 +167,8 @@ function imprimirQR() {
   win.document.write(`<!DOCTYPE html><html><head><title>QR Charla Psicopedagógica</title>
   <style>body{font-family:Arial,sans-serif;text-align:center;padding:40px}
   h2{font-size:1.4rem;margin-bottom:6px}p{font-size:0.9rem;color:#555;margin-bottom:20px}
-  img{width:260px;height:260px}</style></head><body>
+  img{width:260px;height:260px}</style><style id="ns-layout-pre">body{margin-left:240px!important}@media(max-width:780px){body{margin-left:0!important;padding-top:52px!important}}</style>
+</head><body>
   <h2>🧠 Charla Psicopedagógica — Instituto Neumann</h2>
   <p>Escanea el QR para evaluar la charla</p>
   ${canvas.innerHTML}
@@ -190,7 +192,8 @@ function imprimirQRReserva() {
   h2{font-size:1.5rem;margin-bottom:8px}
   p{font-size:1rem;color:#444;margin-bottom:24px;max-width:340px;margin-left:auto;margin-right:auto}
   img{width:280px;height:280px}
-  .url{font-size:0.78rem;color:#888;margin-top:16px}</style></head><body>
+  .url{font-size:0.78rem;color:#888;margin-top:16px}</style><style id="ns-layout-pre">body{margin-left:240px!important}@media(max-width:780px){body{margin-left:0!important;padding-top:52px!important}}</style>
+</head><body>
   <h2>🧠 Psicopedagógico — Instituto Neumann</h2>
   <p>Escanea el código QR para reservar tu sesión psicopedagógica en línea</p>
   <img src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(URL_RESERVA)}" alt="QR">
