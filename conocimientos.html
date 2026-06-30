@@ -193,6 +193,12 @@ async function initAuth() {
   if (!session) { document.getElementById('auth-wall').style.display = 'flex'; return false; }
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal.currentLevel !== 'aal2') { await sb.auth.signOut(); window.location.href = '/login'; return false; }
+  const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
+  if (!r.ok) { window.location.href = '/login'; return false; }
+  const info = await r.json();
+  if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('conocimientos')) {
+    window.location.href = '/ejecutivo'; return false;
+  }
   document.getElementById('app').style.display = 'block';
   return true;
 }

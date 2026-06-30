@@ -43,7 +43,7 @@
       { icon: '🎓', text: 'Asistencia',    href: '/asistencia-dashboard', modulo: 'asistencia_dashboard' },
       { icon: '🏅', text: 'Becas',          href: '/beca-dashboard',       modulo: 'beca_dashboard' },
       { icon: '🎭', text: 'Cultura',        href: '/cultura-dashboard',    modulo: 'cultura_dashboard' },
-      { icon: '📚', text: 'Conocimientos',  href: '/conocimientos',        modulo: null },
+      { icon: '📚', text: 'Conocimientos',  href: '/conocimientos',        modulo: 'conocimientos' },
     ]},
     { label: 'Calidad', items: [
       { icon: '⭐', text: 'Dashboard Mes Calidad', href: '/calidad-dashboard', modulo: 'calidad_dashboard' },
