@@ -193,7 +193,7 @@ export default async function handler(req, res) {
 
     // ── POST crear reserva (estudiante) ──
     if (req.method === 'POST' && req.body?.accion === 'reservar') {
-      const { codigo, nombre, email, fecha, hora_inicio, hora_fin, con_quien_vive, motivo_consulta } = req.body;
+      const { codigo, nombre, email, fecha, hora_inicio, hora_fin, ciclo, turno, seccion, telefono, con_quien_vive, motivo_consulta } = req.body;
       if (!codigo || !fecha || !hora_inicio) {
         res.json({ ok: false, error: 'Faltan datos obligatorios' }); return;
       }
@@ -228,6 +228,10 @@ export default async function handler(req, res) {
         codigo, nombre: nombreCompleto, email: emailFinal,
         fecha, hora_inicio, hora_fin: horaFinFinal,
         estado: 'pendiente',
+        ciclo:           ciclo           || null,
+        turno:           turno           || null,
+        seccion:         seccion         || null,
+        telefono:        telefono        || null,
         con_quien_vive:  con_quien_vive  || null,
         motivo_consulta: motivo_consulta || null,
       }]);
