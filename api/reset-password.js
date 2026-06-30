@@ -29,6 +29,28 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
+
+  // Debug temporal: GET /api/reset-password?debug=1&email=...&secret=CRON_SECRET
+  if (req.method === 'GET' && req.query.debug) {
+    if (req.query.secret !== process.env.CRON_SECRET) { res.status(401).json({ error: 'no autorizado' }); return; }
+    const emailQ = req.query.email;
+    const staffRows = await query('staff', 'GET', null,
+      `?email=eq.${encodeURIComponent(emailQ)}&select=id,nombre,email,auth_user_id,activo`);
+    const emailNorm = (emailQ||'').trim().toLowerCase();
+    let matches = [];
+    for (let page = 1; page <= 5; page++) {
+      const r = await fetch(`${SB_URL}/auth/v1/admin/users?page=${page}&per_page=1000`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+      });
+      const d = await r.json();
+      const batch = d.users || [];
+      matches.push(...batch.filter(u => (u.email||'').trim().toLowerCase() === emailNorm)
+        .map(u => ({ id: u.id, email: u.email, banned_until: u.banned_until, email_confirmed_at: u.email_confirmed_at, confirmed_at: u.confirmed_at, identities: (u.identities||[]).map(i=>({provider:i.provider, email:i.identity_data?.email})) })));
+      if (batch.length < 1000) break;
+    }
+    res.json({ staff: staffRows, authMatches: matches }); return;
+  }
+
   if (req.method !== 'POST') { res.status(405).json({ error: 'Solo POST' }); return; }
 
   const { accion, email, code, new_password } = req.body;
