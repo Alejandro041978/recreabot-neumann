@@ -266,12 +266,13 @@ tbody tr:last-child td{border-bottom:none}
       <div class="form-row" style="margin-bottom:12px">
         <div class="form-field" style="margin:0">
           <label>Tipo de dificultad</label>
-          <select id="detTipoDificultad">
+          <select id="detTipoDificultad" onchange="document.getElementById('detTipoDificultadOtra').style.display = this.value==='Otras' ? 'block' : 'none'">
             <option value="">No aplica</option>
             <option>Académica</option><option>Personal</option><option>Familiar</option>
             <option>Social</option><option>Vocacional</option>
             <option>Social comunicativa</option><option>Clima Laboral</option><option>Otras</option>
           </select>
+          <input type="text" id="detTipoDificultadOtra" placeholder="Especifica la dificultad..." style="display:none;margin-top:8px">
         </div>
         <div class="form-field" style="margin:0">
           <label>Nivel de compromiso</label>
@@ -452,7 +453,18 @@ async function iniciarDesdeReserva(rv) {
   document.getElementById('detEstado').value         = reserva.estado || 'confirmada';
   document.getElementById('detProfundidad').value    = reserva.profundidad_problema || '';
   document.getElementById('detImpacto').value        = reserva.impacto_profesional  || '';
-  document.getElementById('detTipoDificultad').value = reserva.tipo_dificultad      || '';
+  const tiposPreset = ['','Académica','Personal','Familiar','Social','Vocacional','Social comunicativa','Clima Laboral','Otras'];
+  const tipoDif = reserva.tipo_dificultad || '';
+  const otraInput = document.getElementById('detTipoDificultadOtra');
+  if (tipoDif && !tiposPreset.includes(tipoDif)) {
+    document.getElementById('detTipoDificultad').value = 'Otras';
+    otraInput.value = tipoDif;
+    otraInput.style.display = 'block';
+  } else {
+    document.getElementById('detTipoDificultad').value = tipoDif;
+    otraInput.value = '';
+    otraInput.style.display = tipoDif === 'Otras' ? 'block' : 'none';
+  }
   document.getElementById('detNivelCompromiso').value= reserva.nivel_compromiso     || '';
   document.getElementById('detProblemaHallado').value= reserva.problema_hallado     || '';
   document.getElementById('detObservaciones').value  = reserva.notas               || '';
@@ -512,7 +524,9 @@ async function guardarRegistroSesion() {
         n_sesion:             parseInt(document.getElementById('detNSesion').textContent) || null,
         profundidad_problema: document.getElementById('detProfundidad').value    || null,
         impacto_profesional:  document.getElementById('detImpacto').value        || null,
-        tipo_dificultad:      document.getElementById('detTipoDificultad').value || null,
+        tipo_dificultad:      (document.getElementById('detTipoDificultad').value === 'Otras'
+                                ? document.getElementById('detTipoDificultadOtra').value.trim()
+                                : document.getElementById('detTipoDificultad').value) || null,
         nivel_compromiso:     document.getElementById('detNivelCompromiso').value|| null,
         problema_hallado:     document.getElementById('detProblemaHallado').value.trim() || null,
         observaciones:        document.getElementById('detObservaciones').value.trim()   || null,
