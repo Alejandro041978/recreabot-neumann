@@ -104,17 +104,53 @@ export default async function handler(req, res) {
       body: JSON.stringify({ used: true }),
     });
 
-    // Actualizar contraseña en Supabase Auth usando service role
-    const authRes = await fetch(`${SB_URL}/auth/v1/admin/users`, {
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
-    });
-    // Buscar user por email
-    const usersPage = await fetch(`${SB_URL}/auth/v1/admin/users?page=1&per_page=1000`, {
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
-    });
-    const usersData = await usersPage.json();
-    const user = (usersData.users || []).find(u => u.email === email);
-    if (!user) { res.status(404).json({ error: 'Usuario no encontrado en Auth' }); return; }
+    // Buscar el staff (para conocer auth_user_id vinculado, si lo tiene)
+    const staffRows = await query('staff', 'GET', null,
+      `?email=eq.${encodeURIComponent(email)}&select=id,auth_user_id&limit=1`);
+    const staffRow = staffRows?.[0];
+
+    // Intentar ubicar el usuario en Auth: primero por auth_user_id, luego buscando por email en todas las páginas
+    let user = null;
+    if (staffRow?.auth_user_id) {
+      const byId = await fetch(`${SB_URL}/auth/v1/admin/users/${staffRow.auth_user_id}`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+      });
+      if (byId.ok) user = await byId.json();
+    }
+    if (!user) {
+      const emailNorm = email.trim().toLowerCase();
+      for (let page = 1; page <= 20 && !user; page++) {
+        const usersPage = await fetch(`${SB_URL}/auth/v1/admin/users?page=${page}&per_page=1000`, {
+          headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+        });
+        const usersData = await usersPage.json();
+        const batch = usersData.users || [];
+        user = batch.find(u => (u.email || '').trim().toLowerCase() === emailNorm) || null;
+        if (batch.length < 1000) break;
+      }
+    }
+
+    // Si no existe en Auth (cuenta nunca creada o desvinculada), crearla y vincularla al staff
+    if (!user) {
+      const createRes = await fetch(`${SB_URL}/auth/v1/admin/users`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: new_password, email_confirm: true }),
+      });
+      const created = await createRes.json();
+      if (!createRes.ok) {
+        res.status(500).json({ error: 'Error creando usuario en Auth: ' + (created.msg || created.error || JSON.stringify(created)) }); return;
+      }
+      if (staffRow) {
+        await query('staff', 'PATCH', { auth_user_id: created.id }, `?id=eq.${staffRow.id}`);
+      }
+      res.json({ ok: true }); return;
+    }
+
+    // Si existe pero no estaba vinculado en staff, vincularlo de paso
+    if (staffRow && staffRow.auth_user_id !== user.id) {
+      await query('staff', 'PATCH', { auth_user_id: user.id }, `?id=eq.${staffRow.id}`);
+    }
 
     const updateRes = await fetch(`${SB_URL}/auth/v1/admin/users/${user.id}`, {
       method: 'PUT',
