@@ -100,12 +100,22 @@ body{padding:20px 16px 60px;max-width:980px;margin:0 auto}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <script src="/sidebar.js"></script>
 <script>
 const sb = supabase.createClient(
   'https://exjaxhrylfdwehzjfjut.supabase.co',
   'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
 );
+
+// ── Genera QR en un canvas dentro de un contenedor ──
+function renderQR(containerId, url, size) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  const canvas = document.createElement('canvas');
+  container.appendChild(canvas);
+  QRCode.toCanvas(canvas, url, { width: size, margin: 2, color: { dark:'#000000', light:'#ffffff' } });
+}
 
 // ── Auth ──
 async function initAuth() {
@@ -120,8 +130,7 @@ async function initAuth() {
     window.location.href = '/ejecutivo'; return false;
   }
   document.getElementById('topbar-user').innerHTML =
-    `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`; window.location.href = '/login';
-  });
+    `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
   return true;
 }
 
@@ -147,8 +156,7 @@ async function generarQR() {
     const data = await r.json();
     if (!data.ok) throw new Error(data.error||'Error al crear sesión');
     const url = `${window.location.origin}/psico-charla-eval?token=${data.token}`;
-    document.getElementById('qrCanvas').innerHTML =
-      `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}" alt="QR charla" style="display:block">`;
+    renderQR('qrCanvas', url, 220);
     document.getElementById('qrInfo').textContent = `Válido el ${fecha} de ${inicio} a ${fin}`;
     document.getElementById('qrResult').style.display = 'block';
   } catch(e) {
@@ -157,17 +165,18 @@ async function generarQR() {
 }
 
 function imprimirQR() {
-  const canvas = document.getElementById('qrCanvas');
-  const info   = document.getElementById('qrInfo').textContent;
+  const canvas = document.querySelector('#qrCanvas canvas');
+  if (!canvas) return;
+  const dataUrl = canvas.toDataURL('image/png');
+  const info    = document.getElementById('qrInfo').textContent;
   const win = window.open('','_blank');
   win.document.write(`<!DOCTYPE html><html><head><title>QR Charla Psicopedagógica</title>
   <style>body{font-family:Arial,sans-serif;text-align:center;padding:40px}
   h2{font-size:1.4rem;margin-bottom:6px}p{font-size:0.9rem;color:#555;margin-bottom:20px}
-  img{width:260px;height:260px}</style><style id="ns-layout-pre">body{margin-left:240px!important}@media(max-width:780px){body{margin-left:0!important;padding-top:52px!important}}</style>
-</head><body>
+  img{width:260px;height:260px}</style></head><body>
   <h2>🧠 Charla Psicopedagógica — Instituto Neumann</h2>
   <p>Escanea el QR para evaluar la charla</p>
-  ${canvas.innerHTML}
+  <img src="${dataUrl}">
   <p style="margin-top:16px;font-size:0.8rem;color:#888">${info}</p>
   <script>window.onload=()=>window.print()<\/script></body></html>`);
   win.document.close();
@@ -177,32 +186,34 @@ function imprimirQR() {
 const URL_RESERVA = `${location.origin}/psico-reserva`;
 
 function buildQRReserva() {
-  document.getElementById('qrReservaCanvas').innerHTML =
-    `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(URL_RESERVA)}" alt="QR reservas" style="display:block;border-radius:4px">`;
+  renderQR('qrReservaCanvas', URL_RESERVA, 220);
 }
 
 function imprimirQRReserva() {
+  const canvas = document.querySelector('#qrReservaCanvas canvas');
+  if (!canvas) return;
+  const dataUrl = canvas.toDataURL('image/png');
   const win = window.open('', '_blank');
   win.document.write(`<!DOCTYPE html><html><head><title>QR Reservas Psicopedagógicas</title>
   <style>body{font-family:Arial,sans-serif;text-align:center;padding:50px}
   h2{font-size:1.5rem;margin-bottom:8px}
   p{font-size:1rem;color:#444;margin-bottom:24px;max-width:340px;margin-left:auto;margin-right:auto}
   img{width:280px;height:280px}
-  .url{font-size:0.78rem;color:#888;margin-top:16px}</style><style id="ns-layout-pre">body{margin-left:240px!important}@media(max-width:780px){body{margin-left:0!important;padding-top:52px!important}}</style>
-</head><body>
+  .url{font-size:0.78rem;color:#888;margin-top:16px}</style></head><body>
   <h2>🧠 Psicopedagógico — Instituto Neumann</h2>
   <p>Escanea el código QR para reservar tu sesión psicopedagógica en línea</p>
-  <img src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(URL_RESERVA)}" alt="QR">
+  <img src="${dataUrl}">
   <p class="url">${URL_RESERVA}</p>
   <script>window.onload=()=>window.print()<\/script></body></html>`);
   win.document.close();
 }
 
 function descargarQRReserva() {
+  const canvas = document.querySelector('#qrReservaCanvas canvas');
+  if (!canvas) return;
   const a = document.createElement('a');
-  a.href = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&format=png&data=${encodeURIComponent(URL_RESERVA)}`;
+  a.href = canvas.toDataURL('image/png');
   a.download = 'qr-reservas-psicopedagogico.png';
-  a.target = '_blank';
   a.click();
 }
 
