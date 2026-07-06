@@ -25,6 +25,10 @@ body{padding:20px 16px 60px;max-width:960px;margin:0 auto}
 .btn-logout{font-size:0.75rem;font-weight:600;color:var(--t3);background:none;border:1px solid var(--b);border-radius:6px;padding:5px 12px;cursor:pointer;transition:all .15s}
 .btn-logout:hover{border-color:var(--red);color:var(--red)}
 
+/* Encabezado de sección */
+.seccion-header{font-size:1rem;font-weight:800;color:var(--acc2);margin:10px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--b);display:flex;align-items:center;gap:8px}
+.seccion-header:not(:first-of-type){margin-top:32px}
+
 /* KPI grid */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
 .kpi{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:16px;text-align:center}
@@ -120,29 +124,31 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- KPIs -->
-<div class="kpi-grid" id="kpis">
+<!-- ══ SECCIÓN ATENCIONES ══ -->
+<div class="seccion-header">🩺 Atenciones</div>
+<div class="kpi-grid" id="kpisAtenciones">
   <div class="kpi"><div class="kpi-val">…</div><div class="kpi-label">Cargando</div></div>
 </div>
-
-<!-- Sección general: últimas atenciones + charlas -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="seccionGeneral">
-  <div class="seccion">
-    <div class="seccion-titulo"><span>📋 Últimas atenciones</span></div>
-    <div style="overflow-x:auto">
-      <table>
-        <thead><tr><th>Estudiante</th><th>Fecha</th><th>Resultado</th></tr></thead>
-        <tbody id="tbodyRecientes">
-          <tr><td colspan="3" style="text-align:center;color:var(--t3);padding:20px">Cargando...</td></tr>
-        </tbody>
-      </table>
-    </div>
+<div class="seccion">
+  <div class="seccion-titulo"><span>📋 Últimas atenciones</span></div>
+  <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>Estudiante</th><th>Fecha</th><th>Resultado</th></tr></thead>
+      <tbody id="tbodyRecientes">
+        <tr><td colspan="3" style="text-align:center;color:var(--t3);padding:20px">Cargando...</td></tr>
+      </tbody>
+    </table>
   </div>
+</div>
 
-  <div class="seccion">
-    <div class="seccion-titulo"><span>🎤 Evaluaciones de charlas</span></div>
-    <div id="charlasPanel"><div style="text-align:center;color:var(--t3);padding:20px;font-size:0.85rem">Cargando...</div></div>
-  </div>
+<!-- ══ SECCIÓN CHARLAS ══ -->
+<div class="seccion-header">🎤 Charlas</div>
+<div class="kpi-grid" id="kpisCharlas">
+  <div class="kpi"><div class="kpi-val">…</div><div class="kpi-label">Cargando</div></div>
+</div>
+<div class="seccion">
+  <div class="seccion-titulo"><span>🎤 Evaluaciones de charlas</span></div>
+  <div id="charlasPanel"><div style="text-align:center;color:var(--t3);padding:20px;font-size:0.85rem">Cargando...</div></div>
 </div>
 
 <!-- Acceso a gestión -->
@@ -193,15 +199,18 @@ async function cargarKpis() {
     const porResultado = {};
     ['finalizado','en_seguimiento','derivado','no_concluyente'].forEach(r => porResultado[r] = atenciones.filter(a=>a.resultado===r).length);
 
-    document.getElementById('kpis').innerHTML = `
+    document.getElementById('kpisAtenciones').innerHTML = `
       <div class="kpi"><div class="kpi-val">${atenciones.length}</div><div class="kpi-label">Atenciones totales</div></div>
       <div class="kpi"><div class="kpi-val" style="color:var(--blue)">${at10.length}</div><div class="kpi-label">Últimas 10 semanas</div></div>
       <div class="kpi"><div class="kpi-val" style="color:var(--acc)">${porResultado['finalizado']}</div><div class="kpi-label">Finalizados</div></div>
       <div class="kpi"><div class="kpi-val" style="color:var(--yellow)">${porResultado['en_seguimiento']}</div><div class="kpi-label">En seguimiento</div></div>
-      <div class="kpi"><div class="kpi-val" style="color:var(--acc2)">${promCharla}</div><div class="kpi-label">Prom. charlas / 5</div></div>
-      <div class="kpi"><div class="kpi-val">${charlas.length}</div><div class="kpi-label">Eval. charlas</div></div>
       <div class="kpi"><div class="kpi-val" style="color:var(--acc2)">${promEval}</div><div class="kpi-label">Satisfacción atención / 5</div></div>
       <div class="kpi"><div class="kpi-val">${eval_atenciones.length}</div><div class="kpi-label">Eval. de atenciones</div></div>
+    `;
+
+    document.getElementById('kpisCharlas').innerHTML = `
+      <div class="kpi"><div class="kpi-val" style="color:var(--acc2)">${promCharla}</div><div class="kpi-label">Prom. charlas / 5</div></div>
+      <div class="kpi"><div class="kpi-val">${charlas.length}</div><div class="kpi-label">Eval. charlas</div></div>
     `;
 
     // Tabla recientes
@@ -232,7 +241,7 @@ async function cargarKpis() {
           </div>`).join('')}`;
     }
   } catch(e) {
-    document.getElementById('kpis').innerHTML = `<div style="color:var(--red);font-size:0.82rem">Error: ${e.message}</div>`;
+    document.getElementById('kpisAtenciones').innerHTML = `<div style="color:var(--red);font-size:0.82rem">Error: ${e.message}</div>`;
   }
 }
 
