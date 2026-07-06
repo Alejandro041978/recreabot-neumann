@@ -47,6 +47,7 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
 .b-confirmada{background:rgba(16,185,129,.15);color:var(--green)}
 .b-cancelada{background:rgba(239,68,68,.12);color:var(--red)}
 .b-completada{background:rgba(99,102,241,.15);color:var(--acc2)}
+.b-no_asistio{background:rgba(148,163,184,.15);color:var(--t2)}
 
 .acciones{display:flex;gap:6px;flex-wrap:wrap}
 .btn-accion{padding:4px 10px;border-radius:6px;border:1.5px solid;font-size:0.72rem;font-weight:700;cursor:pointer;background:none;font-family:'Inter',sans-serif;transition:opacity .15s}
@@ -54,6 +55,7 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
 .btn-confirmar{border-color:var(--green);color:var(--green)}
 .btn-completar{border-color:var(--acc);color:var(--acc2)}
 .btn-cancelar{border-color:var(--red);color:var(--red)}
+.btn-noasistio{border-color:var(--t2);color:var(--t2)}
 .btn-ficha{border-color:var(--acc2);color:var(--acc2)}
 
 /* Modal */
@@ -94,6 +96,7 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
   <div class="kpi"><div class="kpi-val" style="color:var(--green)" id="kConfirmadas">—</div><div class="kpi-label">Confirmadas</div></div>
   <div class="kpi"><div class="kpi-val" style="color:var(--acc2)" id="kCompletadas">—</div><div class="kpi-label">Completadas</div></div>
   <div class="kpi"><div class="kpi-val" style="color:var(--red)" id="kCanceladas">—</div><div class="kpi-label">Canceladas</div></div>
+  <div class="kpi"><div class="kpi-val" style="color:var(--t2)" id="kNoAsistio">—</div><div class="kpi-label">No asistió</div></div>
 </div>
 
 <div class="card">
@@ -104,6 +107,7 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
     <button class="filtro-btn" onclick="setFiltro('confirmada',this)">Confirmadas</button>
     <button class="filtro-btn" onclick="setFiltro('completada',this)">Completadas</button>
     <button class="filtro-btn" onclick="setFiltro('cancelada',this)">Canceladas</button>
+    <button class="filtro-btn" onclick="setFiltro('no_asistio',this)">No asistió</button>
   </div>
   <div style="overflow-x:auto">
     <table>
@@ -168,6 +172,7 @@ function badgeEstado(estado) {
     confirmada: ['b-confirmada','Confirmada'],
     cancelada:  ['b-cancelada','Cancelada'],
     completada: ['b-completada','Completada'],
+    no_asistio: ['b-no_asistio','No asistió'],
   };
   const [cls,txt] = map[estado]||['','—'];
   return `<span class="badge ${cls}">${txt}</span>`;
@@ -177,13 +182,14 @@ function accionesHTML(r) {
   if (r.estado === 'completada') {
     return `<button class="btn-accion btn-ficha" onclick="verFicha('${r.id}')">📋 Ver ficha</button>`;
   }
-  if (r.estado === 'cancelada') return '—';
+  if (r.estado === 'cancelada' || r.estado === 'no_asistio') return '—';
   let btns = '';
   if (r.estado === 'pendiente') {
     btns += `<button class="btn-accion btn-confirmar" onclick="cambiarEstado('${r.id}','confirmada')">✓ Confirmar</button>`;
   }
   if (r.estado === 'confirmada' || r.estado === 'pendiente') {
     btns += `<button class="btn-accion btn-completar" onclick="cambiarEstado('${r.id}','completada')">✔ Completar</button>`;
+    btns += `<button class="btn-accion btn-noasistio" onclick="cambiarEstado('${r.id}','no_asistio')">🚫 No asistió</button>`;
     btns += `<button class="btn-accion btn-cancelar" onclick="cambiarEstado('${r.id}','cancelada')">✕ Cancelar</button>`;
   }
   return `<div class="acciones">${btns}</div>`;
@@ -239,6 +245,7 @@ function actualizarKpis() {
   document.getElementById('kConfirmadas').textContent = todasReservas.filter(r=>r.estado==='confirmada').length;
   document.getElementById('kCompletadas').textContent = todasReservas.filter(r=>r.estado==='completada').length;
   document.getElementById('kCanceladas').textContent  = todasReservas.filter(r=>r.estado==='cancelada').length;
+  document.getElementById('kNoAsistio').textContent   = todasReservas.filter(r=>r.estado==='no_asistio').length;
 }
 
 async function cargarReservas() {
