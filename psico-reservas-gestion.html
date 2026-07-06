@@ -54,6 +54,23 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
 .btn-confirmar{border-color:var(--green);color:var(--green)}
 .btn-completar{border-color:var(--acc);color:var(--acc2)}
 .btn-cancelar{border-color:var(--red);color:var(--red)}
+.btn-ficha{border-color:var(--acc2);color:var(--acc2)}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal-overlay.visible{display:flex}
+.modal{background:var(--s);border:1px solid var(--b);border-radius:16px;padding:24px;width:100%;max-width:640px;position:relative}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--b)}
+.modal-nombre{font-size:1.1rem;font-weight:800;color:var(--text)}
+.modal-sub{font-size:0.78rem;color:var(--t3);margin-top:3px}
+.modal-close{background:none;border:1px solid var(--b);border-radius:6px;color:var(--t3);font-size:0.9rem;cursor:pointer;padding:5px 10px;line-height:1;font-weight:600}
+.modal-close:hover{border-color:var(--red);color:var(--red)}
+.f-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px;margin-bottom:16px}
+.f-item{min-width:0}
+.f-label{font-size:0.66rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.f-val{font-size:0.86rem;color:var(--text);word-break:break-word}
+.f-full{grid-column:1/-1}
+.f-seccion-titulo{font-size:0.72rem;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.5px;margin:18px 0 10px}
 
 .empty{text-align:center;padding:32px;color:var(--t3);font-size:0.85rem}
 .loading{text-align:center;padding:32px;color:var(--t3)}
@@ -102,6 +119,22 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
   </div>
 </div>
 
+<!-- Modal: Ficha de sesión -->
+<div class="modal-overlay" id="modalFicha" onclick="if(event.target===this)cerrarFicha()">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-nombre" id="fNombre">—</div>
+        <div class="modal-sub" id="fSub">—</div>
+      </div>
+      <button class="modal-close" onclick="cerrarFicha()">✕ Cerrar</button>
+    </div>
+    <div id="fBody">
+      <div class="loading">Cargando ficha...</div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/sidebar.js"></script>
 <script>
@@ -141,7 +174,10 @@ function badgeEstado(estado) {
 }
 
 function accionesHTML(r) {
-  if (r.estado === 'cancelada' || r.estado === 'completada') return '—';
+  if (r.estado === 'completada') {
+    return `<button class="btn-accion btn-ficha" onclick="verFicha('${r.id}')">📋 Ver ficha</button>`;
+  }
+  if (r.estado === 'cancelada') return '—';
   let btns = '';
   if (r.estado === 'pendiente') {
     btns += `<button class="btn-accion btn-confirmar" onclick="cambiarEstado('${r.id}','confirmada')">✓ Confirmar</button>`;
@@ -215,6 +251,64 @@ async function cargarReservas() {
     document.getElementById('tablaReservas').innerHTML =
       `<tr><td colspan="6" class="empty">Error al cargar: ${e.message}</td></tr>`;
   }
+}
+
+const ESTADO_TXT = {
+  pendiente:'Pendiente', confirmada:'Confirmada', cancelada:'Cancelada',
+  completada:'Completada', no_asistio:'No asistió', reprogramada:'Reprogramada',
+};
+
+function fItem(label, val) {
+  return `<div class="f-item"><div class="f-label">${label}</div><div class="f-val">${val || '—'}</div></div>`;
+}
+
+async function verFicha(id) {
+  const overlay = document.getElementById('modalFicha');
+  const body = document.getElementById('fBody');
+  document.getElementById('fNombre').textContent = 'Cargando...';
+  document.getElementById('fSub').textContent = '';
+  body.innerHTML = '<div class="loading">Cargando ficha...</div>';
+  overlay.classList.add('visible');
+  try {
+    const r = await fetch(`/api/psico-reservas?accion=detalle&id=${id}`);
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    const rv = data.reserva || {};
+    const est = data.estudiante || {};
+
+    document.getElementById('fNombre').textContent = rv.nombre || '—';
+    document.getElementById('fSub').textContent =
+      `${formatFecha(rv.fecha)} · ${formatHora(rv.hora_inicio)} – ${formatHora(rv.hora_fin)} · Sesión N° ${data.n_sesion}`;
+
+    body.innerHTML = `
+      <div class="f-grid">
+        ${fItem('Código', rv.codigo)}
+        ${fItem('Estado', ESTADO_TXT[rv.estado] || rv.estado)}
+        ${fItem('Carrera', est.carrera)}
+        ${fItem('Correo', rv.email || est.email)}
+        ${fItem('Ciclo', rv.ciclo)}
+        ${fItem('Turno', rv.turno)}
+        ${fItem('Sección', rv.seccion)}
+        ${fItem('Teléfono', rv.telefono || est.whatsapp)}
+        ${fItem('¿Con quién vive?', rv.con_quien_vive)}
+        ${fItem('Motivo de consulta', rv.motivo_consulta)}
+      </div>
+      <div class="f-seccion-titulo">📝 Registro de la sesión</div>
+      <div class="f-grid">
+        ${fItem('Profundidad del problema', rv.profundidad_problema)}
+        ${fItem('Impacto profesional', rv.impacto_profesional)}
+        ${fItem('Tipo de dificultad', rv.tipo_dificultad)}
+        ${fItem('Nivel de compromiso', rv.nivel_compromiso)}
+        <div class="f-full">${fItem('Problema hallado', rv.problema_hallado)}</div>
+        <div class="f-full">${fItem('Observaciones', rv.notas)}</div>
+      </div>`;
+  } catch(e) {
+    body.innerHTML = `<div class="empty">Error al cargar la ficha: ${e.message}</div>`;
+  }
+}
+
+function cerrarFicha() {
+  document.getElementById('modalFicha').classList.remove('visible');
 }
 
 async function initAuth() {
