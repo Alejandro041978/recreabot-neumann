@@ -515,6 +515,12 @@ function volverAlCalendario() { irPaso(2); }
 async function confirmarReserva() {
   const err = document.getElementById('errPaso3');
   err.style.display = 'none';
+
+  const ciclo = document.getElementById('rCiclo').value;
+  const seccion = document.getElementById('rSeccion').value.trim();
+  if (!ciclo) { err.textContent = 'Por favor selecciona tu ciclo.'; err.style.display = 'block'; return; }
+  if (!seccion) { err.textContent = 'Por favor ingresa tu sección.'; err.style.display = 'block'; return; }
+
   const btn = document.getElementById('btnConfirmar');
   btn.disabled = true; btn.textContent = 'Reservando...';
 
