@@ -180,6 +180,13 @@ tbody tr:last-child td{border-bottom:none}
         <label>Motivo de consulta</label>
         <textarea id="detMotivoConsulta" rows="3" placeholder="No registra"></textarea>
       </div>
+      <div class="form-field">
+        <label style="display:flex;justify-content:space-between;align-items:center">
+          <span>📝 Anotaciones de la psicóloga</span>
+          <button type="button" onclick="insertarAnotacion()" style="font-size:0.68rem;font-weight:700;color:var(--acc2);background:none;border:1px solid var(--b);border-radius:5px;padding:3px 8px;cursor:pointer;font-family:'Inter',sans-serif">🕒 Nueva anotación</button>
+        </label>
+        <textarea id="detAnotaciones" rows="5" placeholder="Escribe anotaciones sobre la sesión. Usa «Nueva anotación» para agregar una entrada con fecha y hora."></textarea>
+      </div>
       <button class="btn btn-acc btn-sm" onclick="guardarFichaDetalle()">Guardar ficha</button>
       <div class="msg-ok" id="fichaDetOk">✅ Ficha guardada</div>
       <div class="msg-err" id="fichaDetErr"></div>
@@ -424,6 +431,7 @@ async function iniciarDesdeReserva(rv) {
   document.getElementById('detCodigo').textContent   = reserva.codigo || '—';
   document.getElementById('detConQuienVive').value   = reserva.con_quien_vive  || '';
   document.getElementById('detMotivoConsulta').value = reserva.motivo_consulta || '';
+  document.getElementById('detAnotaciones').value    = reserva.anotaciones     || '';
 
   // Tab sesión
   document.getElementById('detNSesion').textContent = n_sesion;
@@ -467,6 +475,19 @@ function verTab(tab) {
   });
 }
 
+function insertarAnotacion() {
+  const ta = document.getElementById('detAnotaciones');
+  const ahora = new Date().toLocaleString('es-PE', {
+    timeZone: 'America/Lima', day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+  const encabezado = `— ${ahora} —\n`;
+  ta.value = ta.value.trim() ? `${ta.value.trim()}\n\n${encabezado}` : encabezado;
+  ta.focus();
+  ta.scrollTop = ta.scrollHeight;
+  ta.setSelectionRange(ta.value.length, ta.value.length);
+}
+
 async function guardarFichaDetalle() {
   const ok = document.getElementById('fichaDetOk');
   const err = document.getElementById('fichaDetErr');
@@ -480,6 +501,7 @@ async function guardarFichaDetalle() {
         telefono:        document.getElementById('detTelefono').value.trim()       || null,
         con_quien_vive:  document.getElementById('detConQuienVive').value.trim()   || null,
         motivo_consulta: document.getElementById('detMotivoConsulta').value.trim() || null,
+        anotaciones:     document.getElementById('detAnotaciones').value.trim()    || null,
       }),
     });
     const data = await r.json();

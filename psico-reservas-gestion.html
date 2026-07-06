@@ -390,7 +390,9 @@ async function verFicha(id) {
         ${fItem('Nivel de compromiso', rv.nivel_compromiso)}
         <div class="f-full">${fItem('Problema hallado', rv.problema_hallado)}</div>
         <div class="f-full">${fItem('Observaciones', rv.notas)}</div>
-      </div>`;
+      </div>
+      <div class="f-seccion-titulo">📝 Anotaciones de la psicóloga</div>
+      <div class="f-val" style="white-space:pre-wrap">${rv.anotaciones ? rv.anotaciones.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])) : '—'}</div>`;
   } catch(e) {
     body.innerHTML = `<div class="empty">Error al cargar la ficha: ${e.message}</div>`;
   }
