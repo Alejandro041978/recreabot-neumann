@@ -147,11 +147,19 @@ export default async function handler(req, res) {
 
     // ── GET lista de reservas (staff dashboard) ──
     if (req.method === 'GET' && accion === 'lista') {
-      const { desde, hasta, estado, page, paginado } = req.query;
+      const { desde, hasta, estado, page, paginado, q } = req.query;
 
       let filtroFecha = '';
       if (desde) filtroFecha += `&fecha=gte.${desde}`;
       if (hasta) filtroFecha += `&fecha=lte.${hasta}`;
+
+      // Búsqueda por nombre/apellido o código
+      let filtroBusqueda = '';
+      if (q && q.trim()) {
+        const term = encodeURIComponent(`*${q.trim()}*`);
+        filtroBusqueda = `&or=(nombre.ilike.${term},codigo.ilike.${term})`;
+      }
+      filtroFecha += filtroBusqueda;
 
       // Modo paginado (con métricas y total del rango)
       if (paginado) {

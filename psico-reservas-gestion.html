@@ -69,6 +69,13 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
 .btn-rango-sec{padding:9px 16px;background:none;color:var(--t2);border:1.5px solid var(--b);border-radius:7px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
 .btn-rango-sec:hover{border-color:var(--acc);color:var(--acc2)}
 
+/* Barra de búsqueda de estudiante */
+.busqueda-bar{display:flex;gap:10px;align-items:center;margin-bottom:16px;padding:10px 14px;background:var(--s);border:1px solid var(--b);border-radius:10px}
+.busqueda-icon{font-size:0.95rem;color:var(--t3)}
+.busqueda-input{flex:1;background:var(--s2);border:1.5px solid var(--b);border-radius:7px;padding:9px 12px;color:var(--text);font-size:0.85rem;font-family:'Inter',sans-serif;outline:none}
+.busqueda-input:focus{border-color:var(--acc)}
+.busqueda-input::placeholder{color:var(--t3)}
+
 /* Pie de tabla: total + paginación */
 .tabla-footer{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--b);flex-wrap:wrap;gap:10px}
 .tabla-total{font-size:0.8rem;color:var(--t2);font-weight:600}
@@ -122,6 +129,14 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
   </div>
   <button class="btn-rango" onclick="aplicarRango()">Aplicar</button>
   <button class="btn-rango-sec" onclick="limpiarRango()">Limpiar</button>
+</div>
+
+<div class="busqueda-bar">
+  <span class="busqueda-icon">🔍</span>
+  <input type="text" id="busquedaInput" class="busqueda-input"
+         placeholder="Buscar estudiante por nombre, apellido o código..."
+         oninput="onBusquedaInput()" autocomplete="off">
+  <button class="btn-rango-sec" id="btnLimpiarBusqueda" style="display:none" onclick="limpiarBusqueda()">✕</button>
 </div>
 
 <div class="kpi-grid" id="kpis">
@@ -192,6 +207,8 @@ let reservasPagina = [];
 let filtroActual = 'todos';
 let fechaDesde = '';
 let fechaHasta = '';
+let busqueda = '';
+let busquedaTimer = null;
 let paginaActual = 1;
 let totalReservas = 0;
 const PER_PAGE = 20;
@@ -282,6 +299,25 @@ function limpiarRango() {
   cargarReservas();
 }
 
+function onBusquedaInput() {
+  const val = document.getElementById('busquedaInput').value;
+  document.getElementById('btnLimpiarBusqueda').style.display = val ? 'block' : 'none';
+  clearTimeout(busquedaTimer);
+  busquedaTimer = setTimeout(() => {
+    busqueda = val.trim();
+    paginaActual = 1;
+    cargarReservas();
+  }, 350);
+}
+
+function limpiarBusqueda() {
+  document.getElementById('busquedaInput').value = '';
+  document.getElementById('btnLimpiarBusqueda').style.display = 'none';
+  busqueda = '';
+  paginaActual = 1;
+  cargarReservas();
+}
+
 function cambiarPagina(dir) {
   const totalPaginas = Math.max(1, Math.ceil(totalReservas / PER_PAGE));
   const nueva = Math.min(totalPaginas, Math.max(1, paginaActual + dir));
@@ -328,6 +364,7 @@ async function cargarReservas() {
     if (filtroActual !== 'todos') params.set('estado', filtroActual);
     if (fechaDesde) params.set('desde', fechaDesde);
     if (fechaHasta) params.set('hasta', fechaHasta);
+    if (busqueda) params.set('q', busqueda);
 
     const r = await fetch(`/api/psico-reservas?${params.toString()}`);
     const data = await r.json();
