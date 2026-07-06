@@ -165,9 +165,12 @@ tbody tr:last-child td{border-bottom:none}
     <div id="tabContent-ficha">
       <div class="det-grid">
         <div><div class="tab-label">Correo</div><div class="tab-val" id="detEmail">—</div></div>
-        <div><div class="tab-label">Teléfono / WhatsApp</div><div class="tab-val" id="detTelefono">—</div></div>
         <div><div class="tab-label">Carrera</div><div class="tab-val" id="detCarrera">—</div></div>
         <div><div class="tab-label">Código</div><div class="tab-val" id="detCodigo">—</div></div>
+      </div>
+      <div class="form-field">
+        <label>Teléfono / WhatsApp</label>
+        <input type="tel" id="detTelefono" placeholder="No registra">
       </div>
       <div class="form-field">
         <label>¿Con quién vive?</label>
@@ -416,7 +419,7 @@ async function iniciarDesdeReserva(rv) {
 
   // Tab ficha
   document.getElementById('detEmail').textContent    = estudiante?.email   || reserva.email || '—';
-  document.getElementById('detTelefono').textContent = estudiante?.whatsapp || '—';
+  document.getElementById('detTelefono').value       = reserva.telefono || estudiante?.whatsapp || '';
   document.getElementById('detCarrera').textContent  = estudiante?.carrera  || '—';
   document.getElementById('detCodigo').textContent   = reserva.codigo || '—';
   document.getElementById('detConQuienVive').value   = reserva.con_quien_vive  || '';
@@ -474,6 +477,7 @@ async function guardarFichaDetalle() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         accion: 'ficha-clinica', id: detalleReservaId,
+        telefono:        document.getElementById('detTelefono').value.trim()       || null,
         con_quien_vive:  document.getElementById('detConQuienVive').value.trim()   || null,
         motivo_consulta: document.getElementById('detMotivoConsulta').value.trim() || null,
       }),

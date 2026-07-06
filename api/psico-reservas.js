@@ -174,9 +174,10 @@ export default async function handler(req, res) {
     if (req.method === 'POST' && req.body?.accion === 'ficha-clinica') {
       const { id, estado, n_sesion, profundidad_problema, impacto_profesional,
               tipo_dificultad, nivel_compromiso, problema_hallado,
-              observaciones, con_quien_vive, motivo_consulta } = req.body;
+              observaciones, con_quien_vive, motivo_consulta, telefono } = req.body;
       if (!id) { res.json({ ok: false, error: 'id requerido' }); return; }
       const updates = {};
+      if (telefono          !== undefined) updates.telefono           = telefono;
       if (estado            !== undefined) updates.estado             = estado;
       if (n_sesion          !== undefined) updates.n_sesion           = n_sesion;
       if (profundidad_problema !== undefined) updates.profundidad_problema = profundidad_problema;
