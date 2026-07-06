@@ -58,6 +58,26 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
 .btn-noasistio{border-color:var(--t2);color:var(--t2)}
 .btn-ficha{border-color:var(--acc2);color:var(--acc2)}
 
+/* Barra de rango de fechas */
+.rango-bar{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px;padding:14px 16px;background:var(--s);border:1px solid var(--b);border-radius:10px}
+.rango-field{display:flex;flex-direction:column;gap:4px}
+.rango-field label{font-size:0.66rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.rango-field input{background:var(--s2);border:1.5px solid var(--b);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.83rem;font-family:'Inter',sans-serif;outline:none}
+.rango-field input:focus{border-color:var(--acc)}
+.btn-rango{padding:9px 16px;background:var(--acc);color:#fff;border:none;border-radius:7px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s}
+.btn-rango:hover{opacity:.85}
+.btn-rango-sec{padding:9px 16px;background:none;color:var(--t2);border:1.5px solid var(--b);border-radius:7px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-rango-sec:hover{border-color:var(--acc);color:var(--acc2)}
+
+/* Pie de tabla: total + paginación */
+.tabla-footer{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--b);flex-wrap:wrap;gap:10px}
+.tabla-total{font-size:0.8rem;color:var(--t2);font-weight:600}
+.paginacion{display:flex;align-items:center;gap:10px}
+.pag-btn{padding:6px 12px;background:var(--s2);border:1.5px solid var(--b);border-radius:7px;color:var(--t2);font-size:0.8rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.pag-btn:hover:not(:disabled){border-color:var(--acc);color:var(--acc2)}
+.pag-btn:disabled{opacity:.4;cursor:not-allowed}
+.pag-info{font-size:0.8rem;color:var(--t3);font-weight:600}
+
 /* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
 .modal-overlay.visible{display:flex}
@@ -91,6 +111,19 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
   </div>
 </div>
 
+<div class="rango-bar">
+  <div class="rango-field">
+    <label>Desde</label>
+    <input type="date" id="fDesde">
+  </div>
+  <div class="rango-field">
+    <label>Hasta</label>
+    <input type="date" id="fHasta">
+  </div>
+  <button class="btn-rango" onclick="aplicarRango()">Aplicar</button>
+  <button class="btn-rango-sec" onclick="limpiarRango()">Limpiar</button>
+</div>
+
 <div class="kpi-grid" id="kpis">
   <div class="kpi"><div class="kpi-val" style="color:var(--yellow)" id="kPendientes">—</div><div class="kpi-label">Pendientes</div></div>
   <div class="kpi"><div class="kpi-val" style="color:var(--green)" id="kConfirmadas">—</div><div class="kpi-label">Confirmadas</div></div>
@@ -121,6 +154,14 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
       </tbody>
     </table>
   </div>
+  <div class="tabla-footer">
+    <div class="tabla-total" id="totalInfo">—</div>
+    <div class="paginacion">
+      <button class="pag-btn" id="btnPrev" onclick="cambiarPagina(-1)">‹ Anterior</button>
+      <span class="pag-info" id="pagInfo">—</span>
+      <button class="pag-btn" id="btnNext" onclick="cambiarPagina(1)">Siguiente ›</button>
+    </div>
+  </div>
 </div>
 
 <!-- Modal: Ficha de sesión -->
@@ -147,8 +188,13 @@ const sb = supabase.createClient(
   'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
 );
 
-let todasReservas = [];
+let reservasPagina = [];
 let filtroActual = 'todos';
+let fechaDesde = '';
+let fechaHasta = '';
+let paginaActual = 1;
+let totalReservas = 0;
+const PER_PAGE = 20;
 
 const DIAS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 const MESES_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -196,16 +242,12 @@ function accionesHTML(r) {
 }
 
 function renderTabla() {
-  const lista = filtroActual === 'todos'
-    ? todasReservas
-    : todasReservas.filter(r => r.estado === filtroActual);
-
   const tbody = document.getElementById('tablaReservas');
-  if (!lista.length) {
+  if (!reservasPagina.length) {
     tbody.innerHTML = `<tr><td colspan="6" class="empty">Sin reservas para este filtro</td></tr>`;
     return;
   }
-  tbody.innerHTML = lista.map(r => `
+  tbody.innerHTML = reservasPagina.map(r => `
     <tr>
       <td style="color:var(--text);font-weight:600">${formatFecha(r.fecha)}</td>
       <td>${formatHora(r.hora_inicio)} – ${formatHora(r.hora_fin)}</td>
@@ -218,9 +260,43 @@ function renderTabla() {
 
 function setFiltro(f, btn) {
   filtroActual = f;
+  paginaActual = 1;
   document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
   btn.classList.add('activo');
-  renderTabla();
+  cargarReservas();
+}
+
+function aplicarRango() {
+  fechaDesde = document.getElementById('fDesde').value;
+  fechaHasta = document.getElementById('fHasta').value;
+  paginaActual = 1;
+  cargarReservas();
+}
+
+function limpiarRango() {
+  document.getElementById('fDesde').value = '';
+  document.getElementById('fHasta').value = '';
+  fechaDesde = '';
+  fechaHasta = '';
+  paginaActual = 1;
+  cargarReservas();
+}
+
+function cambiarPagina(dir) {
+  const totalPaginas = Math.max(1, Math.ceil(totalReservas / PER_PAGE));
+  const nueva = Math.min(totalPaginas, Math.max(1, paginaActual + dir));
+  if (nueva === paginaActual) return;
+  paginaActual = nueva;
+  cargarReservas();
+}
+
+function renderPaginacion() {
+  const totalPaginas = Math.max(1, Math.ceil(totalReservas / PER_PAGE));
+  document.getElementById('totalInfo').textContent =
+    `${totalReservas} reserva${totalReservas !== 1 ? 's' : ''} en total`;
+  document.getElementById('pagInfo').textContent = `Página ${paginaActual} de ${totalPaginas}`;
+  document.getElementById('btnPrev').disabled = paginaActual <= 1;
+  document.getElementById('btnNext').disabled = paginaActual >= totalPaginas;
 }
 
 async function cambiarEstado(id, estado) {
@@ -231,31 +307,37 @@ async function cambiarEstado(id, estado) {
       body: JSON.stringify({ accion: 'estado', id, estado }),
     });
     const data = await r.json();
-    if (data.ok) {
-      const idx = todasReservas.findIndex(x => x.id === id);
-      if (idx !== -1) todasReservas[idx].estado = estado;
-      renderTabla();
-      actualizarKpis();
-    }
+    if (data.ok) cargarReservas();
   } catch(e) { alert('Error: ' + e.message); }
 }
 
-function actualizarKpis() {
-  document.getElementById('kPendientes').textContent  = todasReservas.filter(r=>r.estado==='pendiente').length;
-  document.getElementById('kConfirmadas').textContent = todasReservas.filter(r=>r.estado==='confirmada').length;
-  document.getElementById('kCompletadas').textContent = todasReservas.filter(r=>r.estado==='completada').length;
-  document.getElementById('kCanceladas').textContent  = todasReservas.filter(r=>r.estado==='cancelada').length;
-  document.getElementById('kNoAsistio').textContent   = todasReservas.filter(r=>r.estado==='no_asistio').length;
+function actualizarKpis(kpis) {
+  kpis = kpis || {};
+  document.getElementById('kPendientes').textContent  = kpis.pendiente  || 0;
+  document.getElementById('kConfirmadas').textContent = kpis.confirmada || 0;
+  document.getElementById('kCompletadas').textContent = kpis.completada || 0;
+  document.getElementById('kCanceladas').textContent  = kpis.cancelada  || 0;
+  document.getElementById('kNoAsistio').textContent   = kpis.no_asistio || 0;
 }
 
 async function cargarReservas() {
+  const tbody = document.getElementById('tablaReservas');
+  tbody.innerHTML = `<tr><td colspan="6" class="loading">Cargando...</td></tr>`;
   try {
-    const r = await fetch('/api/psico-reservas?accion=lista');
-    todasReservas = await r.json();
-    actualizarKpis();
+    const params = new URLSearchParams({ accion: 'lista', paginado: '1', page: paginaActual });
+    if (filtroActual !== 'todos') params.set('estado', filtroActual);
+    if (fechaDesde) params.set('desde', fechaDesde);
+    if (fechaHasta) params.set('hasta', fechaHasta);
+
+    const r = await fetch(`/api/psico-reservas?${params.toString()}`);
+    const data = await r.json();
+    reservasPagina = data.reservas || [];
+    totalReservas  = data.total || 0;
+    actualizarKpis(data.kpis);
     renderTabla();
+    renderPaginacion();
   } catch(e) {
-    document.getElementById('tablaReservas').innerHTML =
+    tbody.innerHTML =
       `<tr><td colspan="6" class="empty">Error al cargar: ${e.message}</td></tr>`;
   }
 }

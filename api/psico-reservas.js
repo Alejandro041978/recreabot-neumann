@@ -147,8 +147,36 @@ export default async function handler(req, res) {
 
     // ── GET lista de reservas (staff dashboard) ──
     if (req.method === 'GET' && accion === 'lista') {
-      const { desde } = req.query;
-      const filtroFecha = desde ? `&fecha=gte.${desde}` : '';
+      const { desde, hasta, estado, page, paginado } = req.query;
+
+      let filtroFecha = '';
+      if (desde) filtroFecha += `&fecha=gte.${desde}`;
+      if (hasta) filtroFecha += `&fecha=lte.${hasta}`;
+
+      // Modo paginado (con métricas y total del rango)
+      if (paginado) {
+        const perPage = 20;
+        const pageNum = Math.max(1, parseInt(page, 10) || 1);
+        const offset  = (pageNum - 1) * perPage;
+        const filtroEstado = estado ? `&estado=eq.${estado}` : '';
+
+        const data = await query('psico_reservas', 'GET', null,
+          `?order=fecha.desc,hora_inicio.desc&limit=${perPage}&offset=${offset}${filtroFecha}${filtroEstado}`);
+
+        // Todos los estados del rango (columna liviana) para KPIs y total
+        const estadosRango = await query('psico_reservas', 'GET', null,
+          `?select=estado&limit=100000${filtroFecha}`);
+        const kpis = { pendiente:0, confirmada:0, completada:0, cancelada:0, no_asistio:0 };
+        (estadosRango || []).forEach(r => { if (kpis[r.estado] !== undefined) kpis[r.estado]++; });
+        const total = estado
+          ? (estadosRango || []).filter(r => r.estado === estado).length
+          : (estadosRango || []).length;
+
+        res.json({ reservas: data || [], total, kpis, page: pageNum, perPage });
+        return;
+      }
+
+      // Modo simple (compatibilidad): 20 más recientes del rango
       const data = await query('psico_reservas', 'GET', null,
         `?order=fecha.desc,hora_inicio.desc&limit=20${filtroFecha}`);
       res.json(data || []); return;
