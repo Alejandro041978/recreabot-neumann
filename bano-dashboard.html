@@ -110,8 +110,7 @@ async function initAuth() {
   const info = await r.json();
   if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('bano_dashboard')) { window.location.href = '/ejecutivo'; return false; }
   document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong>`;
-  document.getElementById('topbar').style.display = 'flex'; window.location.href = '/login';
-  });
+  document.getElementById('topbar').style.display = 'flex';
   return true;
 }
 

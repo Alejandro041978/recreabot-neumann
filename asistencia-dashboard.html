@@ -139,7 +139,7 @@ async function initAuth() {
     window.location.href = '/ejecutivo'; return false;
   }
   document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
-  document.getElementById('topbar').style.display = 'flex'; window.location.href = '/login'; });
+  document.getElementById('topbar').style.display = 'flex';
   return true;
 }
 
