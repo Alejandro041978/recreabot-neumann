@@ -78,7 +78,7 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
 
       case 'salud_charlas': {
         const rows = await query('sesiones_charla', 'GET', null,
-          `?modulo=eq.salud&fecha=gte.${fechaInicio}&fecha=lte.${fechaFin}&select=id`);
+          `?modulo=eq.salud_gestion&fecha=gte.${fechaInicio}&fecha=lte.${fechaFin}&select=id`);
         return (rows || []).length;
       }
 
@@ -92,13 +92,13 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
 
       case 'salud_charlas_participantes': {
         const rows = await query('evaluaciones_charla', 'GET', null,
-          `?or=(modulo.is.null,modulo.neq.psicopedagogico)&ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=id`);
+          `?ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=id`);
         return (rows || []).length;
       }
 
       case 'salud_charlas_satisfaccion': {
         const rows = await query('evaluaciones_charla', 'GET', null,
-          `?or=(modulo.is.null,modulo.neq.psicopedagogico)&ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=p1,p2,p3`);
+          `?ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=p1,p2,p3`);
         if (!rows?.length) return 0;
         const sum = rows.reduce((a, e) => a + ((+e.p1 + +e.p2 + +e.p3) / 3), 0);
         return Math.round((sum / rows.length) * 100) / 100;
@@ -129,16 +129,16 @@ export async function calcularKpi(fuente, staffId, staffEmail, fechaInicio, fech
 
       case 'psico_charlas': {
         const rows = await query('sesiones_charla', 'GET', null,
-          `?modulo=eq.psicopedagogico&fecha=gte.${fechaInicio}&fecha=lte.${fechaFin}&select=id`);
+          `?modulo=eq.psico_gestion&fecha=gte.${fechaInicio}&fecha=lte.${fechaFin}&select=id`);
         return (rows || []).length;
       }
 
       case 'psico_charlas_satisfaccion': {
-        const rows = await query('evaluaciones_charla', 'GET', null,
-          `?modulo=eq.psicopedagogico&ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=calificacion`);
+        const rows = await query('evaluaciones_psico_charla', 'GET', null,
+          `?ts=gte.${fechaInicio}T00:00:00&ts=lte.${fechaFin}T23:59:59&select=p1,p2,p3`);
         if (!rows?.length) return 0;
-        const sum = rows.reduce((a, e) => a + (+e.calificacion || 0), 0);
-        return Math.round((sum / rows.length) * 10) / 10;
+        const sum = rows.reduce((a, e) => a + ((+e.p1 + +e.p2 + +e.p3) / 3), 0);
+        return Math.round((sum / rows.length) * 100) / 100;
       }
 
       // ── Fuentes Zoho Desk ──
