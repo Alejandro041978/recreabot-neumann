@@ -25,6 +25,19 @@ body{padding:20px 16px 60px;max-width:960px;margin:0 auto}
 .btn-logout{font-size:0.75rem;font-weight:600;color:var(--t3);background:none;border:1px solid var(--b);border-radius:6px;padding:5px 12px;cursor:pointer;transition:all .15s}
 .btn-logout:hover{border-color:var(--red);color:var(--red)}
 
+/* Filtro de tiempo */
+.filtro-tiempo{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:14px 16px;margin-bottom:24px}
+.filtro-btns{display:flex;gap:8px;flex-wrap:wrap}
+.filtro-btn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--b);background:none;color:var(--t2);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+.filtro-btn.activo{border-color:var(--acc);color:var(--acc2);background:rgba(16,185,129,.12)}
+.filtro-btn:hover{border-color:var(--acc);color:var(--acc2)}
+.filtro-extra{display:none;margin-top:12px;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.filtro-extra.visible{display:flex}
+.filtro-field{display:flex;flex-direction:column;gap:4px}
+.filtro-field label{font-size:0.66rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.filtro-field input,.filtro-field select{background:var(--s2);border:1.5px solid var(--b);border-radius:7px;padding:8px 10px;color:var(--text);font-size:0.83rem;font-family:'Inter',sans-serif;outline:none}
+.filtro-field input:focus,.filtro-field select:focus{border-color:var(--acc)}
+
 /* Encabezado de sección */
 .seccion-header{font-size:1rem;font-weight:800;color:var(--acc2);margin:10px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--b);display:flex;align-items:center;gap:8px}
 .seccion-header:not(:first-of-type){margin-top:32px}
@@ -124,6 +137,28 @@ tbody tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<!-- Filtro de tiempo -->
+<div class="filtro-tiempo">
+  <div class="filtro-btns">
+    <button class="filtro-btn activo" data-f="todos" onclick="setFiltro('todos',this)">Todos</button>
+    <button class="filtro-btn" data-f="hoy" onclick="setFiltro('hoy',this)">Hoy</button>
+    <button class="filtro-btn" data-f="7" onclick="setFiltro('7',this)">Últimos 7 días</button>
+    <button class="filtro-btn" data-f="30" onclick="setFiltro('30',this)">Últimos 30 días</button>
+    <button class="filtro-btn" data-f="calidad" onclick="setFiltro('calidad',this)">Mes Calidad</button>
+    <button class="filtro-btn" data-f="rango" onclick="setFiltro('rango',this)">Rango de fechas</button>
+  </div>
+  <div class="filtro-extra" id="filtroCalidad">
+    <div class="filtro-field">
+      <label>Periodo de calidad</label>
+      <select id="selPeriodo" onchange="render()"><option value="">Selecciona...</option></select>
+    </div>
+  </div>
+  <div class="filtro-extra" id="filtroRango">
+    <div class="filtro-field"><label>Desde</label><input type="date" id="rDesde" onchange="render()"></div>
+    <div class="filtro-field"><label>Hasta</label><input type="date" id="rHasta" onchange="render()"></div>
+  </div>
+</div>
+
 <!-- ══ SECCIÓN ATENCIONES ══ -->
 <div class="seccion-header">🩺 Atenciones</div>
 <div class="kpi-grid" id="kpisAtenciones">
@@ -168,9 +203,11 @@ const sb = supabase.createClient(
 );
 
 // ── Auth ──
+let authToken = null;
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = '/login'; return false; }
+  authToken = session.access_token;
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal.currentLevel !== 'aal2') { await sb.auth.signOut(); window.location.href = '/login'; return false; }
   const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
@@ -183,65 +220,130 @@ async function initAuth() {
   return true;
 }
 
-// ── KPIs ──
+// ── Estado ──
+let DATA = { atenciones: [], charlas: [], eval_atenciones: [] };
+let PERIODOS = [];
+let filtroTipo = 'todos';
+
+// ── Carga inicial de datos ──
 async function cargarKpis() {
   try {
-    const r = await fetch('/api/salud?accion=kpis');
+    const [r, rp] = await Promise.all([
+      fetch('/api/salud?accion=kpis'),
+      fetch('/api/calidad?accion=periodos', { headers: { 'Authorization': `Bearer ${authToken}` } }).catch(()=>null),
+    ]);
     const { atenciones, charlas, eval_atenciones } = await r.json();
-    const corte10 = new Date(); corte10.setDate(corte10.getDate()-70);
-    const at10 = atenciones.filter(a => new Date(a.ts) >= corte10);
-    const promCharla = charlas.length
-      ? (charlas.reduce((s,c)=>(s+(c.p1+c.p2+c.p3)/3),0)/charlas.length).toFixed(2)
-      : '—';
-    const promEval = eval_atenciones.length
-      ? (eval_atenciones.reduce((s,e)=>s+(e.p1+e.p2+e.p3)/3,0)/eval_atenciones.length).toFixed(2)
-      : '—';
-    const porResultado = {};
-    ['finalizado','en_seguimiento','derivado','no_concluyente'].forEach(r => porResultado[r] = atenciones.filter(a=>a.resultado===r).length);
+    DATA = { atenciones: atenciones||[], charlas: charlas||[], eval_atenciones: eval_atenciones||[] };
 
-    document.getElementById('kpisAtenciones').innerHTML = `
-      <div class="kpi"><div class="kpi-val">${atenciones.length}</div><div class="kpi-label">Atenciones totales</div></div>
-      <div class="kpi"><div class="kpi-val" style="color:var(--blue)">${at10.length}</div><div class="kpi-label">Últimas 10 semanas</div></div>
-      <div class="kpi"><div class="kpi-val" style="color:var(--acc)">${porResultado['finalizado']}</div><div class="kpi-label">Finalizados</div></div>
-      <div class="kpi"><div class="kpi-val" style="color:var(--yellow)">${porResultado['en_seguimiento']}</div><div class="kpi-label">En seguimiento</div></div>
-      <div class="kpi"><div class="kpi-val" style="color:var(--acc2)">${promEval}</div><div class="kpi-label">Satisfacción atención / 5</div></div>
-      <div class="kpi"><div class="kpi-val">${eval_atenciones.length}</div><div class="kpi-label">Eval. de atenciones</div></div>
-    `;
-
-    document.getElementById('kpisCharlas').innerHTML = `
-      <div class="kpi"><div class="kpi-val" style="color:var(--acc2)">${promCharla}</div><div class="kpi-label">Prom. charlas / 5</div></div>
-      <div class="kpi"><div class="kpi-val">${charlas.length}</div><div class="kpi-label">Eval. charlas</div></div>
-    `;
-
-    // Tabla recientes
-    document.getElementById('tbodyRecientes').innerHTML = atenciones.slice(0,10).map(a => `
-      <tr>
-        <td style="color:var(--text)">${a.nombre||a.codigo}</td>
-        <td>${formatFecha(a.ts)}</td>
-        <td>${badgeResultado(a.resultado)}</td>
-      </tr>`).join('') || `<tr><td colspan="3" style="text-align:center;color:var(--t3);padding:16px">Sin atenciones</td></tr>`;
-
-    // Charlas
-    if (!charlas.length) {
-      document.getElementById('charlasPanel').innerHTML = '<div style="text-align:center;color:var(--t3);padding:20px;font-size:0.85rem">Sin evaluaciones aún</div>';
-    } else {
-      const p1 = charlas.reduce((s,c)=>s+c.p1,0)/charlas.length;
-      const p2 = charlas.reduce((s,c)=>s+c.p2,0)/charlas.length;
-      const p3 = charlas.reduce((s,c)=>s+c.p3,0)/charlas.length;
-      const total = (p1+p2+p3)/3;
-      document.getElementById('charlasPanel').innerHTML = `
-        <div class="charla-promedio" style="color:${total>=4?'var(--acc)':total>=3?'var(--yellow)':'var(--red)'}">
-          ${total.toFixed(2)}<span style="font-size:1rem;color:var(--t3)"> / 5</span>
-        </div>
-        <div class="charla-sub">${charlas.length} evaluaciones acumuladas</div>
-        ${[['Claridad del tema',p1],['Utilidad de la información',p2],['Calidad de presentación',p3]].map(([n,v])=>`
-          <div class="criterio-row">
-            <div class="criterio-header"><span class="criterio-nombre">${n}</span><span class="criterio-prom">${v.toFixed(2)}</span></div>
-            <div class="barra-bg"><div class="barra-fill" style="width:${(v/5)*100}%;background:${v>=4?'var(--acc)':v>=3?'var(--yellow)':'var(--red)'}"></div></div>
-          </div>`).join('')}`;
+    if (rp && rp.ok) {
+      const pj = await rp.json();
+      PERIODOS = Array.isArray(pj) ? pj : (pj.periodos || []);
+      const sel = document.getElementById('selPeriodo');
+      sel.innerHTML = '<option value="">Selecciona...</option>' +
+        PERIODOS.map((p,i) => `<option value="${i}">${p.nombre}</option>`).join('');
     }
+    render();
   } catch(e) {
     document.getElementById('kpisAtenciones').innerHTML = `<div style="color:var(--red);font-size:0.82rem">Error: ${e.message}</div>`;
+  }
+}
+
+// ── Filtro de tiempo ──
+function setFiltro(tipo, btn) {
+  filtroTipo = tipo;
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+  btn.classList.add('activo');
+  document.getElementById('filtroCalidad').classList.toggle('visible', tipo === 'calidad');
+  document.getElementById('filtroRango').classList.toggle('visible', tipo === 'rango');
+  render();
+}
+
+function calcularRango() {
+  let desde = null, hasta = null;
+  if (filtroTipo === 'hoy') {
+    desde = new Date(); desde.setHours(0,0,0,0);
+    hasta = new Date(); hasta.setHours(23,59,59,999);
+  } else if (filtroTipo === '7') {
+    desde = new Date(); desde.setDate(desde.getDate()-6); desde.setHours(0,0,0,0);
+    hasta = new Date(); hasta.setHours(23,59,59,999);
+  } else if (filtroTipo === '30') {
+    desde = new Date(); desde.setDate(desde.getDate()-29); desde.setHours(0,0,0,0);
+    hasta = new Date(); hasta.setHours(23,59,59,999);
+  } else if (filtroTipo === 'calidad') {
+    const p = PERIODOS[document.getElementById('selPeriodo').value];
+    if (p) { desde = new Date(p.fecha_inicio+'T00:00:00'); hasta = new Date(p.fecha_fin+'T23:59:59'); }
+  } else if (filtroTipo === 'rango') {
+    const d = document.getElementById('rDesde').value;
+    const h = document.getElementById('rHasta').value;
+    if (d) desde = new Date(d+'T00:00:00');
+    if (h) hasta = new Date(h+'T23:59:59');
+  }
+  return { desde, hasta };
+}
+
+function enRango(ts, desde, hasta) {
+  const t = new Date(ts);
+  if (desde && t < desde) return false;
+  if (hasta && t > hasta) return false;
+  return true;
+}
+
+// ── Render con el filtro activo ──
+function render() {
+  const { desde, hasta } = calcularRango();
+  const atenciones      = DATA.atenciones.filter(a => enRango(a.ts, desde, hasta));
+  const charlas         = DATA.charlas.filter(c => enRango(c.ts, desde, hasta));
+  const eval_atenciones = DATA.eval_atenciones.filter(e => enRango(e.ts, desde, hasta));
+
+  const promCharla = charlas.length
+    ? (charlas.reduce((s,c)=>(s+(c.p1+c.p2+c.p3)/3),0)/charlas.length).toFixed(2)
+    : '—';
+  const promEval = eval_atenciones.length
+    ? (eval_atenciones.reduce((s,e)=>s+(e.p1+e.p2+e.p3)/3,0)/eval_atenciones.length).toFixed(2)
+    : '—';
+  const porResultado = {};
+  ['finalizado','en_seguimiento','derivado','no_concluyente'].forEach(r => porResultado[r] = atenciones.filter(a=>a.resultado===r).length);
+
+  document.getElementById('kpisAtenciones').innerHTML = `
+    <div class="kpi"><div class="kpi-val">${atenciones.length}</div><div class="kpi-label">Atenciones totales</div></div>
+    <div class="kpi"><div class="kpi-val" style="color:var(--acc)">${porResultado['finalizado']}</div><div class="kpi-label">Finalizados</div></div>
+    <div class="kpi"><div class="kpi-val" style="color:var(--yellow)">${porResultado['en_seguimiento']}</div><div class="kpi-label">En seguimiento</div></div>
+    <div class="kpi"><div class="kpi-val" style="color:var(--blue)">${porResultado['derivado']}</div><div class="kpi-label">Derivados</div></div>
+    <div class="kpi"><div class="kpi-val" style="color:var(--acc2)">${promEval}</div><div class="kpi-label">Satisfacción atención / 5</div></div>
+    <div class="kpi"><div class="kpi-val">${eval_atenciones.length}</div><div class="kpi-label">Eval. de atenciones</div></div>
+  `;
+
+  document.getElementById('kpisCharlas').innerHTML = `
+    <div class="kpi"><div class="kpi-val" style="color:var(--acc2)">${promCharla}</div><div class="kpi-label">Prom. charlas / 5</div></div>
+    <div class="kpi"><div class="kpi-val">${charlas.length}</div><div class="kpi-label">Eval. charlas</div></div>
+  `;
+
+  // Tabla recientes
+  document.getElementById('tbodyRecientes').innerHTML = atenciones.slice(0,10).map(a => `
+    <tr>
+      <td style="color:var(--text)">${a.nombre||a.codigo}</td>
+      <td>${formatFecha(a.ts)}</td>
+      <td>${badgeResultado(a.resultado)}</td>
+    </tr>`).join('') || `<tr><td colspan="3" style="text-align:center;color:var(--t3);padding:16px">Sin atenciones en este periodo</td></tr>`;
+
+  // Charlas
+  if (!charlas.length) {
+    document.getElementById('charlasPanel').innerHTML = '<div style="text-align:center;color:var(--t3);padding:20px;font-size:0.85rem">Sin evaluaciones en este periodo</div>';
+  } else {
+    const p1 = charlas.reduce((s,c)=>s+c.p1,0)/charlas.length;
+    const p2 = charlas.reduce((s,c)=>s+c.p2,0)/charlas.length;
+    const p3 = charlas.reduce((s,c)=>s+c.p3,0)/charlas.length;
+    const total = (p1+p2+p3)/3;
+    document.getElementById('charlasPanel').innerHTML = `
+      <div class="charla-promedio" style="color:${total>=4?'var(--acc)':total>=3?'var(--yellow)':'var(--red)'}">
+        ${total.toFixed(2)}<span style="font-size:1rem;color:var(--t3)"> / 5</span>
+      </div>
+      <div class="charla-sub">${charlas.length} evaluaciones en este periodo</div>
+      ${[['Claridad del tema',p1],['Utilidad de la información',p2],['Calidad de presentación',p3]].map(([n,v])=>`
+        <div class="criterio-row">
+          <div class="criterio-header"><span class="criterio-nombre">${n}</span><span class="criterio-prom">${v.toFixed(2)}</span></div>
+          <div class="barra-bg"><div class="barra-fill" style="width:${(v/5)*100}%;background:${v>=4?'var(--acc)':v>=3?'var(--yellow)':'var(--red)'}"></div></div>
+        </div>`).join('')}`;
   }
 }
 
