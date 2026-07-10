@@ -18,7 +18,7 @@
     { label: 'Servicios', items: [
       { icon: '🏃', text: 'Recreativos',  href: '/recreativos-dashboard', modulo: 'recreativos_panel' },
       { icon: '☕', text: 'Cafetería',    href: '/cafeteria-dashboard',   modulo: 'cafeteria_dashboard' },
-      { icon: '🏛️', text: 'Museos',       href: '/museos-dashboard',      modulo: 'museos_dashboard' },
+      { icon: '🏛️', text: 'Museos',       href: '/cultura-dashboard',     modulo: 'cultura_dashboard' },
       { icon: '🚻', text: 'Baños',        href: '/bano-dashboard',        modulo: 'bano_dashboard' },
       // Grupos expandibles
       { icon: '🧠', text: 'Psicopedagógico', group: true,
