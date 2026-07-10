@@ -89,7 +89,7 @@ export default async function handler(req, res) {
   <div style="margin:0 32px 24px;background:#eff6ff;border-left:4px solid #3b82f6;border-radius:0 8px 8px 0;padding:14px 16px">
     <p style="margin:0;font-size:13px;color:#1e40af;font-weight:600;margin-bottom:4px">📌 Recuerda</p>
     <p style="margin:0;font-size:13px;color:#1e40af;line-height:1.6">
-      Preséntate puntualmente en tu horario. Si no puedes asistir, cancela tu reserva con anticipación para que otro estudiante pueda usar el espacio.
+      Preséntate puntualmente en tu horario y <strong>acércate a garita para recibir los implementos que necesitas</strong> para hacer uso del espacio recreativo. Si no puedes asistir, cancela tu reserva con anticipación para que otro estudiante pueda usar el espacio.
     </p>
   </div>
 
