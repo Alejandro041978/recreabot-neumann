@@ -112,9 +112,12 @@ export default async function handler(req, res) {
       }
 
       if (accion === 'ficha') {
-        const { codigo, grupo_sanguineo, estatura, enfermedades, discapacidad, conadis, seguro } = req.body;
+        const { codigo, grupo_sanguineo, estatura, enfermedades, discapacidad, conadis, seguro, gestacion, semanas_gestacion, fecha_info } = req.body;
         if (!codigo) { res.status(400).json({ error: 'Código requerido' }); return; }
-        const row = { codigo, grupo_sanguineo: grupo_sanguineo||null, estatura: estatura?Number(estatura):null, enfermedades: enfermedades||null, discapacidad: discapacidad||null, conadis: conadis===true||conadis==='true', seguro: seguro||null };
+        const row = { codigo, grupo_sanguineo: grupo_sanguineo||null, estatura: estatura?Number(estatura):null, enfermedades: enfermedades||null, discapacidad: discapacidad||null, conadis: conadis===true||conadis==='true', seguro: seguro||null,
+          gestacion: gestacion==='true' ? true : gestacion==='false' ? false : null,
+          semanas_gestacion: semanas_gestacion?Number(semanas_gestacion):null,
+          fecha_info: fecha_info||null };
         const existe = await query('fichas_salud', 'GET', null, `?codigo=eq.${codigo}&limit=1`);
         if (existe?.[0]) {
           await query('fichas_salud', 'PATCH', row, `?codigo=eq.${codigo}`);
