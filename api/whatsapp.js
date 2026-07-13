@@ -102,11 +102,12 @@ function esConsultaCultura(tl) {
 }
 
 // ── System prompt (paridad con el bot web) ──
-function buildSystem(est, modulo, slotsMap, asistenciaData, conocimientosData) {
+function buildSystem(est, modulo, slotsMap, asistenciaData, conocimientosData, cfg) {
   const hoyStr = new Date().toLocaleDateString('es-PE', { weekday:'long', day:'numeric', month:'long', year:'numeric', timeZone:'America/Lima' });
   const slotsBloque = Object.entries(slotsMap).map(([a, s]) => `- ${a}: ${s.join(', ')}`).join('\n');
+  const nombreBot = cfg?.nombre_bot || 'John';
 
-  let sys = `Eres el Asistente Digital del Instituto Superior Neumann. Ayudas a los estudiantes por WhatsApp con tres servicios:
+  let sys = `Te llamas ${nombreBot}, el asistente digital del Instituto Superior Neumann. Ayudas a los estudiantes por WhatsApp con tres servicios:
 
 1. RESERVAS DE ÁREAS RECREATIVAS
 2. CONSULTA DE ASISTENCIA AL CAMPUS
@@ -121,9 +122,10 @@ ESTUDIANTE IDENTIFICADO:
   REGLA: Usa EXACTAMENTE este nombre. Nunca lo cambies. Ya está verificado, no le pidas su código.
 
 REGLAS GENERALES:
+- Te presentas como ${nombreBot} si te preguntan tu nombre.
 - Respuestas cortas — máximo 3 líneas — es WhatsApp
 - No uses markdown, asteriscos ni guiones al inicio de línea
-- NUNCA inventes información sobre el instituto (servicios, horarios, profesores, precios, instalaciones, procedimientos). Si no la tienes en el contexto, admite que no la tienes y ofrece crear un ticket.
+- REGLA ABSOLUTA ANTI-INVENCIÓN: Solo puedes dar información que esté EXPLÍCITAMENTE en este prompt o en los datos de contexto (asistencia, base de conocimientos). PROHIBIDO usar conocimiento general o inventar cualquier dato sobre el instituto, sus servicios, horarios, docentes, precios, ubicaciones, trámites o cualquier otro tema. Si la respuesta no está en el contexto, di claramente que no tienes esa información y ofrece crear un ticket de soporte. Ante la duda, NO respondas de tu propio conocimiento.
 - MUSEOS/CULTURA: NUNCA des URLs directas de museos ni listes museos específicos. Si preguntan por museos o cultura, comparte ÚNICAMENTE la galería oficial: ${BASE_URL}/cultura
 
 ESCALAMIENTO A SOPORTE:
@@ -154,7 +156,17 @@ Pasos:
   if (conocimientosData) {
     sys += `\n\nINFORMACIÓN DEL INSTITUTO (usa esto para responder):\n${conocimientosData}\n\nResponde con esta información de forma natural. Si no responde exactamente lo que pregunta, ofrécele crear un ticket.`;
   }
+  if (cfg?.instrucciones && cfg.instrucciones.trim()) {
+    sys += `\n\nINSTRUCCIONES ADICIONALES DEL INSTITUTO:\n${cfg.instrucciones.trim()}`;
+  }
   return sys;
+}
+
+async function cargarConfigBot() {
+  try {
+    const rows = await query('config_bot', 'GET', null, '?id=eq.1&limit=1');
+    return rows?.[0] || { nombre_bot: 'John', instrucciones: '' };
+  } catch (e) { return { nombre_bot: 'John', instrucciones: '' }; }
 }
 
 // ── Búsquedas contextuales (reusan endpoints existentes) ──
@@ -284,15 +296,16 @@ export default async function handler(req, res) {
       }
       if (est) {
         // guardar identidad y saludar (sin gastar tokens de Claude)
+        const cfgSaludo = await cargarConfigBot();
         await guardarEstado(from, {
           codigo: est.codigo, nombre: est.nombre, apellido: est.apellido || '', carrera: est.carrera || '',
           email: est.email || null, modulo: estado.modulo || null, historial,
         });
-        const saludo = `👋 Hola ${est.nombre}, soy el Asistente del Instituto Neumann.\n\n¿En qué te ayudo hoy?\n📅 Reservar un área recreativa\n📊 Consultar tu asistencia\n🏛️ Museos virtuales`;
+        const saludo = `👋 Hola ${est.nombre}, soy ${cfgSaludo.nombre_bot || 'John'}, el asistente del Instituto Neumann.\n\n¿En qué te ayudo hoy?\n📅 Reservar un área recreativa\n📊 Consultar tu asistencia\n🏛️ Museos virtuales`;
         res.status(200).send(twiml(saludo)); return;
       }
       // no identificado → pedir código
-      res.status(200).send(twiml('👋 Hola, soy el Asistente del Instituto Neumann. Para ayudarte necesito tu código de estudiante. ¿Me lo compartes?'));
+      res.status(200).send(twiml('👋 Hola, soy el asistente del Instituto Neumann. Para ayudarte necesito tu código de estudiante. ¿Me lo compartes?'));
       return;
     }
 
@@ -325,7 +338,8 @@ export default async function handler(req, res) {
     if (modulo === 'asistencia') asistenciaData = await fetchAsistencia(est.codigo);
     else if (modulo !== 'reserva' && modulo !== 'cultura') conocimientosData = await fetchConocimientos(body);
 
-    const system = buildSystem(est, modulo, slotsMap, asistenciaData, conocimientosData);
+    const cfgBot = await cargarConfigBot();
+    const system = buildSystem(est, modulo, slotsMap, asistenciaData, conocimientosData, cfgBot);
     const messages = [...historial, { role: 'user', content: body }].slice(-MAX_HIST);
 
     let reply = await callClaude(system, messages);

@@ -531,9 +531,11 @@ function buildSystem(asistenciaData = null, conocimientosData = null) {
   const slotsTexto  = slotsArea.length ? slotsArea.join(', ') : 'pregunta primero qué área quiere';
   const hoyStr = new Date().toLocaleDateString('es-PE', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
+  const nombreBot = (BOT_CFG && BOT_CFG.nombre_bot) || 'John';
+
   // Si no hay estudiante identificado, solo pedir código
   if (!estudianteActual) {
-    return `Eres el Asistente Digital del Instituto Superior Neumann.
+    return `Te llamas ${nombreBot}, el asistente digital del Instituto Superior Neumann.
 REGLA ABSOLUTA: Antes de hacer CUALQUIER cosa debes identificar al estudiante.
 NO respondas preguntas, NO des recomendaciones, NO des información de ningún tipo.
 Tu ÚNICA respuesta permitida es pedir el código de estudiante de forma amable.
@@ -546,7 +548,7 @@ Sin importar lo que escriba el estudiante, responde SOLO pidiendo su código.`;
   Código: ${estudianteActual.codigo}
   REGLA: Usa EXACTAMENTE este nombre. Nunca lo cambies.`;
 
-  let sys = `Eres el Asistente Digital del Instituto Superior Neumann. Ayudas a los estudiantes con tres servicios:
+  let sys = `Te llamas ${nombreBot}, el asistente digital del Instituto Superior Neumann. Ayudas a los estudiantes con tres servicios:
 
 1. RESERVAS DE ÁREAS RECREATIVAS
 2. CONSULTA DE ASISTENCIA AL CAMPUS
@@ -561,8 +563,8 @@ REGLAS GENERALES:
 - Respuestas cortas — máximo 3 líneas — estamos en móvil
 - No uses markdown, asteriscos ni guiones
 - El estudiante ya fue verificado — no le pidas su código de nuevo
-- NUNCA inventes información sobre el instituto (servicios, horarios, profesores, precios, instalaciones, procedimientos). Si no tienes esa información en los datos de contexto, admite que no la tienes y ofrece crear un ticket.
-- Solo puedes afirmar algo sobre el instituto si está explícitamente en los datos que se te proporcionan en este prompt.
+- Te presentas como ${nombreBot} si te preguntan tu nombre.
+- REGLA ABSOLUTA ANTI-INVENCIÓN: Solo puedes dar información que esté EXPLÍCITAMENTE en este prompt o en los datos de contexto (asistencia, base de conocimientos). PROHIBIDO usar tu conocimiento general o inventar cualquier dato sobre el instituto, sus servicios, horarios, docentes, precios, ubicaciones, trámites o cualquier otro tema. Si la respuesta no está en el contexto, di claramente que no tienes esa información y ofrece crear un ticket. Ante la duda, NO respondas de tu propio conocimiento.
 
 ESCALAMIENTO A SOPORTE:
 Si el estudiante pide algo que no puedes resolver (no es reserva, asistencia ni cultura, o es una queja/problema que requiere atención humana), ofrécele crear un ticket de soporte. Si acepta, responde EXACTAMENTE con este formato (nada más en el mensaje):
@@ -617,13 +619,20 @@ ${conocimientosData}
 Responde usando esta información de forma natural y conversacional. Si la información no responde exactamente lo que pregunta el estudiante, di lo que puedas y ofrécele crear un ticket para que alguien del equipo le responda con detalle.`;
   }
 
+  if (BOT_CFG && BOT_CFG.instrucciones && BOT_CFG.instrucciones.trim()) {
+    sys += `\n\nINSTRUCCIONES ADICIONALES DEL INSTITUTO:\n${BOT_CFG.instrucciones.trim()}`;
+  }
+
   return sys;
 }
 
 // ── MENSAJE INICIAL ──
-const bienvenida = AREA
-  ? `👋 Hola, soy el Asistente del Instituto Neumann.\n\n¡Vas a usar ${AREA}! Para registrar necesito tu código de estudiante.`
-  : `👋 Hola, soy el Asistente del Instituto Neumann.\n\n¿En qué te puedo ayudar hoy?\n\n📅 Reservar un área recreativa\n📊 Consultar tu asistencia al campus\n🏛️ Visitar museos virtuales\n\nPrimero dime tu código de estudiante.`;
+function getBienvenida() {
+  const n = (BOT_CFG && BOT_CFG.nombre_bot) || 'John';
+  return AREA
+    ? `👋 Hola, soy ${n}, el asistente del Instituto Neumann.\n\n¡Vas a usar ${AREA}! Para registrar necesito tu código de estudiante.`
+    : `👋 Hola, soy ${n}, el asistente del Instituto Neumann.\n\n¿En qué te puedo ayudar hoy?\n\n📅 Reservar un área recreativa\n📊 Consultar tu asistencia al campus\n🏛️ Visitar museos virtuales\n\nPrimero dime tu código de estudiante.`;
+}
 
 const chipsIniciales = ['Tengo mi código', 'Reservar área', 'Ver mi asistencia', 'Museos virtuales'];
 
@@ -873,14 +882,24 @@ function updateChips(reply) {
   if (chips.length) setChips(chips);
 }
 
+// ── CONFIG DEL BOT (nombre + instrucciones editables) ──
+let BOT_CFG = { nombre_bot: 'John', instrucciones: '' };
+async function cargarConfigBot() {
+  try {
+    const r = await fetch('/api/bot-config');
+    if (r.ok) BOT_CFG = await r.json();
+  } catch(e) {}
+}
+
 // ── INIT ──
 window.addEventListener('load', async () => {
   await cargarConfig();
+  await cargarConfigBot();
   setTimeout(() => {
     addTyping();
     setTimeout(() => {
       removeTyping();
-      addMsg('bot', bienvenida);
+      addMsg('bot', getBienvenida());
       setChips(chipsIniciales);
     }, 800);
   }, 300);

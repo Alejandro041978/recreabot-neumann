@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Configuración del Bot — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#6366f1;--acc2:#a5b4fc;--red:#ef4444;--green:#10b981;
+  --text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{padding:20px 16px 60px;max-width:820px;margin:0 auto}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:10px 16px;background:var(--s);border:1px solid var(--b);border-radius:10px}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-icon{font-size:1.4rem}
+.topbar-titulo{font-size:1rem;font-weight:800;color:var(--acc2)}
+.topbar-user{font-size:0.78rem;color:var(--t2)}.topbar-user strong{color:var(--text)}
+
+.card{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:22px;margin-bottom:16px}
+.card-titulo{font-size:0.9rem;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.card-sub{font-size:0.78rem;color:var(--t3);margin-bottom:16px;line-height:1.5}
+
+.field{margin-bottom:16px}
+.field label{font-size:0.7rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px}
+.field input,.field textarea{width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;padding:10px 13px;color:var(--text);font-size:0.9rem;font-family:'Inter',sans-serif;outline:none;line-height:1.6}
+.field input:focus,.field textarea:focus{border-color:var(--acc)}
+.field textarea{resize:vertical;min-height:200px}
+.hint{font-size:0.72rem;color:var(--t3);margin-top:5px}
+
+.btn{padding:11px 22px;border-radius:9px;border:none;font-size:0.88rem;font-weight:700;cursor:pointer;transition:opacity .15s;font-family:'Inter',sans-serif}
+.btn-acc{background:var(--acc);color:#fff}.btn-acc:hover{opacity:.85}
+.btn-link{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;background:var(--s2);color:var(--text);border:1px solid var(--b);border-radius:9px;font-size:0.85rem;font-weight:600;text-decoration:none;transition:all .15s}
+.btn-link:hover{border-color:var(--acc);color:var(--acc2)}
+
+.msg-ok{background:rgba(16,185,129,.12);border:1px solid var(--green);color:var(--green);padding:10px 14px;border-radius:8px;font-size:0.83rem;font-weight:600;margin-top:12px;display:none;text-align:center}
+.msg-err{background:rgba(239,68,68,.12);border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:0.83rem;font-weight:600;margin-top:12px;display:none;text-align:center}
+</style>
+<style id="ns-layout-pre">body{margin-left:240px!important}@media(max-width:780px){body{margin-left:0!important;padding-top:52px!important}}</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-icon">🤖</div>
+    <div class="topbar-titulo">Configuración del Bot</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="topbar-user" id="topbar-user"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-titulo">🤖 Identidad e instrucciones</div>
+  <div class="card-sub">Estos ajustes se aplican tanto al bot web como al de WhatsApp. Los cambios se reflejan al guardar.</div>
+
+  <div class="field">
+    <label>Nombre del bot</label>
+    <input type="text" id="fNombre" placeholder="John" maxlength="40">
+    <div class="hint">Cómo se presenta el asistente ante los estudiantes.</div>
+  </div>
+
+  <div class="field">
+    <label>Instrucciones / personalidad</label>
+    <textarea id="fInstrucciones" placeholder="Ej: Sé cordial y usa un tono juvenil. Recuerda a los estudiantes que las reservas se confirman en garita. No respondas consultas académicas, deriva a Secretaría..."></textarea>
+    <div class="hint">Instrucciones adicionales que guían al bot. No hace falta repetir las reglas de reservas o tickets — esas ya están integradas. El bot solo responde con información de la base de conocimientos; aquí defines su tono y reglas extra.</div>
+  </div>
+
+  <button class="btn btn-acc" id="btnGuardar" onclick="guardar()">Guardar configuración</button>
+  <div class="msg-ok" id="msgOk">✅ Configuración guardada</div>
+  <div class="msg-err" id="msgErr"></div>
+</div>
+
+<div class="card">
+  <div class="card-titulo">📚 Base de conocimientos</div>
+  <div class="card-sub">La información que el bot usa para responder a los estudiantes (horarios, trámites, servicios, etc.) se edita en la base de conocimientos. El bot nunca inventa datos: solo responde lo que esté aquí.</div>
+  <a class="btn-link" href="/conocimientos">📚 Editar base de conocimientos →</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/sidebar.js"></script>
+<script>
+const sb = supabase.createClient(
+  'https://exjaxhrylfdwehzjfjut.supabase.co',
+  'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
+);
+
+let token = null;
+
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/login'; return false; }
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal.currentLevel !== 'aal2') { await sb.auth.signOut(); window.location.href = '/login'; return false; }
+  token = session.access_token;
+  const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${token}` } });
+  if (!r.ok) { window.location.href = '/login'; return false; }
+  const info = await r.json();
+  if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('bot_config')) {
+    window.location.href = '/ejecutivo'; return false;
+  }
+  document.getElementById('topbar-user').innerHTML =
+    `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
+  return true;
+}
+
+async function cargar() {
+  try {
+    const r = await fetch('/api/bot-config');
+    const cfg = await r.json();
+    document.getElementById('fNombre').value = cfg.nombre_bot || 'John';
+    document.getElementById('fInstrucciones').value = cfg.instrucciones || '';
+  } catch(e) {}
+}
+
+async function guardar() {
+  const ok = document.getElementById('msgOk');
+  const err = document.getElementById('msgErr');
+  ok.style.display = 'none'; err.style.display = 'none';
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const r = await fetch('/api/bot-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        nombre_bot:    document.getElementById('fNombre').value.trim(),
+        instrucciones: document.getElementById('fInstrucciones').value,
+      }),
+    });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || 'Error al guardar');
+    ok.style.display = 'block'; setTimeout(() => ok.style.display = 'none', 3000);
+  } catch(e) {
+    err.textContent = 'Error: ' + e.message; err.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar configuración';
+  }
+}
+
+initAuth().then(okAuth => { if (okAuth) cargar(); });
+</script>
+</body>
+</html>

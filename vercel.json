@@ -26,6 +26,7 @@
     { "src": "api/calidad-cron.js",     "use": "@vercel/node" },
     { "src": "api/reset-password.js",  "use": "@vercel/node" },
     { "src": "api/whatsapp.js",        "use": "@vercel/node" },
+    { "src": "api/bot-config.js",      "use": "@vercel/node" },
     { "src": "*.html",                   "use": "@vercel/static" },
     { "src": "sidebar.js",               "use": "@vercel/static" }
   ],
@@ -97,6 +98,8 @@
     { "src": "/api/calidad-cron",         "dest": "/api/calidad-cron.js"           },
     { "src": "/api/reset-password",      "dest": "/api/reset-password.js"         },
     { "src": "/api/whatsapp",            "dest": "/api/whatsapp.js"               },
+    { "src": "/api/bot-config",          "dest": "/api/bot-config.js"             },
+    { "src": "/bot-config",              "dest": "/bot-config.html"               },
     { "src": "/calidad-config",           "dest": "/calidad-config.html"           },
     { "src": "/calidad-dashboard",        "dest": "/calidad-dashboard.html"        },
     { "src": "/bot.html",                   "dest": "/bot.html"                        },
