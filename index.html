@@ -305,7 +305,6 @@ select option { background: var(--surface2); }
     <div class="subnav-item" data-view="campanas" onclick="navTab('campanas')">📣 Campañas</div>
     <div class="subnav-item" data-view="estudiantes" onclick="navTab('estudiantes')">🎓 Estudiantes</div>
     <div class="subnav-item" data-view="config" onclick="navTab('config')">⚙️ Configuración</div>
-    <div class="subnav-item" data-view="conectar" onclick="navTab('conectar')">🔌 Conectar APIs</div>
     <div class="subnav-item" onclick="window.open('/qr','_blank')" style="margin-left:auto">🔲 QR ↗</div>
     <div class="subnav-item" onclick="window.open('/bot','_blank')">📱 Bot ↗</div>
   </div>
@@ -422,8 +421,8 @@ select option { background: var(--surface2); }
           <div class="quick-actions">
             <div class="qa-title">Estado del bot</div>
             <div id="bot-status" style="font-size:0.8rem; color:var(--text3)">
-              <div style="margin-bottom:6px">API: <span id="api-status" style="color:var(--yellow)">⚠ Sin configurar</span></div>
-              <div>Registros en memoria: <span id="mem-count" style="color:var(--accent2)">0</span></div>
+              <div style="margin-bottom:6px">API: <span id="api-status" style="color:var(--green)">✅ Configurado</span></div>
+              <div>Registros: <span id="mem-count" style="color:var(--accent2)">0</span></div>
             </div>
           </div>
         </div>
@@ -651,104 +650,11 @@ select option { background: var(--surface2); }
       </div>
     </div>
 
-    <!-- ═══════════ CONECTAR APIs ═══════════ -->
-    <div id="view-conectar" class="view">
-      <div class="section-header">
-        <h2>Conectar APIs externas</h2>
-        <p>Configura las credenciales para conectar el sistema a WhatsApp y Google Sheets reales.</p>
-      </div>
-
-      <div class="grid g2" style="max-width:900px">
-        <div class="card">
-          <div class="card-title" style="margin-bottom:14px">🤖 Anthropic Claude API</div>
-          <p style="font-size:0.8rem; color:var(--text3); margin-bottom:14px; line-height:1.6">Necesaria para que el bot tenga inteligencia artificial. Obtén tu API key en <strong style="color:var(--accent2)">console.anthropic.com</strong></p>
-          <div class="form-group" style="margin-bottom:12px">
-            <label>API Key</label>
-            <div class="credential-field">
-              <input type="password" id="cfg-claude-key" placeholder="sk-ant-api03-..." oninput="validateKey('claude')">
-              <span class="cred-status" id="claude-status">—</span>
-            </div>
-          </div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-primary btn-sm" onclick="testClaudeAPI()">Probar conexión</button>
-            <button class="btn btn-ghost btn-sm" onclick="saveKey('claude')">Guardar</button>
-          </div>
-          <div id="claude-test-result" style="margin-top:10px; font-size:0.78rem; color:var(--text3)"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-title" style="margin-bottom:14px">💬 Twilio WhatsApp API</div>
-          <p style="font-size:0.8rem; color:var(--text3); margin-bottom:14px; line-height:1.6">Permite enviar y recibir mensajes de WhatsApp. Regístrate en <strong style="color:var(--accent2)">twilio.com</strong> · Plan gratuito disponible para inicio.</p>
-          <div class="form-group" style="margin-bottom:10px">
-            <label>Account SID</label>
-            <input type="text" id="cfg-twilio-sid" placeholder="ACxxxxxxxxxxxxxxxxxxxx">
-          </div>
-          <div class="form-group" style="margin-bottom:10px">
-            <label>Auth Token</label>
-            <input type="password" id="cfg-twilio-token" placeholder="Tu auth token">
-          </div>
-          <div class="form-group" style="margin-bottom:12px">
-            <label>Número WhatsApp (formato +51...)</label>
-            <input type="text" id="cfg-twilio-number" placeholder="+14155238886">
-          </div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-primary btn-sm" onclick="saveTwilio()">Guardar Twilio</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title" style="margin-bottom:14px">📊 Google Sheets</div>
-          <p style="font-size:0.8rem; color:var(--text3); margin-bottom:14px; line-height:1.6">Sincroniza los registros con tu Google Sheets automáticamente. Necesitas crear una Service Account en Google Cloud.</p>
-          <div class="form-group" style="margin-bottom:10px">
-            <label>ID del Spreadsheet</label>
-            <input type="text" id="cfg-sheets-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms">
-          </div>
-          <div class="form-group" style="margin-bottom:10px">
-            <label>Nombre de la hoja</label>
-            <input type="text" id="cfg-sheets-hoja" value="Respuestas de formulario 1">
-          </div>
-          <div class="form-group" style="margin-bottom:12px">
-            <label>Service Account JSON (pega el contenido)</label>
-            <textarea id="cfg-sheets-json" placeholder='{"type":"service_account",...}' rows="3" style="resize:none; font-family:var(--mono); font-size:0.75rem;"></textarea>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="saveSheets()">Guardar Sheets</button>
-        </div>
-
-        <div class="card">
-          <div class="card-title" style="margin-bottom:14px">📧 Notificaciones por Email</div>
-          <p style="font-size:0.8rem; color:var(--text3); margin-bottom:14px; line-height:1.6">Configura a quién se envían los reportes semanales y alertas de incidencias.</p>
-          <div class="form-group" style="margin-bottom:10px">
-            <label>Email Coordinación</label>
-            <input type="text" id="cfg-email-coord" placeholder="coordinacion@neumann.edu.pe">
-          </div>
-          <div class="form-group" style="margin-bottom:10px">
-            <label>Email Mantenimiento</label>
-            <input type="text" id="cfg-email-mant" placeholder="mantenimiento@neumann.edu.pe">
-          </div>
-          <div class="form-group" style="margin-bottom:12px">
-            <label>Email Tutores</label>
-            <input type="text" id="cfg-email-tutores" placeholder="tutores@neumann.edu.pe">
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="saveEmails()">Guardar emails</button>
-        </div>
-      </div>
-
-      <div class="card" style="max-width:900px; margin-top:16px; border-color:var(--border2)">
-        <div class="card-title">📋 Estado de conexiones</div>
-        <div style="display:flex; gap:20px; flex-wrap:wrap; margin-top:4px;">
-          <div style="font-size:0.82rem"><span id="conn-claude" style="color:var(--yellow)">⚠</span> Claude API</div>
-          <div style="font-size:0.82rem"><span id="conn-twilio" style="color:var(--yellow)">⚠</span> Twilio WhatsApp</div>
-          <div style="font-size:0.82rem"><span id="conn-sheets" style="color:var(--yellow)">⚠</span> Google Sheets</div>
-          <div style="font-size:0.82rem"><span id="conn-email"  style="color:var(--yellow)">⚠</span> Emails</div>
-        </div>
-      </div>
-    </div>
-
     <!-- ═══════════ ESTUDIANTES ═══════════ -->
     <div id="view-estudiantes" class="view">
       <div class="section-header">
         <h2>Base de estudiantes</h2>
-        <p>Estudiantes registrados en Google Sheets — hoja "Estudiantes"</p>
+        <p>Estudiantes registrados en la base de datos (Supabase)</p>
       </div>
       <div class="card" style="margin-bottom:14px">
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -799,7 +705,7 @@ select option { background: var(--surface2); }
 // ESTADO GLOBAL
 // ═══════════════════════════════════════════════
 
-// ── Cargar registros desde Google Sheets ──
+// ── Cargar registros desde la base de datos (Supabase) ──
 async function cargarRegistrosDeSheets() {
   try {
     const res = await fetch('/api/sheets');
@@ -817,11 +723,6 @@ async function cargarRegistrosDeSheets() {
 
 const STATE = {
   registros: JSON.parse(localStorage.getItem('nb_registros') || '[]'),
-  claudeKey: localStorage.getItem('nb_claude_key') || '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',
-  twilioSid: localStorage.getItem('nb_twilio_sid') || '',
-  twilioToken: localStorage.getItem('nb_twilio_token') || '',
-  sheetsId: localStorage.getItem('nb_sheets_id') || '',
-  emails: JSON.parse(localStorage.getItem('nb_emails') || '{}'),
   chatHistory: [],
 };
 
@@ -851,7 +752,6 @@ const TITLES = {
   campanas:    ['Campañas','Mensajes de promoción con IA'],
   estudiantes: ['Estudiantes','Base de datos de estudiantes habilitados'],
   config:      ['Configuración','Parámetros del sistema'],
-  conectar:    ['Conectar APIs','WhatsApp · Google Sheets · Email'],
 };
 
 function setIncBadge(n) {
@@ -870,7 +770,6 @@ function navTab(id) {
   if (id === 'dashboard')   renderDashboard();
   if (id === 'historial')   renderHistorial();
   if (id === 'incidencias') renderIncidencias();
-  if (id === 'conectar')    loadConfig();
   if (id === 'estudiantes') cargarEstudiantes();
   if (id === 'registro') {
     const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
@@ -1265,7 +1164,7 @@ async function guardarRegistro() {
   STATE.registros.push(reg);
   saveState();
 
-  // Guardar en Google Sheets
+  // Guardar en la base de datos (Supabase)
   try {
     const r = await fetch('/api/sheets', {
       method: 'POST',
@@ -1273,8 +1172,8 @@ async function guardarRegistro() {
       body: JSON.stringify({ registro: reg }),
     });
     const d = await r.json();
-    if (d.ok) toast('✅ Registro guardado en Google Sheets');
-    else      toast('✅ Guardado localmente (Sheets no disponible)');
+    if (d.ok) toast('✅ Registro guardado');
+    else      toast('✅ Guardado localmente (base de datos no disponible)');
   } catch(e) {
     toast('✅ Guardado localmente');
   }
@@ -1387,15 +1286,6 @@ async function sendMsg() {
 
   const typingId = appendTyping();
 
-  if (!STATE.claudeKey) {
-    removeTyping(typingId);
-    const respuesta = fallbackBot(text);
-    appendMsg('bot', respuesta);
-    STATE.chatHistory.push({ role:'assistant', content: respuesta });
-    document.getElementById('send-btn').disabled = false;
-    return;
-  }
-
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
@@ -1415,11 +1305,11 @@ async function sendMsg() {
       appendMsg('bot', reply);
       processIntent(reply, text);
     } else {
-      appendMsg('bot', '⚠️ Error al obtener respuesta. Verifica tu API key en "Conectar APIs".');
+      appendMsg('bot', '⚠️ Error al obtener respuesta. Intenta de nuevo.');
     }
   } catch(e) {
     removeTyping(typingId);
-    appendMsg('bot', '⚠️ No se pudo conectar con la API. Verifica tu conexión y API key.');
+    appendMsg('bot', '⚠️ No se pudo conectar con la API. Verifica tu conexión.');
   }
   document.getElementById('send-btn').disabled = false;
 }
@@ -1508,7 +1398,7 @@ let todosEstudiantes = [];
 
 async function cargarEstudiantes() {
   document.getElementById('tabla-estudiantes').innerHTML =
-    '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Cargando desde Google Sheets...</td></tr>';
+    '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Cargando...</td></tr>';
   try {
     const r = await fetch('/api/estudiantes');
     const d = await r.json();
@@ -1559,16 +1449,10 @@ async function generarCampana() {
   const res   = document.getElementById('campana-resultado');
   res.innerHTML = '<span style="color:var(--text3)">Generando con IA...</span>';
 
-  if (!STATE.claudeKey) {
-    res.textContent = generarMensajeFallback(area, dest, tono);
-    document.getElementById('campana-actions').style.display = 'flex';
-    return;
-  }
-
   try {
     const r = await fetch('/api/chat', {
       method: 'POST',
-      headers: {'Content-Type':'application/json','x-api-key':STATE.claudeKey,'anthropic-version':'2023-06-01'},
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
         model: 'claude-sonnet-4-5', max_tokens: 300,
         messages: [{role:'user', content:
@@ -1609,108 +1493,11 @@ function copiarCampana() {
 // ═══════════════════════════════════════════════
 // CONFIG & CREDENCIALES
 // ═══════════════════════════════════════════════
-function loadConfig() {
-  document.getElementById('cfg-claude-key').value   = STATE.claudeKey ? '••••••••••••••••' : '';
-  document.getElementById('cfg-twilio-sid').value   = STATE.twilioSid;
-  document.getElementById('cfg-twilio-token').value = STATE.twilioToken ? '••••••••' : '';
-  document.getElementById('cfg-sheets-id').value    = STATE.sheetsId;
-  const em = STATE.emails;
-  if (em.coord)   document.getElementById('cfg-email-coord').value   = em.coord;
-  if (em.mant)    document.getElementById('cfg-email-mant').value    = em.mant;
-  if (em.tutores) document.getElementById('cfg-email-tutores').value = em.tutores;
-  updateConnStatus();
-}
-
-function validateKey(type) {
-  const key = document.getElementById(`cfg-${type}-key`).value;
-  const el  = document.getElementById(`${type}-status`);
-  if (type==='claude') {
-    el.textContent = key.startsWith('sk-ant') ? '✓ Formato OK' : key.length > 5 ? '⚠ Verifica' : '';
-    el.className   = `cred-status ${key.startsWith('sk-ant') ? 'cred-ok' : 'cred-bad'}`;
-  }
-}
-
-async function testClaudeAPI() {
-  const key = document.getElementById('cfg-claude-key').value;
-  const el  = document.getElementById('claude-test-result');
-  if (!key || key.includes('•')) { el.textContent = '⚠️ Ingresa tu API key primero.'; return; }
-  el.textContent = 'Probando conexión...';
-  try {
-    const r = await fetch('/api/chat', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:30, messages:[{role:'user',content:'Responde solo: "RecreaBot Neumann conectado ✅"'}] })
-    });
-    const d = await r.json();
-    if (d.content) {
-      el.textContent = '✅ Conexión exitosa: ' + d.content[0].text;
-      el.style.color = 'var(--green)';
-      STATE.claudeKey = key;
-      localStorage.setItem('nb_claude_key', key);
-      document.getElementById('api-status').textContent = '✅ Conectado';
-      document.getElementById('api-status').style.color = 'var(--green)';
-      updateConnStatus();
-    } else {
-      el.textContent = '❌ Error: ' + (d.error?.message || 'respuesta inesperada');
-      el.style.color = 'var(--red)';
-    }
-  } catch(e) {
-    el.textContent = '❌ No se pudo conectar. Verifica CORS o la key.';
-    el.style.color = 'var(--red)';
-  }
-}
-
-function saveKey(type) {
-  const key = document.getElementById(`cfg-${type}-key`).value;
-  if (key.includes('•')) return;
-  if (type==='claude') { STATE.claudeKey = key; localStorage.setItem('nb_claude_key', key); }
-  toast('✅ API key guardada'); updateConnStatus();
-}
-
-function saveTwilio() {
-  STATE.twilioSid   = document.getElementById('cfg-twilio-sid').value;
-  STATE.twilioToken = document.getElementById('cfg-twilio-token').value;
-  localStorage.setItem('nb_twilio_sid',   STATE.twilioSid);
-  localStorage.setItem('nb_twilio_token', STATE.twilioToken);
-  toast('✅ Credenciales Twilio guardadas'); updateConnStatus();
-}
-
-function saveSheets() {
-  STATE.sheetsId = document.getElementById('cfg-sheets-id').value;
-  localStorage.setItem('nb_sheets_id', STATE.sheetsId);
-  toast('✅ Configuración Google Sheets guardada'); updateConnStatus();
-}
-
-function saveEmails() {
-  STATE.emails = {
-    coord:   document.getElementById('cfg-email-coord').value,
-    mant:    document.getElementById('cfg-email-mant').value,
-    tutores: document.getElementById('cfg-email-tutores').value,
-  };
-  localStorage.setItem('nb_emails', JSON.stringify(STATE.emails));
-  toast('✅ Emails guardados'); updateConnStatus();
-}
-
 function guardarConfig() {
   toast('✅ Configuración guardada');
 }
 
 function updateConnStatus() {
-  const set = (id, ok) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = ok ? '✅' : '⚠';
-    el.style.color  = ok ? 'var(--green)' : 'var(--yellow)';
-  };
-  set('conn-claude',  !!STATE.claudeKey);
-  set('conn-twilio',  !!(STATE.twilioSid && STATE.twilioToken));
-  set('conn-sheets',  !!STATE.sheetsId);
-  set('conn-email',   !!(STATE.emails && STATE.emails.coord));
-  const apiEl = document.getElementById('api-status');
-  if (apiEl) {
-    apiEl.textContent = STATE.claudeKey ? '✅ Configurado' : '⚠ Sin configurar';
-    apiEl.style.color  = STATE.claudeKey ? 'var(--green)' : 'var(--yellow)';
-  }
   if (document.getElementById('mem-count'))
     document.getElementById('mem-count').textContent = STATE.registros.length;
 }
@@ -1744,7 +1531,7 @@ window.addEventListener('load', () => {
   renderDashboard();
   updateConnStatus();
   initStaffAuth();
-  // Cargar datos reales desde Google Sheets
+  // Cargar datos reales desde la base de datos
   cargarRegistrosDeSheets();
   // Refrescar cada 30 segundos automáticamente
   setInterval(cargarRegistrosDeSheets, 30000);
