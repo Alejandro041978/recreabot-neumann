@@ -231,10 +231,8 @@ async function buscarPorTelefono(phone) {
   } catch (e) { return null; }
 }
 async function buscarPorCodigo(codigo) {
-  try {
-    const rows = await query('estudiantes', 'GET', null, `?codigo=eq.${encodeURIComponent(codigo)}&limit=1`);
-    return rows?.[0] || null;
-  } catch (e) { return null; }
+  const rows = await query('estudiantes', 'GET', null, `?codigo=eq.${encodeURIComponent(codigo)}&limit=1`);
+  return rows?.[0] || null;
 }
 
 // ── Llamada a Claude ──
@@ -280,6 +278,7 @@ export default async function handler(req, res) {
           const e = await buscarPorCodigo(posibleCod);
           if (e && e.activo !== false && e.activo !== 0) est = e;
           else if (e) { res.status(200).send(twiml('Tu código está inactivo. Acércate a Secretaría para más información.')); return; }
+          else { res.status(200).send(twiml(`No encontré el código ${posibleCod} en el sistema. Verifica que esté bien escrito e inténtalo de nuevo.`)); return; }
         }
       }
       if (est) {
@@ -339,6 +338,6 @@ export default async function handler(req, res) {
 
     res.status(200).send(twiml(reply));
   } catch (err) {
-    res.status(200).send(twiml('Tuvimos un problema técnico. Intenta de nuevo en un momento.'));
+    res.status(200).send(twiml('⚠️ Error técnico: ' + (err.message || 'desconocido')));
   }
 }
