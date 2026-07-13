@@ -124,6 +124,7 @@ REGLAS GENERALES:
 - Respuestas cortas — máximo 3 líneas — es WhatsApp
 - No uses markdown, asteriscos ni guiones al inicio de línea
 - NUNCA inventes información sobre el instituto (servicios, horarios, profesores, precios, instalaciones, procedimientos). Si no la tienes en el contexto, admite que no la tienes y ofrece crear un ticket.
+- MUSEOS/CULTURA: NUNCA des URLs directas de museos ni listes museos específicos. Si preguntan por museos o cultura, comparte ÚNICAMENTE la galería oficial: ${BASE_URL}/cultura
 
 ESCALAMIENTO A SOPORTE:
 Si el estudiante pide algo que no puedes resolver (no es reserva, asistencia ni cultura, o es una queja que requiere atención humana), ofrécele crear un ticket. Si acepta, responde EXACTAMENTE con este formato y nada más:
@@ -300,7 +301,24 @@ export default async function handler(req, res) {
     let modulo = estado.modulo || null;
     if (esConsultaAsistencia(tl)) modulo = 'asistencia';
     else if (esConsultaReserva(tl)) modulo = 'reserva';
-    else if (esConsultaCultura(tl)) modulo = 'cultura';
+    else if (esConsultaCultura(tl) || modulo === 'cultura') modulo = 'cultura';
+
+    // ── Módulo cultura: SIEMPRE la galería rastreada, nunca links directos ──
+    if (modulo === 'cultura') {
+      // registra la interacción para las métricas (fire-and-forget)
+      fetch(`${BASE_URL}/api/cultura?accion=interaccion`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codigo: est.codigo }),
+      }).catch(() => {});
+      const urlCultura = `${BASE_URL}/cultura`;
+      const reply = `🏛️ Tenemos museos virtuales de arte, historia y arqueología peruana e internacional.\n\nExplóralos todos en nuestra galería:\n👉 ${urlCultura}`;
+      historial = [...historial, { role: 'user', content: body }, { role: 'assistant', content: `Te comparto el catálogo de museos virtuales: ${urlCultura}` }].slice(-MAX_HIST);
+      await guardarEstado(from, {
+        codigo: est.codigo, nombre: est.nombre, apellido: est.apellido || '', carrera: est.carrera || '',
+        email: est.email || null, modulo: null, historial,
+      });
+      res.status(200).send(twiml(reply)); return;
+    }
 
     const slotsMap = await cargarSlots();
     let asistenciaData = null, conocimientosData = null;
