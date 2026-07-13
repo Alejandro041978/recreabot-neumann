@@ -370,6 +370,6 @@ export default async function handler(req, res) {
 
     res.status(200).send(twiml(reply));
   } catch (err) {
-    res.status(200).send(twiml('⚠️ Error técnico: ' + (err.message || 'desconocido')));
+    res.status(200).send(twiml('Tuvimos un problema técnico. Intenta de nuevo en un momento.'));
   }
 }
