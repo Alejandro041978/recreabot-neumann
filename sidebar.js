@@ -40,6 +40,7 @@
       },
     ]},
     { label: 'Estudiantes', items: [
+      { icon: '🧑‍🎓', text: 'Base de Estudiantes', href: '/base-estudiantes',    modulo: 'base_estudiantes' },
       { icon: '🎓', text: 'Asistencia',    href: '/asistencia-dashboard', modulo: 'asistencia_dashboard' },
       { icon: '🏅', text: 'Becas',          href: '/beca-dashboard',       modulo: 'beca_dashboard' },
       { icon: '🎭', text: 'Cultura',        href: '/cultura-dashboard',    modulo: 'cultura_dashboard' },

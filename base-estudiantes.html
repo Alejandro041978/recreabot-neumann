@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Base de Estudiantes — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#6366f1;--acc2:#a5b4fc;--red:#ef4444;--green:#10b981;
+  --text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--mono:'SFMono-Regular',Consolas,monospace;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{padding:20px 16px 60px;max-width:1000px;margin:0 auto}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:10px 16px;background:var(--s);border:1px solid var(--b);border-radius:10px}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-icon{font-size:1.4rem}
+.topbar-titulo{font-size:1rem;font-weight:800;color:var(--acc2)}
+.topbar-user{font-size:0.78rem;color:var(--t2)}.topbar-user strong{color:var(--text)}
+
+.card{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:16px;margin-bottom:14px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search{flex:1;min-width:220px;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;padding:9px 13px;color:var(--text);font-size:0.86rem;font-family:'Inter',sans-serif;outline:none}
+.search:focus{border-color:var(--acc)}
+.search::placeholder{color:var(--t3)}
+.btn{padding:8px 14px;border-radius:8px;border:1px solid var(--b);background:var(--s2);color:var(--t2);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.btn:hover{border-color:var(--acc);color:var(--acc2)}
+.count{font-size:0.8rem;color:var(--t3)}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+thead th{padding:9px 12px;color:var(--t3);font-weight:600;text-align:left;border-bottom:1px solid var(--b);white-space:nowrap}
+tbody td{padding:10px 12px;border-bottom:1px solid rgba(42,58,82,.4);color:var(--t2);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:0.7rem;font-weight:700}
+.tag-green{background:rgba(16,185,129,.15);color:var(--green)}
+.tag-red{background:rgba(239,68,68,.12);color:var(--red)}
+</style>
+<style id="ns-layout-pre">body{margin-left:240px!important}@media(max-width:780px){body{margin-left:0!important;padding-top:52px!important}}</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-icon">🎓</div>
+    <div class="topbar-titulo">Base de Estudiantes</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="topbar-user" id="topbar-user"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="toolbar">
+    <input type="text" id="filtro-est" class="search" placeholder="Buscar por código, nombre, carrera o email..." oninput="filtrarEstudiantes()" autocomplete="off">
+    <button class="btn" onclick="cargarEstudiantes()">↺ Recargar</button>
+    <span class="count" id="est-count">Cargando...</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th><th>Nombre</th><th>Carrera</th>
+          <th>Email</th><th>WhatsApp</th><th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-estudiantes">
+        <tr><td colspan="6" style="text-align:center;color:var(--t3);padding:20px">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/sidebar.js"></script>
+<script>
+const sb = supabase.createClient(
+  'https://exjaxhrylfdwehzjfjut.supabase.co',
+  'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
+);
+
+let todosEstudiantes = [];
+
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/login'; return false; }
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal.currentLevel !== 'aal2') { await sb.auth.signOut(); window.location.href = '/login'; return false; }
+  const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
+  if (!r.ok) { window.location.href = '/login'; return false; }
+  const info = await r.json();
+  if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('base_estudiantes')) {
+    window.location.href = '/ejecutivo'; return false;
+  }
+  document.getElementById('topbar-user').innerHTML =
+    `Bienvenido, <strong>${info.nombre}</strong> · <span style="color:var(--t3)">${info.rol}</span>`;
+  return true;
+}
+
+async function cargarEstudiantes() {
+  document.getElementById('tabla-estudiantes').innerHTML =
+    '<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:20px">Cargando...</td></tr>';
+  try {
+    const r = await fetch('/api/estudiantes');
+    const d = await r.json();
+    todosEstudiantes = d.estudiantes || [];
+    renderEstudiantes(todosEstudiantes);
+  } catch(e) {
+    document.getElementById('tabla-estudiantes').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;color:var(--red);padding:20px">Error al cargar. Verifica la conexión.</td></tr>';
+  }
+}
+
+function renderEstudiantes(lista) {
+  document.getElementById('est-count').textContent = `${lista.length} estudiantes`;
+  document.getElementById('tabla-estudiantes').innerHTML = lista.length
+    ? lista.map(e => `
+        <tr>
+          <td style="font-family:var(--mono);font-size:0.78rem">${e.codigo}</td>
+          <td style="color:var(--text)">${e.nombre} ${e.apellido||''}</td>
+          <td>${e.carrera||'—'}</td>
+          <td style="font-size:0.78rem">${e.email||'—'}</td>
+          <td style="font-family:var(--mono);font-size:0.78rem">${e.whatsapp||'—'}</td>
+          <td>${e.activo
+            ? '<span class="tag tag-green">✅ Activo</span>'
+            : '<span class="tag tag-red">🔒 Inactivo</span>'}</td>
+        </tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:20px">Sin estudiantes registrados</td></tr>';
+}
+
+function filtrarEstudiantes() {
+  const q = document.getElementById('filtro-est').value.toLowerCase();
+  if (!q) { renderEstudiantes(todosEstudiantes); return; }
+  const filtrados = todosEstudiantes.filter(e =>
+    (e.codigo||'').includes(q) ||
+    `${e.nombre} ${e.apellido||''}`.toLowerCase().includes(q) ||
+    (e.carrera||'').toLowerCase().includes(q) ||
+    (e.email||'').toLowerCase().includes(q)
+  );
+  renderEstudiantes(filtrados);
+}
+
+initAuth().then(ok => { if (ok) cargarEstudiantes(); });
+</script>
+</body>
+</html>

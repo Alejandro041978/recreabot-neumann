@@ -100,6 +100,7 @@
     { "src": "/api/whatsapp",            "dest": "/api/whatsapp.js"               },
     { "src": "/api/bot-config",          "dest": "/api/bot-config.js"             },
     { "src": "/bot-config",              "dest": "/bot-config.html"               },
+    { "src": "/base-estudiantes",        "dest": "/base-estudiantes.html"         },
     { "src": "/calidad-config",           "dest": "/calidad-config.html"           },
     { "src": "/calidad-dashboard",        "dest": "/calidad-dashboard.html"        },
     { "src": "/bot.html",                   "dest": "/bot.html"                        },
