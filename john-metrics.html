@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Métricas de John — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#6366f1;--acc2:#a5b4fc;--red:#ef4444;--yellow:#f59e0b;--green:#10b981;--blue:#3b82f6;
+  --text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{padding:20px 16px 60px;max-width:920px;margin:0 auto}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:10px 16px;background:var(--s);border:1px solid var(--b);border-radius:10px}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-icon{font-size:1.4rem}
+.topbar-titulo{font-size:1rem;font-weight:800;color:var(--acc2)}
+.topbar-user{font-size:0.78rem;color:var(--t2)}.topbar-user strong{color:var(--text)}
+
+.filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.filtro-btn{padding:8px 16px;border-radius:20px;border:1.5px solid var(--b);background:none;color:var(--t2);font-size:0.8rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+.filtro-btn.activo{border-color:var(--acc);color:var(--acc2);background:rgba(99,102,241,.12)}
+.filtro-btn:hover{border-color:var(--acc);color:var(--acc2)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:18px;text-align:center}
+.kpi-val{font-size:2rem;font-weight:800;line-height:1}
+.kpi-label{font-size:0.7rem;color:var(--t3);margin-top:6px;text-transform:uppercase;letter-spacing:.5px}
+
+.card{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px;margin-bottom:16px}
+.card-titulo{font-size:0.88rem;font-weight:700;margin-bottom:16px}
+
+.bar-row{display:grid;grid-template-columns:170px 1fr 44px;align-items:center;gap:10px;margin-bottom:9px}
+.bar-label{font-size:0.8rem;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{background:var(--s2);border-radius:5px;height:12px;overflow:hidden}
+.bar-fill{height:12px;border-radius:5px;transition:width .4s}
+.bar-val{font-size:0.8rem;font-weight:700;color:var(--text);text-align:right}
+@media(max-width:520px){.bar-row{grid-template-columns:110px 1fr 36px}}
+
+.empty{text-align:center;padding:22px;color:var(--t3);font-size:0.84rem}
+</style>
+<style id="ns-layout-pre">body{margin-left:240px!important}@media(max-width:780px){body{margin-left:0!important;padding-top:52px!important}}</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-icon">📈</div>
+    <div class="topbar-titulo">Métricas de John</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="topbar-user" id="topbar-user"></div>
+  </div>
+</div>
+
+<div class="filtros">
+  <button class="filtro-btn" data-d="1" onclick="setDias('1',this)">Hoy (1d)</button>
+  <button class="filtro-btn activo" data-d="7" onclick="setDias('7',this)">7 días</button>
+  <button class="filtro-btn" data-d="30" onclick="setDias('30',this)">30 días</button>
+  <button class="filtro-btn" data-d="all" onclick="setDias('all',this)">Acumulado</button>
+</div>
+
+<div class="kpi-grid" id="kpis">
+  <div class="kpi"><div class="kpi-val">…</div><div class="kpi-label">Cargando</div></div>
+</div>
+
+<div class="card">
+  <div class="card-titulo">📊 Resultados obtenidos</div>
+  <div id="resultadoBars"><div class="empty">Cargando...</div></div>
+</div>
+
+<div class="card">
+  <div class="card-titulo">🎓 Por carrera del estudiante</div>
+  <div id="carreraBars"><div class="empty">Cargando...</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/sidebar.js"></script>
+<script>
+const sb = supabase.createClient(
+  'https://exjaxhrylfdwehzjfjut.supabase.co',
+  'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
+);
+let token = null;
+let dias = '7';
+
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/login'; return false; }
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal.currentLevel !== 'aal2') { await sb.auth.signOut(); window.location.href = '/login'; return false; }
+  token = session.access_token;
+  const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${token}` } });
+  if (!r.ok) { window.location.href = '/login'; return false; }
+  const info = await r.json();
+  if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('john_metrics')) {
+    window.location.href = '/ejecutivo'; return false;
+  }
+  document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong>`;
+  return true;
+}
+
+function setDias(d, btn) {
+  dias = d;
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+  btn.classList.add('activo');
+  cargar();
+}
+
+const COLORES = ['var(--acc)','var(--green)','var(--blue)','var(--yellow)','var(--acc2)','var(--red)','#8b5cf6','#14b8a6','#f97316','#64748b'];
+
+function renderBars(elId, items, total) {
+  const el = document.getElementById(elId);
+  if (!items.length) { el.innerHTML = '<div class="empty">Sin datos en este periodo</div>'; return; }
+  const max = Math.max(...items.map(i => i.valor), 1);
+  el.innerHTML = items.map((it, i) => `
+    <div class="bar-row">
+      <span class="bar-label" title="${it.label}">${it.label}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${(it.valor/max)*100}%;background:${COLORES[i % COLORES.length]}"></div></div>
+      <span class="bar-val">${it.valor}</span>
+    </div>`).join('');
+}
+
+async function cargar() {
+  document.getElementById('kpis').innerHTML = '<div class="kpi"><div class="kpi-val">…</div><div class="kpi-label">Cargando</div></div>';
+  try {
+    const r = await fetch(`/api/john-metrics?dias=${dias}`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    const web = (d.por_canal.find(c => c.label === 'Web') || {}).valor || 0;
+    const wa  = (d.por_canal.find(c => c.label === 'WhatsApp') || {}).valor || 0;
+    document.getElementById('kpis').innerHTML = `
+      <div class="kpi"><div class="kpi-val">${d.total}</div><div class="kpi-label">Conversaciones</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:var(--acc2)">${web}</div><div class="kpi-label">🌐 Web</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:var(--green)">${wa}</div><div class="kpi-label">💬 WhatsApp</div></div>
+    `;
+    renderBars('resultadoBars', d.por_resultado, d.total);
+    renderBars('carreraBars', d.por_carrera, d.total);
+  } catch(e) {
+    document.getElementById('kpis').innerHTML = `<div class="kpi"><div class="kpi-val" style="color:var(--red);font-size:0.9rem">Error</div><div class="kpi-label">${e.message}</div></div>`;
+  }
+}
+
+initAuth().then(ok => { if (ok) cargar(); });
+</script>
+</body>
+</html>

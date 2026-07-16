@@ -55,6 +55,7 @@
       { icon: '⚙️', text: 'Usuarios y Permisos', href: '/admin-usuarios', modulo: 'admin_usuarios' },
       { icon: '🤖', text: 'Configuración del Bot', href: '/bot-config', modulo: 'bot_config' },
       { icon: '🕵️', text: 'Supervisor de John', href: '/bot-supervisor', modulo: 'bot_supervisor' },
+      { icon: '📈', text: 'Métricas de John', href: '/john-metrics', modulo: 'john_metrics' },
     ]},
   ];
 

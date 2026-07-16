@@ -29,6 +29,7 @@
     { "src": "api/bot-config.js",      "use": "@vercel/node" },
     { "src": "api/supervisor-cron.js", "use": "@vercel/node" },
     { "src": "api/bot-mejoras.js",     "use": "@vercel/node" },
+    { "src": "api/john-metrics.js",    "use": "@vercel/node" },
     { "src": "*.html",                   "use": "@vercel/static" },
     { "src": "sidebar.js",               "use": "@vercel/static" }
   ],
@@ -107,6 +108,8 @@
     { "src": "/api/supervisor-cron",     "dest": "/api/supervisor-cron.js"        },
     { "src": "/api/bot-mejoras",         "dest": "/api/bot-mejoras.js"            },
     { "src": "/bot-supervisor",          "dest": "/bot-supervisor.html"           },
+    { "src": "/api/john-metrics",        "dest": "/api/john-metrics.js"           },
+    { "src": "/john-metrics",            "dest": "/john-metrics.html"             },
     { "src": "/base-estudiantes",        "dest": "/base-estudiantes.html"         },
     { "src": "/calidad-config",           "dest": "/calidad-config.html"           },
     { "src": "/calidad-dashboard",        "dest": "/calidad-dashboard.html"        },
