@@ -517,8 +517,10 @@ async function confirmarReserva() {
   err.style.display = 'none';
 
   const ciclo = document.getElementById('rCiclo').value;
+  const turno = document.getElementById('rTurno').value;
   const seccion = document.getElementById('rSeccion').value.trim();
   if (!ciclo) { err.textContent = 'Por favor selecciona tu ciclo.'; err.style.display = 'block'; return; }
+  if (!turno) { err.textContent = 'Por favor selecciona tu turno.'; err.style.display = 'block'; return; }
   if (!seccion) { err.textContent = 'Por favor ingresa tu sección.'; err.style.display = 'block'; return; }
 
   const btn = document.getElementById('btnConfirmar');
