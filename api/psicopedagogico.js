@@ -138,12 +138,13 @@ export default async function handler(req, res) {
       }
 
       if (accion === 'charla') {
-        const { p1, p2, p3, codigo, nombre } = req.body;
+        const { p1, p2, p3, codigo, nombre, sesion_id, titulo } = req.body;
         const vals = [p1,p2,p3].map(Number);
         if (vals.some(v => v<1||v>5||isNaN(v))) { res.status(400).json({ error: 'Valores 1-5 requeridos' }); return; }
         const data = await query('evaluaciones_psico_charla', 'POST', {
           ts: new Date().toISOString(), p1:vals[0], p2:vals[1], p3:vals[2],
           codigo: codigo||null, nombre: nombre||null,
+          sesion_id: sesion_id || null, titulo: titulo || null,
         });
         res.json({ ok: true, id: data?.[0]?.id }); return;
       }

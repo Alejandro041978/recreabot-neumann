@@ -58,6 +58,7 @@ body{padding:20px 16px 60px;max-width:980px;margin:0 auto}
 <!-- QR para charla -->
 <div class="seccion">
   <div class="seccion-titulo"><span>📲 Generar QR para charla psicopedagógica</span></div>
+  <div class="form-field" style="margin-bottom:12px"><label>Título de la charla</label><input type="text" id="qTitulo" placeholder="Ej: Manejo del estrés en época de exámenes"></div>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
     <div class="form-field" style="margin:0"><label>Fecha</label><input type="date" id="qFecha"></div>
     <div class="form-field" style="margin:0"><label>Hora inicio</label><input type="time" id="qInicio"></div>
@@ -136,11 +137,13 @@ async function initAuth() {
 
 // ── QR para charla ──
 async function generarQR() {
+  const titulo = document.getElementById('qTitulo').value.trim();
   const fecha  = document.getElementById('qFecha').value;
   const inicio = document.getElementById('qInicio').value;
   const fin    = document.getElementById('qFin').value;
   const errEl  = document.getElementById('qrErr');
   errEl.style.display = 'none';
+  if (!titulo) { errEl.textContent='Ingresa un título para la charla'; errEl.style.display='block'; return; }
   if (!fecha||!inicio||!fin) { errEl.textContent='Completa fecha, hora inicio y hora fin'; errEl.style.display='block'; return; }
   if (inicio >= fin) { errEl.textContent='La hora de fin debe ser mayor que la de inicio'; errEl.style.display='block'; return; }
   const [hi,hm] = inicio.split(':').map(Number);
@@ -151,13 +154,13 @@ async function generarQR() {
     const r = await fetch('/api/sesiones-charla', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':`Bearer ${session?.access_token||''}`},
-      body: JSON.stringify({ modulo:'psico_gestion', fecha, hora_inicio:inicio, hora_fin:fin }),
+      body: JSON.stringify({ modulo:'psico_gestion', titulo, fecha, hora_inicio:inicio, hora_fin:fin }),
     });
     const data = await r.json();
     if (!data.ok) throw new Error(data.error||'Error al crear sesión');
     const url = `${window.location.origin}/psico-charla-eval?token=${data.token}`;
     renderQR('qrCanvas', url, 220);
-    document.getElementById('qrInfo').textContent = `Válido el ${fecha} de ${inicio} a ${fin}`;
+    document.getElementById('qrInfo').textContent = `${titulo} · ${fecha} de ${inicio} a ${fin}`;
     document.getElementById('qrResult').style.display = 'block';
   } catch(e) {
     errEl.textContent='Error: '+e.message; errEl.style.display='block';

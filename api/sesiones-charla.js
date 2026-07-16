@@ -10,12 +10,13 @@ export default async function handler(req, res) {
   try {
     // ── POST: crear sesión de charla ──
     if (req.method === 'POST') {
-      const { modulo, fecha, hora_inicio, hora_fin, creado_por } = req.body || {};
+      const { modulo, fecha, hora_inicio, hora_fin, creado_por, titulo } = req.body || {};
       if (!modulo || !fecha || !hora_inicio || !hora_fin)
         { res.status(400).json({ error: 'Campos obligatorios faltantes' }); return; }
 
       const data = await query('sesiones_charla', 'POST', {
         modulo, fecha, hora_inicio, hora_fin,
+        titulo: titulo || null,
         creado_por: creado_por || null,
       });
       const sesion = data?.[0];
@@ -46,7 +47,7 @@ export default async function handler(req, res) {
         res.json({ valido: false, motivo: 'El período de evaluación ya cerró' }); return;
       }
 
-      res.json({ valido: true, modulo: sesion.modulo, fecha: sesion.fecha, hora_inicio: sesion.hora_inicio, hora_fin: sesion.hora_fin }); return;
+      res.json({ valido: true, sesion_id: sesion.id, titulo: sesion.titulo || null, modulo: sesion.modulo, fecha: sesion.fecha, hora_inicio: sesion.hora_inicio, hora_fin: sesion.hora_fin }); return;
     }
 
     res.status(400).json({ error: 'Acción no válida' });

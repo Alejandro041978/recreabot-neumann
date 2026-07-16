@@ -278,18 +278,34 @@ async function cargarKpis() {
       document.getElementById('charlasPanel').innerHTML =
         '<div style="text-align:center;color:var(--t3);padding:14px;font-size:0.82rem">Sin evaluaciones aún</div>';
     } else {
-      const p1 = charlas.reduce((s,c)=>s+c.p1,0)/charlas.length;
-      const p2 = charlas.reduce((s,c)=>s+c.p2,0)/charlas.length;
-      const p3 = charlas.reduce((s,c)=>s+c.p3,0)/charlas.length;
-      const tot = (p1+p2+p3)/3;
-      document.getElementById('charlasPanel').innerHTML = `
-        <div class="charla-score" style="color:${scoreColor(tot)}">${tot.toFixed(2)}<span style="font-size:1rem;color:var(--t3)"> / 5</span></div>
-        <div class="charla-sub">${charlas.length} evaluaciones acumuladas</div>
-        ${[['Relevancia',p1],['Claridad',p2],['Aplicabilidad',p3]].map(([n,v])=>`
-          <div class="criterio-row">
-            <div class="criterio-header"><span class="criterio-nombre">${n}</span><span class="criterio-prom">${v.toFixed(2)}</span></div>
-            <div class="barra-bg"><div class="barra-fill" style="width:${(v/5)*100}%;background:${scoreColor(v)}"></div></div>
-          </div>`).join('')}`;
+      // Agrupar por charla (sesión / título) para separar métricas
+      const grupos = {};
+      charlas.forEach(c => {
+        const key = (c.sesion_id != null && c.sesion_id !== '') ? 's'+c.sesion_id : 't:'+(c.titulo||'sin');
+        if (!grupos[key]) grupos[key] = { titulo: c.titulo || 'Charla sin título', items: [] };
+        grupos[key].items.push(c);
+      });
+      const lista = Object.values(grupos).sort((a,b) => b.items.length - a.items.length);
+      document.getElementById('charlasPanel').innerHTML = lista.map(g => {
+        const n = g.items.length;
+        const p1 = g.items.reduce((s,c)=>s+c.p1,0)/n;
+        const p2 = g.items.reduce((s,c)=>s+c.p2,0)/n;
+        const p3 = g.items.reduce((s,c)=>s+c.p3,0)/n;
+        const tot = (p1+p2+p3)/3;
+        return `
+          <div style="border:1px solid var(--b);border-radius:10px;padding:14px;margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px">
+              <div style="font-weight:700;font-size:0.9rem;color:var(--text)">${g.titulo}</div>
+              <div style="font-weight:800;font-size:1.15rem;color:${scoreColor(tot)};white-space:nowrap">${tot.toFixed(2)}<span style="font-size:0.7rem;color:var(--t3)"> /5</span></div>
+            </div>
+            <div style="font-size:0.7rem;color:var(--t3);margin-bottom:10px">${n} evaluación${n>1?'es':''}</div>
+            ${[['Relevancia',p1],['Claridad',p2],['Aplicabilidad',p3]].map(([nm,v])=>`
+              <div class="criterio-row">
+                <div class="criterio-header"><span class="criterio-nombre">${nm}</span><span class="criterio-prom">${v.toFixed(2)}</span></div>
+                <div class="barra-bg"><div class="barra-fill" style="width:${(v/5)*100}%;background:${scoreColor(v)}"></div></div>
+              </div>`).join('')}
+          </div>`;
+      }).join('');
     }
 
     // ── Panel satisfacción atenciones ──
