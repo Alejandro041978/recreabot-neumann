@@ -355,8 +355,13 @@ async function initAuth() {
 // ── Reservas: cargar y renderizar ──
 async function cargarReservas() {
   try {
-    const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Lima' });
-    const r = await fetch(`/api/psico-reservas?accion=lista&desde=${hoy}`);
+    // Ventana de gracia de 1 día: incluye las sesiones de ayer aún sin registrar,
+    // para que la psicóloga tenga hasta el día siguiente para completar la ficha.
+    const hoyStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); // YYYY-MM-DD
+    const d = new Date(hoyStr + 'T12:00:00Z');
+    d.setUTCDate(d.getUTCDate() - 1);
+    const desde = d.toISOString().slice(0, 10);
+    const r = await fetch(`/api/psico-reservas?accion=lista&desde=${desde}`);
     const reservas = await r.json();
 
     const pendientes = reservas.filter(r => r.estado === 'pendiente' || r.estado === 'confirmada');
