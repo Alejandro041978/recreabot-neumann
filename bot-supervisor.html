@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<title>Supervisor de John — Instituto Neumann</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--s:#1a2235;--s2:#212d42;--b:#2a3a52;
+  --acc:#6366f1;--acc2:#a5b4fc;--red:#ef4444;--yellow:#f59e0b;--green:#10b981;
+  --text:#e2e8f0;--t2:#94a3b8;--t3:#64748b;--mono:'SFMono-Regular',Consolas,monospace;
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+body{padding:20px 16px 60px;max-width:920px;margin:0 auto}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:10px 16px;background:var(--s);border:1px solid var(--b);border-radius:10px}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-icon{font-size:1.4rem}
+.topbar-titulo{font-size:1rem;font-weight:800;color:var(--acc2)}
+.topbar-user{font-size:0.78rem;color:var(--t2)}.topbar-user strong{color:var(--text)}
+
+.barra{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.filtro-btn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--b);background:none;color:var(--t2);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+.filtro-btn.activo{border-color:var(--acc);color:var(--acc2);background:rgba(99,102,241,.12)}
+.filtro-btn:hover{border-color:var(--acc);color:var(--acc2)}
+.btn-run{margin-left:auto;padding:8px 16px;background:var(--acc);color:#fff;border:none;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-run:hover{opacity:.85}.btn-run:disabled{opacity:.5;cursor:not-allowed}
+
+.card{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.card-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.66rem;font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+.tag-tipo-prompt{background:rgba(99,102,241,.16);color:var(--acc2)}
+.tag-tipo-conocimiento{background:rgba(16,185,129,.16);color:var(--green)}
+.tag-pendiente{background:rgba(245,158,11,.16);color:var(--yellow)}
+.tag-aprobada{background:rgba(16,185,129,.16);color:var(--green)}
+.tag-rechazada{background:rgba(239,68,68,.14);color:var(--red)}
+.card-fecha{font-size:0.72rem;color:var(--t3);margin-left:auto}
+.card-problema{font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:6px}
+.card-resumen{font-size:0.82rem;color:var(--t2);margin-bottom:12px}
+.card-contenido{background:var(--s2);border-left:3px solid var(--acc);border-radius:6px;padding:12px 14px;font-size:0.82rem;color:var(--text);line-height:1.6;white-space:pre-wrap;font-family:var(--mono)}
+.card-kb{font-size:0.74rem;color:var(--t3);margin-top:8px}
+.card-kb strong{color:var(--t2)}
+.acciones{display:flex;gap:8px;margin-top:14px}
+.btn-aprobar{padding:8px 16px;background:var(--green);color:#04241a;border:none;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-aprobar:hover{opacity:.88}
+.btn-rechazar{padding:8px 16px;background:none;color:var(--red);border:1.5px solid var(--red);border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-rechazar:hover{opacity:.75}
+
+.empty{text-align:center;padding:40px 20px;color:var(--t3);font-size:0.88rem}
+.msg{padding:10px 14px;border-radius:8px;font-size:0.83rem;font-weight:600;margin-bottom:14px;display:none;text-align:center}
+.msg-ok{background:rgba(16,185,129,.12);border:1px solid var(--green);color:var(--green)}
+.msg-err{background:rgba(239,68,68,.12);border:1px solid var(--red);color:var(--red)}
+</style>
+<style id="ns-layout-pre">body{margin-left:240px!important}@media(max-width:780px){body{margin-left:0!important;padding-top:52px!important}}</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-icon">🕵️</div>
+    <div class="topbar-titulo">Supervisor de John</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="topbar-user" id="topbar-user"></div>
+  </div>
+</div>
+
+<div style="font-size:0.8rem;color:var(--t3);margin-bottom:16px;line-height:1.5">
+  Cada día, el supervisor revisa las conversaciones de John y propone mejoras. Aprueba una propuesta de <strong style="color:var(--acc2)">prompt</strong> para agregarla al prompt secundario, o una de <strong style="color:var(--green)">conocimiento</strong> para sumarla a la base de conocimientos.
+</div>
+
+<div class="msg" id="msg"></div>
+
+<div class="barra">
+  <button class="filtro-btn activo" data-f="pendiente" onclick="setFiltro('pendiente',this)">Pendientes</button>
+  <button class="filtro-btn" data-f="aprobada" onclick="setFiltro('aprobada',this)">Aprobadas</button>
+  <button class="filtro-btn" data-f="rechazada" onclick="setFiltro('rechazada',this)">Rechazadas</button>
+  <button class="filtro-btn" data-f="" onclick="setFiltro('',this)">Todas</button>
+  <button class="btn-run" id="btnRun" onclick="ejecutarAhora()">▶ Ejecutar supervisor ahora</button>
+</div>
+
+<div id="lista"><div class="empty">Cargando...</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/sidebar.js"></script>
+<script>
+const sb = supabase.createClient(
+  'https://exjaxhrylfdwehzjfjut.supabase.co',
+  'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
+);
+let token = null;
+let filtro = 'pendiente';
+
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '/login'; return false; }
+  const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal.currentLevel !== 'aal2') { await sb.auth.signOut(); window.location.href = '/login'; return false; }
+  token = session.access_token;
+  const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${token}` } });
+  if (!r.ok) { window.location.href = '/login'; return false; }
+  const info = await r.json();
+  if (info.rol !== 'director' && info.modulos && info.modulos.length > 0 && !info.modulos.includes('bot_supervisor')) {
+    window.location.href = '/ejecutivo'; return false;
+  }
+  document.getElementById('topbar-user').innerHTML = `Bienvenido, <strong>${info.nombre}</strong>`;
+  return true;
+}
+
+function showMsg(texto, ok) {
+  const m = document.getElementById('msg');
+  m.textContent = texto; m.className = `msg ${ok ? 'msg-ok' : 'msg-err'}`; m.style.display = 'block';
+  setTimeout(() => m.style.display = 'none', 4000);
+}
+
+function setFiltro(f, btn) {
+  filtro = f;
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+  btn.classList.add('activo');
+  cargar();
+}
+
+async function cargar() {
+  const lista = document.getElementById('lista');
+  lista.innerHTML = '<div class="empty">Cargando...</div>';
+  try {
+    const url = '/api/bot-mejoras' + (filtro ? `?estado=${filtro}` : '');
+    const r = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+    const items = await r.json();
+    if (!Array.isArray(items) || !items.length) {
+      lista.innerHTML = '<div class="empty">No hay propuestas en esta categoría.</div>';
+      return;
+    }
+    lista.innerHTML = items.map(render).join('');
+  } catch(e) {
+    lista.innerHTML = `<div class="empty">Error al cargar: ${e.message}</div>`;
+  }
+}
+
+function render(m) {
+  const tipoTxt = m.tipo === 'conocimiento' ? 'Conocimiento' : 'Prompt';
+  const fecha = (m.creado_en || '').slice(0, 10);
+  const kbBlock = m.tipo === 'conocimiento'
+    ? `<div class="card-kb"><strong>Tema:</strong> ${m.kb_tema || '—'} &nbsp;·&nbsp; <strong>Pregunta:</strong> ${m.kb_pregunta || '—'} &nbsp;·&nbsp; <strong>Tags:</strong> ${m.kb_tags || '—'}</div>`
+    : '';
+  const acciones = m.estado === 'pendiente'
+    ? `<div class="acciones">
+         <button class="btn-aprobar" onclick="revisar(${m.id},'aprobar')">✓ Aprobar</button>
+         <button class="btn-rechazar" onclick="revisar(${m.id},'rechazar')">✕ Rechazar</button>
+       </div>`
+    : '';
+  return `
+    <div class="card">
+      <div class="card-head">
+        <span class="tag tag-tipo-${m.tipo}">${tipoTxt}</span>
+        <span class="tag tag-${m.estado}">${m.estado}</span>
+        <span class="card-fecha">${fecha}</span>
+      </div>
+      <div class="card-problema">⚠️ ${m.problema || ''}</div>
+      ${m.resumen ? `<div class="card-resumen">✅ ${m.resumen}</div>` : ''}
+      ${m.contenido ? `<div class="card-contenido">${escapeHtml(m.contenido)}</div>` : ''}
+      ${kbBlock}
+      ${acciones}
+    </div>`;
+}
+
+function escapeHtml(s){ return String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+
+async function revisar(id, accion) {
+  try {
+    const r = await fetch('/api/bot-mejoras', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ accion, id }),
+    });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || 'Error');
+    showMsg(accion === 'aprobar' ? '✅ Propuesta aprobada y aplicada' : 'Propuesta rechazada', true);
+    cargar();
+  } catch(e) { showMsg('Error: ' + e.message, false); }
+}
+
+async function ejecutarAhora() {
+  const btn = document.getElementById('btnRun');
+  btn.disabled = true; btn.textContent = 'Analizando conversaciones...';
+  try {
+    const r = await fetch('/api/bot-mejoras', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ accion: 'ejecutar' }),
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    showMsg(`Supervisor ejecutado: ${data.propuestas ?? 0} propuesta(s) sobre ${data.conversaciones ?? 0} conversación(es).`, true);
+    filtro = 'pendiente';
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.toggle('activo', b.dataset.f === 'pendiente'));
+    cargar();
+  } catch(e) { showMsg('Error: ' + e.message, false); }
+  finally { btn.disabled = false; btn.textContent = '▶ Ejecutar supervisor ahora'; }
+}
+
+initAuth().then(ok => { if (ok) cargar(); });
+</script>
+</body>
+</html>

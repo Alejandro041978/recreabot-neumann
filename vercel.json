@@ -27,6 +27,8 @@
     { "src": "api/reset-password.js",  "use": "@vercel/node" },
     { "src": "api/whatsapp.js",        "use": "@vercel/node" },
     { "src": "api/bot-config.js",      "use": "@vercel/node" },
+    { "src": "api/supervisor-cron.js", "use": "@vercel/node" },
+    { "src": "api/bot-mejoras.js",     "use": "@vercel/node" },
     { "src": "*.html",                   "use": "@vercel/static" },
     { "src": "sidebar.js",               "use": "@vercel/static" }
   ],
@@ -35,7 +37,8 @@
     { "path": "/api/cafeteria?accion=reporte",   "schedule": "0 13 * * 1" },
     { "path": "/api/cultura?accion=healthcheck", "schedule": "0 14 1 * *" },
     { "path": "/api/banos?accion=reporte",       "schedule": "0 13 * * 1" },
-    { "path": "/api/calidad-cron",               "schedule": "0 7 * * *" }
+    { "path": "/api/calidad-cron",               "schedule": "0 7 * * *" },
+    { "path": "/api/supervisor-cron",            "schedule": "0 8 * * *" }
   ],
   "routes": [
     { "src": "/api/chat",               "dest": "/api/chat.js"               },
@@ -101,6 +104,9 @@
     { "src": "/api/whatsapp",            "dest": "/api/whatsapp.js"               },
     { "src": "/api/bot-config",          "dest": "/api/bot-config.js"             },
     { "src": "/bot-config",              "dest": "/bot-config.html"               },
+    { "src": "/api/supervisor-cron",     "dest": "/api/supervisor-cron.js"        },
+    { "src": "/api/bot-mejoras",         "dest": "/api/bot-mejoras.js"            },
+    { "src": "/bot-supervisor",          "dest": "/bot-supervisor.html"           },
     { "src": "/base-estudiantes",        "dest": "/base-estudiantes.html"         },
     { "src": "/calidad-config",           "dest": "/calidad-config.html"           },
     { "src": "/calidad-dashboard",        "dest": "/calidad-dashboard.html"        },
