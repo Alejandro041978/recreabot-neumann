@@ -132,7 +132,7 @@
     overflow:hidden;max-height:0;transition:max-height .2s ease;
     padding-left:12px;
   }
-  .ns-children.ns-open{max-height:300px}
+  .ns-children.ns-open{max-height:420px}
 
   /* Sub-ítem de nivel 3 */
   .ns-child{
@@ -168,6 +168,11 @@
     #ns-sidebar.ns-open{transform:translateX(0)}
     #ns-toggle{display:flex !important}
   }
+
+  /* Estado de carga (skeleton) para que la columna nunca se vea vacía */
+  .ns-loading{padding:14px 10px;display:flex;flex-direction:column;gap:8px}
+  .ns-sk{height:30px;border-radius:7px;background:linear-gradient(90deg,#192536 25%,#22344d 50%,#192536 75%);background-size:200% 100%;animation:ns-shimmer 1.2s ease-in-out infinite}
+  @keyframes ns-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
   `;
 
   // ── 4. Construcción del HTML ──
@@ -225,46 +230,93 @@
     `;
   }
 
-  // ── 5. Init asíncrono ──
-  async function init() {
-    if (!window.supabase) return;
-    const sb = window.supabase.createClient(
-      'https://exjaxhrylfdwehzjfjut.supabase.co',
-      'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
-    );
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) return;
+  // ── 5. Estado, cliente y estilos (síncrono) ──
+  const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+  const sb = window.supabase ? window.supabase.createClient(
+    'https://exjaxhrylfdwehzjfjut.supabase.co',
+    'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
+  ) : null;
 
-    let info;
+  // Inyectar CSS del sidebar una sola vez, de inmediato
+  if (!document.getElementById('ns-css')) {
+    const style = document.createElement('style');
+    style.id = 'ns-css';
+    style.textContent = CSS;
+    document.head.appendChild(style);
+  }
+
+  function brandHtml() {
+    return '<div class="ns-brand"><div class="ns-brand-logo">🏫</div><div>' +
+      '<div class="ns-brand-name">Instituto Neumann</div>' +
+      '<div class="ns-brand-sub">Sistema de gestión</div></div></div>';
+  }
+  function shellHtml() {
+    return brandHtml() + '<div class="ns-loading">' + '<div class="ns-sk"></div>'.repeat(7) + '</div>';
+  }
+
+  function attach(aside) {
+    const tgl = document.getElementById('ns-toggle');
+    if (tgl) tgl.onclick = () => aside.classList.toggle('ns-open');
+    const lo = document.getElementById('ns-logout-btn');
+    if (lo && sb) lo.onclick = async () => {
+      try { sessionStorage.removeItem(CACHE_KEY); } catch (e) {}
+      await sb.auth.signOut();
+      window.location.href = '/login';
+    };
+  }
+
+  // Pinta el cascarón (fondo + marca + skeleton) de inmediato, sin esperar red
+  function ensureShell() {
+    let aside = document.getElementById('ns-sidebar');
+    if (!aside) {
+      aside = document.createElement('aside');
+      aside.id = 'ns-sidebar';
+      aside.innerHTML = shellHtml();
+      document.body.insertBefore(aside, document.body.firstChild);
+      if (!document.getElementById('ns-toggle')) {
+        const toggle = document.createElement('button');
+        toggle.id = 'ns-toggle';
+        toggle.innerHTML = '☰';
+        document.body.appendChild(toggle);
+      }
+      attach(aside);
+    }
+    return aside;
+  }
+
+  function render(info) {
+    const isAdmin = info.rol === 'director';
+    const aside = ensureShell();
+    aside.innerHTML = buildHtml(info, currentPath, isAdmin);
+    attach(aside);
+  }
+
+  // ── 6. Init: cascarón inmediato → caché de sesión → revalidación ──
+  const CACHE_KEY = 'ns_staff_info';
+  const TTL = 5 * 60 * 1000; // 5 minutos
+
+  async function init() {
+    ensureShell(); // aparece al instante, la columna nunca queda vacía
+
+    // Render inmediato desde caché de sesión (sin red)
+    let cache = null;
+    try { cache = JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null'); } catch (e) {}
+    if (cache && cache.info && cache.info.rol) render(cache.info);
+
+    // Revalidar solo si no hay caché o está vencida (evita el doble fetch al navegar)
+    const fresca = cache && (Date.now() - (cache.ts || 0) < TTL);
+    if (fresca || !sb) return;
+
+    let session;
+    try { ({ data: { session } } = await sb.auth.getSession()); } catch (e) { return; }
+    if (!session) return;
     try {
       const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
       if (!r.ok) return;
-      info = await r.json();
-    } catch (e) { return; }
-
-    const isAdmin = info.rol === 'director';
-    const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
-
-    const style = document.createElement('style');
-    style.textContent = CSS;
-    document.head.appendChild(style);
-
-    const toggle = document.createElement('button');
-    toggle.id = 'ns-toggle';
-    toggle.innerHTML = '☰';
-    document.body.appendChild(toggle);
-
-    const aside = document.createElement('aside');
-    aside.id = 'ns-sidebar';
-    aside.innerHTML = buildHtml(info, currentPath, isAdmin);
-    document.body.insertBefore(aside, document.body.firstChild);
-
-    toggle.addEventListener('click', () => aside.classList.toggle('ns-open'));
-
-    document.getElementById('ns-logout-btn').addEventListener('click', async () => {
-      await sb.auth.signOut();
-      window.location.href = '/login';
-    });
+      const info = await r.json();
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({ info, ts: Date.now() }));
+      render(info);
+    } catch (e) {}
   }
 
   if (document.readyState === 'loading') {
