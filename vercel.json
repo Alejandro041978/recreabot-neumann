@@ -73,6 +73,7 @@
     { "src": "/asistencia-dashboard",   "dest": "/asistencia-dashboard.html" },
     { "src": "/beca",                   "dest": "/beca.html"                 },
     { "src": "/beca-dashboard",         "dest": "/beca-dashboard.html"       },
+    { "src": "/beca-periodos",          "dest": "/beca-periodos.html"        },
     { "src": "/cultura-dashboard",      "dest": "/cultura-dashboard.html"    },
     { "src": "/cultura",                    "dest": "/cultura.html"                    },
     { "src": "/api/psicopedagogico",        "dest": "/api/psicopedagogico.js"          },

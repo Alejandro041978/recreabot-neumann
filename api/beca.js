@@ -153,6 +153,20 @@ async function enviarEmailResultado(email, nombre, estado, porcentaje, justifica
   });
 }
 
+async function verificarDirector(req, res) {
+  const token = (req.headers.authorization || '').replace('Bearer ', '').trim();
+  if (!token) { res.status(401).json({ error: 'Token requerido' }); return null; }
+  const userRes = await fetch(`${process.env.SUPABASE_URL}/auth/v1/user`, {
+    headers: { 'Authorization': `Bearer ${token}`, 'apikey': process.env.SUPABASE_SECRET_KEY },
+  });
+  if (!userRes.ok) { res.status(401).json({ error: 'Sesión inválida' }); return null; }
+  const user = await userRes.json();
+  const staff = (await query('staff', 'GET', null, `?auth_user_id=eq.${user.id}&select=*,roles(nombre)&limit=1`))?.[0];
+  if (!staff || !staff.activo) { res.status(403).json({ error: 'Sin acceso' }); return null; }
+  if (staff.roles?.nombre !== 'director') { res.status(403).json({ error: 'Solo el director puede gestionar periodos' }); return null; }
+  return staff;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -164,6 +178,41 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && req.query?.accion === 'cronograma') {
       const data = await query('cronograma_becas', 'GET', null, '?activo=eq.true&order=fecha_inicio.desc&limit=1');
       res.json({ cronograma: data?.[0] || null }); return;
+    }
+
+    // ── GET: lista de todos los periodos (admin) ──
+    if (req.method === 'GET' && req.query?.accion === 'periodos') {
+      const director = await verificarDirector(req, res);
+      if (!director) return;
+      const data = await query('cronograma_becas', 'GET', null, '?order=fecha_inicio.desc');
+      res.json(data || []); return;
+    }
+
+    // ── POST: crear/actualizar periodo (admin) ──
+    if (req.method === 'POST' && (req.body?.accion === 'crear-periodo' || req.body?.accion === 'actualizar-periodo')) {
+      const director = await verificarDirector(req, res);
+      if (!director) return;
+      const { id, semestre, fecha_inicio, fecha_cierre, fecha_resultados, activo } = req.body;
+      if (!semestre || !fecha_inicio || !fecha_cierre) {
+        res.status(400).json({ error: 'Semestre, fecha de inicio y fecha de cierre son obligatorios' }); return;
+      }
+      // Solo un periodo activo a la vez: si este queda activo, desactivar los demás
+      if (activo) {
+        await query('cronograma_becas', 'PATCH', { activo: false }, '?activo=eq.true');
+      }
+      const row = {
+        semestre,
+        fecha_inicio,
+        fecha_cierre,
+        fecha_resultados: fecha_resultados || null,
+        activo: !!activo,
+      };
+      if (req.body.accion === 'actualizar-periodo' && id) {
+        await query('cronograma_becas', 'PATCH', row, `?id=eq.${id}`);
+      } else {
+        await query('cronograma_becas', 'POST', row);
+      }
+      res.json({ ok: true }); return;
     }
 
     // ── GET: estado de postulación de un estudiante ──

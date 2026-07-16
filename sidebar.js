@@ -43,7 +43,13 @@
     { label: 'Estudiantes', items: [
       { icon: '🧑‍🎓', text: 'Base de Estudiantes', href: '/base-estudiantes',    modulo: 'base_estudiantes' },
       { icon: '🎓', text: 'Asistencia',    href: '/asistencia-dashboard', modulo: 'asistencia_dashboard' },
-      { icon: '🏅', text: 'Becas',          href: '/beca-dashboard',       modulo: 'beca_dashboard' },
+      { icon: '🏅', text: 'Becas', group: true,
+        anyModulo: ['beca_dashboard','beca_periodos'],
+        children: [
+          { icon: '📊', text: 'Dashboard',  href: '/beca-dashboard', modulo: 'beca_dashboard' },
+          { icon: '🗓️', text: 'Periodos',   href: '/beca-periodos',  modulo: 'beca_periodos' },
+        ],
+      },
       { icon: '🎭', text: 'Cultura',        href: '/cultura-dashboard',    modulo: 'cultura_dashboard' },
     ]},
     { label: 'Calidad', items: [
