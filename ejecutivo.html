@@ -16,7 +16,7 @@
 html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
 body{display:flex;flex-direction:column;align-items:center;padding:32px 16px 60px}
 
-.topbar{width:100%;max-width:700px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:10px 16px;background:var(--s);border:1px solid var(--b);border-radius:10px}
+.topbar{width:100%;max-width:1180px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:10px 16px;background:var(--s);border:1px solid var(--b);border-radius:10px}
 .topbar-user{font-size:0.78rem;color:var(--t2)}.topbar-user strong{color:var(--text)}
 .btn-logout{font-size:0.75rem;font-weight:600;color:var(--t3);background:none;border:1px solid var(--b);border-radius:6px;padding:5px 12px;cursor:pointer;transition:all .15s}
 .btn-logout:hover{border-color:var(--red);color:var(--red)}
@@ -25,19 +25,21 @@ body{display:flex;flex-direction:column;align-items:center;padding:32px 16px 60p
 h1{font-size:1.6rem;font-weight:800;color:var(--text);text-align:center;margin-bottom:4px}
 .subtitulo{font-size:0.82rem;color:var(--t3);text-align:center;margin-bottom:36px}
 
-.modulos{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;width:100%;max-width:700px}
+.modulos{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:1180px}
+@media(max-width:1000px){.modulos{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.modulos{grid-template-columns:1fr}}
 
 .modulo{
-  background:var(--s);border:1px solid var(--b);border-radius:16px;
-  padding:28px 24px;cursor:pointer;text-decoration:none;color:inherit;
+  background:var(--s);border:1px solid var(--b);border-radius:14px;
+  padding:18px 16px;cursor:pointer;text-decoration:none;color:inherit;
   transition:border-color .2s, transform .15s;display:block;
 }
 .modulo:hover{border-color:var(--acc);transform:translateY(-2px)}
 
-.mod-icon{font-size:2rem;margin-bottom:12px}
-.mod-titulo{font-size:0.7rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px}
-.mod-kpi{font-size:3.2rem;font-weight:800;line-height:1;margin-bottom:6px}
-.mod-kpi-label{font-size:0.78rem;color:var(--t2);margin-bottom:20px}
+.mod-icon{font-size:1.6rem;margin-bottom:8px}
+.mod-titulo{font-size:0.66rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
+.mod-kpi{font-size:2.3rem;font-weight:800;line-height:1;margin-bottom:5px}
+.mod-kpi-label{font-size:0.72rem;color:var(--t2);margin-bottom:14px}
 .mod-link{font-size:0.78rem;font-weight:600;display:flex;align-items:center;gap:6px}
 .mod-link svg{width:14px;height:14px;flex-shrink:0}
 
