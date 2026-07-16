@@ -45,7 +45,6 @@
       { icon: '🎓', text: 'Asistencia',    href: '/asistencia-dashboard', modulo: 'asistencia_dashboard' },
       { icon: '🏅', text: 'Becas',          href: '/beca-dashboard',       modulo: 'beca_dashboard' },
       { icon: '🎭', text: 'Cultura',        href: '/cultura-dashboard',    modulo: 'cultura_dashboard' },
-      { icon: '📚', text: 'Conocimientos',  href: '/conocimientos',        modulo: 'conocimientos' },
     ]},
     { label: 'Calidad', items: [
       { icon: '⭐', text: 'Dashboard Mes Calidad', href: '/calidad-dashboard', modulo: 'calidad_dashboard' },
@@ -53,9 +52,15 @@
     ]},
     { label: 'Administración', items: [
       { icon: '⚙️', text: 'Usuarios y Permisos', href: '/admin-usuarios', modulo: 'admin_usuarios' },
-      { icon: '🤖', text: 'Configuración del Bot', href: '/bot-config', modulo: 'bot_config' },
-      { icon: '🕵️', text: 'Supervisor de John', href: '/bot-supervisor', modulo: 'bot_supervisor' },
-      { icon: '📈', text: 'Métricas de John', href: '/john-metrics', modulo: 'john_metrics' },
+      { icon: '🤖', text: 'Bot John', group: true,
+        anyModulo: ['bot_config','conocimientos','bot_supervisor','john_metrics'],
+        children: [
+          { icon: '⚙️', text: 'Configuración del Bot', href: '/bot-config',    modulo: 'bot_config' },
+          { icon: '📚', text: 'Conocimientos',         href: '/conocimientos',  modulo: 'conocimientos' },
+          { icon: '🕵️', text: 'Supervisor de John',    href: '/bot-supervisor', modulo: 'bot_supervisor' },
+          { icon: '📈', text: 'Métricas de John',       href: '/john-metrics',   modulo: 'john_metrics' },
+        ],
+      },
     ]},
   ];
 
