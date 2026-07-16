@@ -370,8 +370,18 @@ async function cargarPsico() {
   try {
     const r = await fetch('/api/psicopedagogico?accion=kpis');
     const data = await r.json();
+    const corte10 = new Date(); corte10.setDate(corte10.getDate() - 70);
+    const corteStr = corte10.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    const reservas   = data.reservas   || [];
+    const atenciones = data.atenciones || [];
+    // Sesiones ocurridas: reservas completadas (últimas 10 semanas, por fecha)
+    const sesiones10 = reservas.filter(rv => rv.estado === 'completada' && rv.fecha && rv.fecha >= corteStr).length;
+    // Atenciones directas (últimas 10 semanas, por ts)
+    const at10 = atenciones.filter(a => a.ts && new Date(a.ts) >= corte10).length;
+
     const el = document.getElementById('kpi-psico');
-    if (el) { el.textContent = data.total_atenciones ?? '—'; }
+    if (el) el.textContent = sesiones10 + at10;
   } catch(e) {
     const el = document.getElementById('kpi-psico');
     if (el) el.textContent = '—';
