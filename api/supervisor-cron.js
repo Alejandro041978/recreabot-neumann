@@ -19,9 +19,10 @@ export default async function handler(req, res) {
     // ── Rango: ayer completo en hora Lima (o últimas 24h si test=1) ──
     let desdeUTC, hastaUTC;
     if (req.query?.test) {
+      // Modo manual/pruebas: últimos 7 días
       const ahora = new Date();
       hastaUTC = ahora.toISOString();
-      desdeUTC = new Date(ahora - 24 * 60 * 60 * 1000).toISOString();
+      desdeUTC = new Date(ahora - 7 * 24 * 60 * 60 * 1000).toISOString();
     } else {
       const ahora   = new Date();
       const hoyLima = new Date(ahora.toLocaleString('en-US', { timeZone: 'America/Lima' }));
