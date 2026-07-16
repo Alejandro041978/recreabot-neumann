@@ -86,6 +86,7 @@
     { "src": "/psicopedagogico-dashboard",  "dest": "/psicopedagogico-dashboard.html"  },
     { "src": "/psico-gestion",              "dest": "/psico-gestion.html"              },
     { "src": "/psico-reservas-gestion",     "dest": "/psico-reservas-gestion.html"     },
+    { "src": "/psico-seguimiento",          "dest": "/psico-seguimiento.html"          },
     { "src": "/psico-qr",                   "dest": "/psico-qr.html"                   },
     { "src": "/api/psico-reservas",         "dest": "/api/psico-reservas.js"           },
     { "src": "/psico-disponibilidad",       "dest": "/psico-disponibilidad.html"       },

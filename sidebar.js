@@ -22,11 +22,12 @@
       { icon: '🚻', text: 'Baños',        href: '/bano-dashboard',        modulo: 'bano_dashboard' },
       // Grupos expandibles
       { icon: '🧠', text: 'Psicopedagógico', group: true,
-        anyModulo: ['psico_dashboard','psico_gestion','psico_reservas_gestion','psico_disponibilidad'],
+        anyModulo: ['psico_dashboard','psico_gestion','psico_reservas_gestion','psico_disponibilidad','psico_seguimiento'],
         children: [
           { icon: '📊', text: 'Dashboard',      href: '/psicopedagogico-dashboard', modulo: 'psico_dashboard' },
           { icon: '📋', text: 'Reservas',        href: '/psico-reservas-gestion',    modulo: 'psico_reservas_gestion' },
           { icon: '🗓️', text: 'Sesiones',        href: '/psico-gestion',             modulo: 'psico_gestion' },
+          { icon: '🔁', text: 'Seguimiento',     href: '/psico-seguimiento',         modulo: 'psico_seguimiento' },
           { icon: '⏰', text: 'Disponibilidad',  href: '/psico-disponibilidad',      modulo: 'psico_disponibilidad' },
           { icon: '📲', text: 'Códigos QR',      href: '/psico-qr',                  modulo: 'psico_qr' },
         ],

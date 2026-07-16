@@ -206,15 +206,48 @@ export default async function handler(req, res) {
       res.json({ reserva: rv, estudiante: est, n_sesion: nSesion }); return;
     }
 
+    // ── GET lista de casos de seguimiento (estudiantes marcados) ──
+    if (req.method === 'GET' && accion === 'seguimiento-lista') {
+      // Todas las reservas de estudiantes que tienen al menos una sesión marcada como seguimiento
+      const marcados = await query('psico_reservas', 'GET', null,
+        '?seguimiento=eq.true&select=codigo&order=codigo.asc');
+      const codigos = [...new Set((marcados || []).map(r => r.codigo))];
+      if (!codigos.length) { res.json([]); return; }
+
+      const inList = codigos.map(c => encodeURIComponent(c)).join(',');
+      const todas = await query('psico_reservas', 'GET', null,
+        `?codigo=in.(${inList})&select=codigo,nombre,fecha,hora_inicio,estado,seguimiento&order=fecha.desc`);
+
+      // Agrupar por estudiante
+      const map = {};
+      (todas || []).forEach(r => {
+        if (!map[r.codigo]) map[r.codigo] = { codigo: r.codigo, nombre: r.nombre, total_citas: 0, ultima_fecha: r.fecha };
+        map[r.codigo].total_citas++;
+        if (r.fecha > map[r.codigo].ultima_fecha) map[r.codigo].ultima_fecha = r.fecha;
+      });
+      res.json(Object.values(map).sort((a, b) => (b.ultima_fecha || '').localeCompare(a.ultima_fecha || '')));
+      return;
+    }
+
+    // ── GET historial de citas de un estudiante ──
+    if (req.method === 'GET' && accion === 'historial') {
+      const codigo = req.query.codigo;
+      if (!codigo) { res.status(400).json({ error: 'codigo requerido' }); return; }
+      const data = await query('psico_reservas', 'GET', null,
+        `?codigo=eq.${encodeURIComponent(codigo)}&order=fecha.desc,hora_inicio.desc`);
+      res.json(data || []); return;
+    }
+
     // ── POST guardar ficha clínica (staff) ──
     if (req.method === 'POST' && req.body?.accion === 'ficha-clinica') {
       const { id, estado, n_sesion, profundidad_problema, impacto_profesional,
               tipo_dificultad, nivel_compromiso, problema_hallado,
-              observaciones, con_quien_vive, motivo_consulta, telefono, anotaciones } = req.body;
+              observaciones, con_quien_vive, motivo_consulta, telefono, anotaciones, seguimiento } = req.body;
       if (!id) { res.json({ ok: false, error: 'id requerido' }); return; }
       const updates = {};
       if (telefono          !== undefined) updates.telefono           = telefono;
       if (anotaciones       !== undefined) updates.anotaciones        = anotaciones;
+      if (seguimiento       !== undefined) updates.seguimiento        = !!seguimiento;
       if (estado            !== undefined) updates.estado             = estado;
       if (n_sesion          !== undefined) updates.n_sesion           = n_sesion;
       if (profundidad_problema !== undefined) updates.profundidad_problema = profundidad_problema;
@@ -360,7 +393,7 @@ export default async function handler(req, res) {
 
     // ── POST crear reserva libre (staff, atención directa — sin slots) ──
     if (req.method === 'POST' && req.body?.accion === 'reservar-directa') {
-      const { codigo, nombre, email, fecha, hora_inicio, hora_fin, ciclo, turno, seccion, telefono, con_quien_vive, motivo_consulta } = req.body;
+      const { codigo, nombre, email, fecha, hora_inicio, hora_fin, ciclo, turno, seccion, telefono, con_quien_vive, motivo_consulta, seguimiento } = req.body;
       if (!codigo || !fecha || !hora_inicio || !hora_fin) {
         res.json({ ok: false, error: 'Faltan datos obligatorios' }); return;
       }
@@ -381,6 +414,7 @@ export default async function handler(req, res) {
         telefono:        telefono        || null,
         con_quien_vive:  con_quien_vive  || null,
         motivo_consulta: motivo_consulta || null,
+        seguimiento:     !!seguimiento,
       }]);
 
       res.json({ ok: true, nombre: nombreCompleto }); return;

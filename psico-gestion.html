@@ -253,6 +253,10 @@ tbody tr:last-child td{border-bottom:none}
         <label>Observaciones</label>
         <textarea id="detObservaciones" rows="3" placeholder="Observaciones adicionales de la sesión..."></textarea>
       </div>
+      <label style="display:flex;align-items:center;gap:10px;background:var(--s2);border:1.5px solid var(--b);border-radius:8px;padding:12px 14px;margin-bottom:14px;cursor:pointer">
+        <input type="checkbox" id="detSeguimiento" style="width:18px;height:18px;accent-color:var(--acc);cursor:pointer">
+        <span style="font-size:0.85rem;font-weight:600;color:var(--text)">🔁 Marcar como caso de seguimiento</span>
+      </label>
       <button class="btn btn-acc" style="width:100%" onclick="guardarRegistroSesion()">Guardar registro de sesión</button>
       <div class="msg-ok" id="sesionOk">✅ Sesión registrada</div>
       <div class="msg-err" id="sesionErr"></div>
@@ -457,6 +461,7 @@ async function iniciarDesdeReserva(rv) {
   }
   document.getElementById('detNivelCompromiso').value= reserva.nivel_compromiso     || '';
   document.getElementById('detProblemaHallado').value= reserva.problema_hallado     || '';
+  document.getElementById('detSeguimiento').checked  = reserva.seguimiento === true;
   document.getElementById('detObservaciones').value  = reserva.notas               || '';
 
   ['fichaDetOk','fichaDetErr','sesionOk','sesionErr'].forEach(id =>
@@ -535,6 +540,7 @@ async function guardarRegistroSesion() {
         nivel_compromiso:     document.getElementById('detNivelCompromiso').value|| null,
         problema_hallado:     document.getElementById('detProblemaHallado').value.trim() || null,
         observaciones:        document.getElementById('detObservaciones').value.trim()   || null,
+        seguimiento:          document.getElementById('detSeguimiento').checked,
       }),
     });
     const data = await r.json();
