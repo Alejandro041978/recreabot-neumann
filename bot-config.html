@@ -66,9 +66,15 @@ body{padding:20px 16px 60px;max-width:820px;margin:0 auto}
   </div>
 
   <div class="field">
-    <label>Instrucciones / personalidad</label>
+    <label>🔒 Prompt básico (integrado — solo lectura)</label>
+    <textarea id="fPromptBasico" readonly style="min-height:280px;background:var(--bg);color:var(--t2);cursor:default"></textarea>
+    <div class="hint">Estas son las instrucciones fijas del sistema que John siempre sigue (identidad, no inventar, flujo de reservas, tickets, asistencia, museos, base de conocimientos). No se editan aquí para no romper el funcionamiento. Los datos entre { } se completan automáticamente en cada conversación.</div>
+  </div>
+
+  <div class="field">
+    <label>✏️ Prompt secundario / personalidad (editable)</label>
     <textarea id="fInstrucciones" placeholder="Ej: Sé cordial y usa un tono juvenil. Recuerda a los estudiantes que las reservas se confirman en garita. No respondas consultas académicas, deriva a Secretaría..."></textarea>
-    <div class="hint">Instrucciones adicionales que guían al bot. No hace falta repetir las reglas de reservas o tickets — esas ya están integradas. El bot solo responde con información de la base de conocimientos; aquí defines su tono y reglas extra.</div>
+    <div class="hint">Instrucciones adicionales que se <strong>suman</strong> al prompt básico (se agregan al final, bajo "Instrucciones adicionales del instituto"). Aquí defines el tono y reglas extra. No repitas las reglas de reservas o tickets: ya están integradas.</div>
   </div>
 
   <button class="btn btn-acc" id="btnGuardar" onclick="guardar()">Guardar configuración</button>
@@ -109,7 +115,29 @@ async function initAuth() {
   return true;
 }
 
+const PROMPT_BASICO = `Te llamas {nombre del bot}, el asistente digital del Instituto Superior Neumann. Ayudas a los estudiantes (por web y por WhatsApp) con tres servicios:
+1. Reservas de áreas recreativas
+2. Consulta de asistencia al campus
+3. Orientación cultural — museos virtuales
+
+En cada conversación recibe: la fecha de hoy, los datos del estudiante identificado ({nombre}, {carrera}, {código}) y, según la consulta, sus {datos de asistencia} o la {información encontrada en la base de conocimientos}.
+
+REGLAS GENERALES
+- Se presenta con su nombre si se lo preguntan.
+- Respuestas cortas (máximo 3 líneas). Sin markdown ni asteriscos.
+- REGLA ABSOLUTA ANTI-INVENCIÓN: solo responde con información que esté en este prompt o en el contexto (asistencia / base de conocimientos). Prohibido usar conocimiento general o inventar datos del instituto (servicios, horarios, docentes, precios, trámites, etc.). Si no lo tiene, lo dice claramente y ofrece crear un ticket. Ante la duda, no responde de su propio conocimiento.
+- MUSEOS/CULTURA: nunca da URLs directas de museos ni lista museos específicos; solo comparte la galería oficial rastreada.
+
+ESCALAMIENTO A SOPORTE
+Si el estudiante pide algo que no puede resolver (no es reserva, asistencia ni cultura, o requiere atención humana), ofrece crear un ticket de soporte. (Marcador interno del sistema: [CREAR_TICKET])
+
+FLUJO DE RESERVA
+Guía al estudiante paso a paso: elegir área → número de participantes → fecha → horario exacto de la lista de {áreas y horarios disponibles} → confirmar con un resumen en formato exacto. (Marcador interno del sistema: [REGISTRO COMPLETO])
+
+Al final del prompt se agregan automáticamente las INSTRUCCIONES ADICIONALES DEL INSTITUTO (el prompt secundario editable de abajo).`;
+
 async function cargar() {
+  document.getElementById('fPromptBasico').value = PROMPT_BASICO;
   try {
     const r = await fetch('/api/bot-config');
     const cfg = await r.json();
