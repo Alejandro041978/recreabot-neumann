@@ -66,6 +66,7 @@ body{display:flex;flex-direction:column;align-items:center;padding:24px 16px 60p
 
 <div class="logo">🏥</div>
 <div class="titulo">Evalúa la Charla de Salud</div>
+<div id="subtituloCharla" style="display:none;font-size:0.95rem;font-weight:700;color:var(--text);text-align:center;margin-bottom:6px"></div>
 <div class="subtitulo">Instituto Superior Neumann · Tu opinión mejora nuestras charlas</div>
 
 <!-- Bloqueada -->
@@ -148,6 +149,8 @@ body{display:flex;flex-direction:column;align-items:center;padding:24px 16px 60p
 let estudianteVerificado = null;
 const resp = {};
 let tokenSesion = null;
+let sesionId = null;
+let sesionTitulo = null;
 
 // ── Validar token de sesión al cargar ──
 async function validarSesion() {
@@ -164,6 +167,12 @@ async function validarSesion() {
     if (!data.valido) {
       mostrarBloqueada(data.motivo || 'Esta evaluación no está disponible.');
       return;
+    }
+    sesionId = data.sesion_id || null;
+    sesionTitulo = data.titulo || null;
+    if (sesionTitulo) {
+      const st = document.getElementById('subtituloCharla');
+      st.textContent = sesionTitulo; st.style.display = 'block';
     }
     // Token válido — mostrar formulario de identificación
     document.getElementById('pasoIdentificacion').style.display = 'block';
@@ -246,6 +255,8 @@ document.getElementById('btnEnviar').addEventListener('click', async () => {
         accion: 'charla',
         codigo: estudianteVerificado.codigo,
         nombre: `${estudianteVerificado.nombre} ${estudianteVerificado.apellido||''}`.trim(),
+        sesion_id: sesionId,
+        titulo: sesionTitulo,
         ...resp,
       }),
     });
