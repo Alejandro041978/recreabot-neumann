@@ -32,10 +32,20 @@ export default async function handler(req, res) {
       hastaUTC = new Date(inicioHoy.getTime()  + offset).toISOString();
     }
 
-    const conversaciones = await query('conversaciones', 'GET', null,
-      `?ts=gte.${desdeUTC}&ts=lt.${hastaUTC}&order=ts.asc&limit=60`);
+    // Conversaciones del bot web y del bot de WhatsApp
+    const [convWeb, convWa] = await Promise.all([
+      query('conversaciones', 'GET', null,
+        `?ts=gte.${desdeUTC}&ts=lt.${hastaUTC}&order=ts.asc&limit=60`),
+      query('whatsapp_conversaciones', 'GET', null,
+        `?updated_at=gte.${desdeUTC}&updated_at=lt.${hastaUTC}&order=updated_at.asc&limit=60`).catch(() => []),
+    ]);
 
-    if (!conversaciones || !conversaciones.length) {
+    const items = [
+      ...(convWeb || []).map(c => ({ canal: 'Web', msgs: c.mensajes,  resultado: c.resultado })),
+      ...(convWa  || []).map(c => ({ canal: 'WhatsApp', msgs: c.historial, resultado: null })),
+    ].filter(c => Array.isArray(c.msgs) && c.msgs.length);
+
+    if (!items.length) {
       res.json({ ok: true, mensaje: 'Sin conversaciones para analizar', propuestas: 0 }); return;
     }
 
@@ -44,10 +54,9 @@ export default async function handler(req, res) {
     const cfg = cfgRows?.[0] || { nombre_bot: 'John', instrucciones: '' };
 
     // Transcripciones compactas
-    const transcripts = conversaciones.map((c, i) => {
-      const msgs = Array.isArray(c.mensajes) ? c.mensajes : [];
-      const texto = msgs.map(m => `${m.role === 'user' ? 'Estudiante' : 'John'}: ${m.content}`).join('\n').slice(0, 1500);
-      return `--- Conversación ${i + 1} (resultado: ${c.resultado || 's/d'}) ---\n${texto}`;
+    const transcripts = items.map((c, i) => {
+      const texto = c.msgs.map(m => `${m.role === 'user' ? 'Estudiante' : 'John'}: ${m.content}`).join('\n').slice(0, 1500);
+      return `--- Conversación ${i + 1} · canal ${c.canal}${c.resultado ? ` · resultado: ${c.resultado}` : ''} ---\n${texto}`;
     }).join('\n\n');
 
     const system = `Eres el supervisor de calidad de "${cfg.nombre_bot || 'John'}", el asistente virtual del Instituto Superior Neumann que atiende estudiantes: reservas de áreas recreativas, consulta de asistencia, orientación cultural (museos virtuales) y responde dudas usando SOLO la base de conocimientos (si no sabe, ofrece crear un ticket; nunca inventa).
@@ -78,7 +87,7 @@ Responde ÚNICAMENTE con un array JSON válido (sin texto adicional, sin markdow
         model: 'claude-sonnet-4-5',
         max_tokens: 2000,
         system,
-        messages: [{ role: 'user', content: `CONVERSACIONES A REVISAR (${conversaciones.length}):\n\n${transcripts}` }],
+        messages: [{ role: 'user', content: `CONVERSACIONES A REVISAR (${items.length}):\n\n${transcripts}` }],
       }),
     });
     const data = await r.json();
@@ -111,7 +120,7 @@ Responde ÚNICAMENTE con un array JSON válido (sin texto adicional, sin markdow
       insertadas++;
     }
 
-    res.json({ ok: true, conversaciones: conversaciones.length, propuestas: insertadas });
+    res.json({ ok: true, conversaciones: items.length, web: (convWeb||[]).length, whatsapp: (convWa||[]).length, propuestas: insertadas });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
