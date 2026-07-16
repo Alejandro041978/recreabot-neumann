@@ -129,6 +129,9 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
   </div>
   <button class="btn-rango" onclick="aplicarRango()">Aplicar</button>
   <button class="btn-rango-sec" onclick="limpiarRango()">Limpiar</button>
+  <span style="width:1px;height:34px;background:var(--b);margin:0 2px"></span>
+  <button class="btn-rango-sec" onclick="rangoRapido(0)">Hoy</button>
+  <button class="btn-rango-sec" onclick="rangoRapido(1)">Hoy y ayer</button>
 </div>
 
 <div class="busqueda-bar">
@@ -295,6 +298,20 @@ function limpiarRango() {
   document.getElementById('fHasta').value = '';
   fechaDesde = '';
   fechaHasta = '';
+  paginaActual = 1;
+  cargarReservas();
+}
+
+// Atajos: diasAtras=0 → hoy; diasAtras=1 → hoy y ayer
+function rangoRapido(diasAtras) {
+  const hoyStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); // YYYY-MM-DD
+  const d = new Date(hoyStr + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() - diasAtras);
+  const desde = d.toISOString().slice(0, 10);
+  fechaDesde = desde;
+  fechaHasta = hoyStr;
+  document.getElementById('fDesde').value = desde;
+  document.getElementById('fHasta').value = hoyStr;
   paginaActual = 1;
   cargarReservas();
 }
