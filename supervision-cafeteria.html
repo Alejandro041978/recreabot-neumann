@@ -68,7 +68,8 @@ tbody tr:last-child td{border-bottom:none}
     <div class="topbar-icon">🍽️</div>
     <div class="topbar-titulo">Supervisión de Cafetería</div>
   </div>
-  <div style="display:flex;align-items:center;gap:8px">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button id="btnPrueba" onclick="generarPrueba()" style="display:none;padding:6px 12px;background:none;border:1px solid var(--b);border-radius:7px;color:var(--t2);font-size:0.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">🧪 Generar prueba</button>
     <div class="topbar-user" id="topbar-user"></div>
   </div>
 </div>
@@ -118,7 +119,24 @@ async function initAuth() {
     window.location.href = '/ejecutivo'; return false;
   }
   document.getElementById('topbar-user').innerHTML = `<strong>${info.nombre}</strong>`;
+  if (info.rol === 'director') document.getElementById('btnPrueba').style.display = 'inline-block';
   return true;
+}
+
+async function generarPrueba() {
+  const btn = document.getElementById('btnPrueba');
+  btn.disabled = true; btn.textContent = 'Generando...';
+  try {
+    const r = await fetch('/api/supervision-cafeteria', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ accion: 'prueba' }),
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    alert(data.mensaje || `Supervisión de prueba creada. Correo enviado a: ${data.email}`);
+    cargar();
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = '🧪 Generar prueba'; }
 }
 
 function fmtVence(iso) {

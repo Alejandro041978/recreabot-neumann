@@ -10,9 +10,37 @@ async function verificarStaff(req, res) {
   });
   if (!userRes.ok) { res.status(401).json({ error: 'Sesión inválida' }); return null; }
   const user = await userRes.json();
-  const staff = (await query('staff', 'GET', null, `?auth_user_id=eq.${user.id}&limit=1`))?.[0];
+  const staff = (await query('staff', 'GET', null, `?auth_user_id=eq.${user.id}&select=*,roles(nombre)&limit=1`))?.[0];
   if (!staff || !staff.activo) { res.status(403).json({ error: 'Sin acceso' }); return null; }
   return staff;
+}
+
+async function emailEnfermera() {
+  try {
+    const rol = (await query('roles', 'GET', null, '?nombre=ilike.enfermera&limit=1'))?.[0];
+    if (!rol) return null;
+    const st = (await query('staff', 'GET', null, `?rol_id=eq.${rol.id}&activo=eq.true&limit=1`))?.[0];
+    return st?.email || null;
+  } catch (e) { return null; }
+}
+
+async function enviarAlerta(email, vence) {
+  const RESEND_KEY = process.env.RESEND_API_KEY;
+  const EMAIL_FROM = process.env.EMAIL_FROM || 'RecreaBot Neumann <onboarding@resend.dev>';
+  if (!RESEND_KEY || !email) return;
+  const url = 'https://recreabot-neumann.vercel.app/supervision-cafeteria';
+  const venceTxt = new Date(vence).toLocaleString('es-PE', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit', hour12: true });
+  const html = `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#334155">
+    <h2 style="color:#b45309">🍽️ Supervisión de Cafetería</h2>
+    <p>Te corresponde realizar la supervisión al concesionario de la cafetería. Ingresa al sistema y completa el cuestionario.</p>
+    <p style="background:#fef3c7;border-left:4px solid #f59e0b;padding:10px 14px">⏱️ Tienes <strong>3 horas</strong> (hasta las <strong>${venceTxt}</strong>). Después se cierra.</p>
+    <p><a href="${url}" style="background:#f59e0b;color:#fff;padding:11px 22px;border-radius:8px;text-decoration:none;font-weight:700">Realizar supervisión →</a></p>
+  </div>`;
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: EMAIL_FROM, to: [email], subject: '🍽️ Supervisión de cafetería — tienes 3 horas', html }),
+  }).catch(() => {});
 }
 
 export default async function handler(req, res) {
@@ -40,6 +68,24 @@ export default async function handler(req, res) {
       const data = await query('supervision_cafeteria', 'GET', null,
         '?estado=in.(completada,cerrada)&order=semana.desc&limit=100');
       res.json(data || []); return;
+    }
+
+    // ── POST: generar supervisión de prueba (solo director) ──
+    if (req.method === 'POST' && req.body?.accion === 'prueba') {
+      if (staff.roles?.nombre !== 'director') { res.status(403).json({ error: 'Solo el director puede generar una prueba' }); return; }
+      // No duplicar si ya hay una pendiente
+      const yaPend = (await query('supervision_cafeteria', 'GET', null, '?estado=eq.pendiente&limit=1'))?.[0];
+      if (yaPend) { res.json({ ok: true, mensaje: 'Ya hay una supervisión pendiente' }); return; }
+
+      const email = await emailEnfermera();
+      const vence_en = new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString();
+      const hoy = new Date().toLocaleDateString('es-PE', { timeZone: 'America/Lima' });
+      await query('supervision_cafeteria', 'POST', {
+        semana: `PRUEBA ${hoy}`, estado: 'pendiente',
+        alerta_en: new Date().toISOString(), vence_en, supervisor_email: email,
+      });
+      await enviarAlerta(email, vence_en);
+      res.json({ ok: true, email: email || 'sin correo de enfermera' }); return;
     }
 
     // ── POST: responder ──
