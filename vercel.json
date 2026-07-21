@@ -30,6 +30,8 @@
     { "src": "api/supervisor-cron.js", "use": "@vercel/node" },
     { "src": "api/bot-mejoras.js",     "use": "@vercel/node" },
     { "src": "api/john-metrics.js",    "use": "@vercel/node" },
+    { "src": "api/supervision-cron.js",      "use": "@vercel/node" },
+    { "src": "api/supervision-cafeteria.js", "use": "@vercel/node" },
     { "src": "*.html",                   "use": "@vercel/static" },
     { "src": "sidebar.js",               "use": "@vercel/static" }
   ],
@@ -39,7 +41,8 @@
     { "path": "/api/cultura?accion=healthcheck", "schedule": "0 14 1 * *" },
     { "path": "/api/banos?accion=reporte",       "schedule": "0 13 * * 1" },
     { "path": "/api/calidad-cron",               "schedule": "0 7 * * *" },
-    { "path": "/api/supervisor-cron",            "schedule": "0 8 * * *" }
+    { "path": "/api/supervisor-cron",            "schedule": "0 8 * * *" },
+    { "path": "/api/supervision-cron",           "schedule": "0 0,14,15,16,23 * * *" }
   ],
   "routes": [
     { "src": "/api/chat",               "dest": "/api/chat.js"               },
@@ -111,6 +114,9 @@
     { "src": "/bot-supervisor",          "dest": "/bot-supervisor.html"           },
     { "src": "/api/john-metrics",        "dest": "/api/john-metrics.js"           },
     { "src": "/john-metrics",            "dest": "/john-metrics.html"             },
+    { "src": "/api/supervision-cron",    "dest": "/api/supervision-cron.js"       },
+    { "src": "/api/supervision-cafeteria","dest": "/api/supervision-cafeteria.js" },
+    { "src": "/supervision-cafeteria",   "dest": "/supervision-cafeteria.html"    },
     { "src": "/base-estudiantes",        "dest": "/base-estudiantes.html"         },
     { "src": "/calidad-config",           "dest": "/calidad-config.html"           },
     { "src": "/calidad-dashboard",        "dest": "/calidad-dashboard.html"        },

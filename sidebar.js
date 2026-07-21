@@ -17,7 +17,13 @@
     ]},
     { label: 'Servicios', items: [
       { icon: '🏃', text: 'Recreativos',  href: '/recreativos-dashboard', modulo: 'recreativos_panel' },
-      { icon: '☕', text: 'Cafetería',    href: '/cafeteria-dashboard',   modulo: 'cafeteria_dashboard' },
+      { icon: '☕', text: 'Cafetería', group: true,
+        anyModulo: ['cafeteria_dashboard','supervision_cafeteria'],
+        children: [
+          { icon: '📊', text: 'Dashboard',   href: '/cafeteria-dashboard',    modulo: 'cafeteria_dashboard' },
+          { icon: '🍽️', text: 'Supervisión', href: '/supervision-cafeteria',  modulo: 'supervision_cafeteria' },
+        ],
+      },
       { icon: '🏛️', text: 'Museos',       href: '/cultura-dashboard',     modulo: 'cultura_dashboard' },
       { icon: '🚻', text: 'Baños',        href: '/bano-dashboard',        modulo: 'bano_dashboard' },
       // Grupos expandibles
