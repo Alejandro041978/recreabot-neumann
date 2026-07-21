@@ -297,22 +297,20 @@
     attach(aside);
   }
 
-  // ── 6. Init: cascarón inmediato → caché de sesión → revalidación ──
+  // ── 6. Init: cascarón inmediato → caché de sesión → revalidación SIEMPRE ──
   const CACHE_KEY = 'ns_staff_info';
-  const TTL = 5 * 60 * 1000; // 5 minutos
 
   async function init() {
     ensureShell(); // aparece al instante, la columna nunca queda vacía
 
-    // Render inmediato desde caché de sesión (sin red)
+    // Render inmediato desde caché de sesión (solo para velocidad; NO es la fuente de verdad)
     let cache = null;
     try { cache = JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null'); } catch (e) {}
     if (cache && cache.info && cache.info.rol) render(cache.info);
 
-    // Revalidar solo si no hay caché o está vencida (evita el doble fetch al navegar)
-    const fresca = cache && (Date.now() - (cache.ts || 0) < TTL);
-    if (fresca || !sb) return;
-
+    // Revalidar SIEMPRE en segundo plano y re-renderizar con datos frescos.
+    // Así los cambios de permisos se reflejan de inmediato al recargar/navegar.
+    if (!sb) return;
     let session;
     try { ({ data: { session } } = await sb.auth.getSession()); } catch (e) { return; }
     if (!session) return;
@@ -320,8 +318,10 @@
       const r = await fetch('/api/staff-info', { headers: { 'Authorization': `Bearer ${session.access_token}` } });
       if (!r.ok) return;
       const info = await r.json();
+      const antes = cache && cache.info ? JSON.stringify(cache.info) : '';
       sessionStorage.setItem(CACHE_KEY, JSON.stringify({ info, ts: Date.now() }));
-      render(info);
+      // Re-renderizar solo si cambió (evita parpadeo innecesario)
+      if (JSON.stringify(info) !== antes) render(info);
     } catch (e) {}
   }
 
