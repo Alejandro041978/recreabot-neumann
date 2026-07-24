@@ -41,6 +41,12 @@ body{padding:20px 16px 60px;max-width:920px;margin:0 auto}
 .card-problema{font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:6px}
 .card-resumen{font-size:0.82rem;color:var(--t2);margin-bottom:12px}
 .card-contenido{background:var(--s2);border-left:3px solid var(--acc);border-radius:6px;padding:12px 14px;font-size:0.82rem;color:var(--text);line-height:1.6;white-space:pre-wrap;font-family:var(--mono)}
+.edit-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+@media(max-width:560px){.edit-row{grid-template-columns:1fr}}
+.edit-inp{width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:7px;padding:9px 12px;color:var(--text);font-size:0.83rem;font-family:'Inter',sans-serif;outline:none}
+.edit-inp:focus{border-color:var(--acc)}
+.edit-area{width:100%;min-height:110px;background:var(--s2);border:1.5px solid var(--acc);border-radius:7px;padding:11px 13px;color:var(--text);font-size:0.83rem;line-height:1.6;font-family:'Inter',sans-serif;outline:none;resize:vertical}
+.edit-area:focus{border-color:var(--acc2)}
 .card-kb{font-size:0.74rem;color:var(--t3);margin-top:8px}
 .card-kb strong{color:var(--t2)}
 .acciones{display:flex;gap:8px;margin-top:14px}
@@ -140,18 +146,43 @@ async function cargar() {
   }
 }
 
+function escapeHtml(s){ return String(s == null ? '' : s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+function attr(s){ return String(s == null ? '' : s).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+
 function render(m) {
   const tipoTxt = m.tipo === 'conocimiento' ? 'Conocimiento' : 'Prompt';
   const fecha = (m.creado_en || '').slice(0, 10);
-  const kbBlock = m.tipo === 'conocimiento'
-    ? `<div class="card-kb"><strong>Tema:</strong> ${m.kb_tema || '—'} &nbsp;·&nbsp; <strong>Pregunta:</strong> ${m.kb_pregunta || '—'} &nbsp;·&nbsp; <strong>Tags:</strong> ${m.kb_tags || '—'}</div>`
-    : '';
-  const acciones = m.estado === 'pendiente'
+  const editable = m.estado === 'pendiente';
+
+  let cuerpo;
+  if (editable) {
+    // Editable: el humano ajusta el texto (ej. reemplazar los [DATO A COMPLETAR]) antes de aprobar
+    if (m.tipo === 'conocimiento') {
+      cuerpo = `
+        <div class="edit-row">
+          <input class="edit-inp" id="t_${m.id}" value="${attr(m.kb_tema)}" placeholder="Tema">
+          <input class="edit-inp" id="g_${m.id}" value="${attr(m.kb_tags)}" placeholder="Tags (separados por coma)">
+        </div>
+        <input class="edit-inp" id="p_${m.id}" value="${attr(m.kb_pregunta)}" placeholder="Pregunta / título" style="margin-bottom:8px">
+        <textarea class="edit-area" id="c_${m.id}" placeholder="Respuesta que dará el bot">${escapeHtml(m.contenido)}</textarea>`;
+    } else {
+      cuerpo = `<textarea class="edit-area" id="c_${m.id}" placeholder="Instrucción a agregar al prompt">${escapeHtml(m.contenido)}</textarea>`;
+    }
+  } else {
+    cuerpo = m.contenido ? `<div class="card-contenido">${escapeHtml(m.contenido)}</div>` : '';
+    if (m.tipo === 'conocimiento') {
+      cuerpo += `<div class="card-kb"><strong>Tema:</strong> ${escapeHtml(m.kb_tema)||'—'} &nbsp;·&nbsp; <strong>Pregunta:</strong> ${escapeHtml(m.kb_pregunta)||'—'} &nbsp;·&nbsp; <strong>Tags:</strong> ${escapeHtml(m.kb_tags)||'—'}</div>`;
+    }
+  }
+
+  const acciones = editable
     ? `<div class="acciones">
-         <button class="btn-aprobar" onclick="revisar(${m.id},'aprobar')">✓ Aprobar</button>
-         <button class="btn-rechazar" onclick="revisar(${m.id},'rechazar')">✕ Rechazar</button>
-       </div>`
+         <button class="btn-aprobar" onclick="revisar(${m.id},'aprobar','${m.tipo}')">✓ Aprobar</button>
+         <button class="btn-rechazar" onclick="revisar(${m.id},'rechazar','${m.tipo}')">✕ Rechazar</button>
+       </div>
+       <div style="font-size:0.7rem;color:var(--t3);margin-top:6px">✏️ Puedes editar el texto arriba antes de aprobar (reemplaza los [DATO A COMPLETAR] con la información real).</div>`
     : '';
+
   return `
     <div class="card">
       <div class="card-head">
@@ -159,22 +190,32 @@ function render(m) {
         <span class="tag tag-${m.estado}">${m.estado}</span>
         <span class="card-fecha">${fecha}</span>
       </div>
-      <div class="card-problema">⚠️ ${m.problema || ''}</div>
-      ${m.resumen ? `<div class="card-resumen">✅ ${m.resumen}</div>` : ''}
-      ${m.contenido ? `<div class="card-contenido">${escapeHtml(m.contenido)}</div>` : ''}
-      ${kbBlock}
+      <div class="card-problema">⚠️ ${escapeHtml(m.problema)}</div>
+      ${m.resumen ? `<div class="card-resumen">✅ ${escapeHtml(m.resumen)}</div>` : ''}
+      ${cuerpo}
       ${acciones}
     </div>`;
 }
 
-function escapeHtml(s){ return String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
-
-async function revisar(id, accion) {
+async function revisar(id, accion, tipo) {
+  const body = { accion, id };
+  if (accion === 'aprobar') {
+    const c = document.getElementById('c_' + id);
+    if (c) {
+      if (!c.value.trim()) { showMsg('El contenido no puede estar vacío', false); return; }
+      body.contenido = c.value;
+    }
+    if (tipo === 'conocimiento') {
+      const t = document.getElementById('t_' + id); if (t) body.kb_tema = t.value;
+      const p = document.getElementById('p_' + id); if (p) body.kb_pregunta = p.value;
+      const g = document.getElementById('g_' + id); if (g) body.kb_tags = g.value;
+    }
+  }
   try {
     const r = await fetch('/api/bot-mejoras', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ accion, id }),
+      body: JSON.stringify(body),
     });
     const data = await r.json();
     if (!data.ok) throw new Error(data.error || 'Error');

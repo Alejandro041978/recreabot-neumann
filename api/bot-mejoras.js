@@ -61,26 +61,39 @@ export default async function handler(req, res) {
       }
 
       if (accion === 'aprobar') {
+        // Valores editados por el humano (si no vienen, se usan los propuestos)
+        const contenido   = req.body.contenido   !== undefined ? req.body.contenido   : mejora.contenido;
+        const kb_tema     = req.body.kb_tema      !== undefined ? req.body.kb_tema     : mejora.kb_tema;
+        const kb_pregunta = req.body.kb_pregunta  !== undefined ? req.body.kb_pregunta : mejora.kb_pregunta;
+        const kb_tags     = req.body.kb_tags      !== undefined ? req.body.kb_tags     : mejora.kb_tags;
+
+        if (!contenido || !String(contenido).trim()) {
+          res.status(400).json({ error: 'El contenido no puede estar vacío' }); return;
+        }
+
         if (mejora.tipo === 'prompt') {
           // Agregar al prompt secundario
           const cfgRows = await query('config_bot', 'GET', null, '?id=eq.1&limit=1');
           const cfg = cfgRows?.[0] || { instrucciones: '' };
           const actual = (cfg.instrucciones || '').trim();
-          const nuevo = actual ? `${actual}\n- ${mejora.contenido}` : `- ${mejora.contenido}`;
-          const existe = cfgRows?.[0];
-          if (existe) await query('config_bot', 'PATCH', { instrucciones: nuevo, updated_at: new Date().toISOString() }, '?id=eq.1');
+          const nuevo = actual ? `${actual}\n- ${String(contenido).trim()}` : `- ${String(contenido).trim()}`;
+          if (cfgRows?.[0]) await query('config_bot', 'PATCH', { instrucciones: nuevo, updated_at: new Date().toISOString() }, '?id=eq.1');
           else await query('config_bot', 'POST', { id: 1, nombre_bot: 'John', instrucciones: nuevo });
         } else if (mejora.tipo === 'conocimiento') {
           // Insertar en la base de conocimientos
           await query('conocimientos', 'POST', {
-            tema:      mejora.kb_tema || 'General',
-            pregunta:  mejora.kb_pregunta || mejora.problema,
-            respuesta: mejora.contenido || '',
-            tags:      mejora.kb_tags || '',
+            tema:      kb_tema || 'General',
+            pregunta:  kb_pregunta || mejora.problema,
+            respuesta: String(contenido).trim(),
+            tags:      kb_tags || '',
             activo:    true,
           });
         }
-        await query('bot_mejoras', 'PATCH', { estado: 'aprobada', revisado_en: new Date().toISOString() }, `?id=eq.${id}`);
+        // Guardar los valores finales (editados) en el registro de la propuesta
+        await query('bot_mejoras', 'PATCH', {
+          estado: 'aprobada', revisado_en: new Date().toISOString(),
+          contenido, kb_tema, kb_pregunta, kb_tags,
+        }, `?id=eq.${id}`);
         res.json({ ok: true }); return;
       }
 
