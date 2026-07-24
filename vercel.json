@@ -33,7 +33,8 @@
     { "src": "api/supervision-cron.js",      "use": "@vercel/node" },
     { "src": "api/supervision-cafeteria.js", "use": "@vercel/node" },
     { "src": "*.html",                   "use": "@vercel/static" },
-    { "src": "sidebar.js",               "use": "@vercel/static" }
+    { "src": "sidebar.js",               "use": "@vercel/static" },
+    { "src": "favicon.svg",              "use": "@vercel/static" }
   ],
   "crons": [
     { "path": "/api/reporte",                    "schedule": "0 13 * * 1" },
@@ -122,6 +123,7 @@
     { "src": "/calidad-dashboard",        "dest": "/calidad-dashboard.html"        },
     { "src": "/bot.html",                   "dest": "/bot.html"                        },
     { "src": "/sidebar.js",                 "dest": "/sidebar.js"                      },
+    { "src": "/favicon.svg",                "dest": "/favicon.svg"                     },
     { "src": "/",                       "dest": "/login.html"                },
     { "src": "/(.*)",                   "dest": "/index.html"                }
   ]

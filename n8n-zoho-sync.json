@@ -1,0 +1,105 @@
+{
+  "name": "Zoho Desk → Supabase Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 7 * * *" }]
+        }
+      },
+      "name": "Schedule (2am Lima)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://accounts.zoho.com/oauth/v2/token",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "grant_type",    "value": "refresh_token" },
+            { "name": "client_id",     "value": "={{ $env.ZOHO_CLIENT_ID }}" },
+            { "name": "client_secret", "value": "={{ $env.ZOHO_CLIENT_SECRET }}" },
+            { "name": "refresh_token", "value": "={{ $env.ZOHO_REFRESH_TOKEN }}" }
+          ]
+        }
+      },
+      "name": "Obtener Access Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const token = $input.first().json.access_token;\nif (!token) throw new Error('No se obtuvo access_token: ' + JSON.stringify($input.first().json));\n\nconst orgId = $env.ZOHO_ORG_ID;\nconst since = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();\n\nreturn [{ json: { token, orgId, since } }];"
+      },
+      "name": "Preparar variables",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const token  = $input.first().json.token;\nconst orgId  = $input.first().json.orgId;\nconst since  = $input.first().json.since;\n\nconst allTickets = [];\nlet from = 1;\nconst limit = 50;\n\nwhile (true) {\n  const url = `https://desk.zoho.com/api/v1/tickets?from=${from}&limit=${limit}&sortBy=modifiedTime&order=desc`;\n  const res = await this.helpers.httpRequest({\n    method: 'GET',\n    url,\n    headers: {\n      'Authorization': `Zoho-oauthtoken ${token}`,\n      'orgId': orgId,\n    },\n  });\n\n  const rows = res.data || [];\n  if (!rows.length) break;\n\n  // Filtrar solo los modificados en las últimas 25h\n  const recent = rows.filter(t => t.modifiedTime && t.modifiedTime >= since);\n  allTickets.push(...recent);\n\n  // Si el último ticket de la página ya es más antiguo que el rango, parar\n  const last = rows.at(-1);\n  if (!last?.modifiedTime || last.modifiedTime < since) break;\n  if (rows.length < limit) break;\n\n  from += limit;\n  // Evitar rate limit\n  await new Promise(r => setTimeout(r, 200));\n}\n\nif (!allTickets.length) return [{ json: { msg: 'Sin tickets nuevos', count: 0 } }];\n\n// Mapear a estructura de la tabla zoho_tickets\nconst records = allTickets.map(t => ({\n  id:                 t.id,\n  ticket_number:      t.ticketNumber || null,\n  subject:            t.subject || null,\n  status:             t.status || null,\n  priority:           t.priority || null,\n  channel:            t.channel || null,\n  department_id:      t.departmentId || null,\n  contact_id:         t.contactId || null,\n  assignee_id:        t.assigneeId || null,\n  created_time:       t.createdTime || null,\n  modified_time:      t.modifiedTime || null,\n  closed_time:        t.closedTime || null,\n  first_response_time: t.firstResponseTime ? parseInt(t.firstResponseTime) : null,\n  raw_data:           t,\n  synced_at:          new Date().toISOString(),\n}));\n\nreturn records.map(r => ({ json: r }));"
+      },
+      "name": "Paginar y mapear tickets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/zoho_tickets",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey",        "value": "={{ $env.SUPABASE_SECRET_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SECRET_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" },
+            { "name": "Prefer",        "value": "resolution=merge-duplicates,return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={{ $json }}"
+      },
+      "name": "Upsert en Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/zoho_sync_logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey",        "value": "={{ $env.SUPABASE_SECRET_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SECRET_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" },
+            { "name": "Prefer",        "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={ \"tipo\": \"zoho_tickets\", \"tickets_sincronizados\": {{ $items().length }}, \"ejecutado_at\": \"{{ new Date().toISOString() }}\", \"ok\": true }"
+      },
+      "name": "Registrar sync log",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 300]
+    }
+  ],
+  "connections": {
+    "Schedule (2am Lima)":    { "main": [[{ "node": "Obtener Access Token",    "type": "main", "index": 0 }]] },
+    "Obtener Access Token":   { "main": [[{ "node": "Preparar variables",       "type": "main", "index": 0 }]] },
+    "Preparar variables":     { "main": [[{ "node": "Paginar y mapear tickets", "type": "main", "index": 0 }]] },
+    "Paginar y mapear tickets": { "main": [[{ "node": "Upsert en Supabase",     "type": "main", "index": 0 }]] },
+    "Upsert en Supabase":     { "main": [[{ "node": "Registrar sync log",       "type": "main", "index": 0 }]] }
+  }
+}
