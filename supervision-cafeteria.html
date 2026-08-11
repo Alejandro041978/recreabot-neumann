@@ -86,6 +86,16 @@ const sb = supabase.createClient(
 );
 let token = null;
 
+// Devuelve el token de sesión FRESCO (renovado automáticamente por Supabase),
+// no el capturado al cargar la página. Evita "Sesión inválida" en formularios largos.
+async function getToken() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.access_token) { token = session.access_token; return token; }
+  } catch (e) {}
+  return token;
+}
+
 const DIMENSIONES = [
   { titulo: '🧼 Salubridad', items: [
     'Manipula los alimentos con higiene (guantes/utensilios limpios, higiene personal).',
@@ -128,8 +138,9 @@ async function generarPrueba() {
   const btn = document.getElementById('btnPrueba');
   btn.disabled = true; btn.textContent = 'Generando...';
   try {
+    const t = await getToken();
     const r = await fetch('/api/supervision-cafeteria', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${t}` },
       body: JSON.stringify({ accion: 'prueba' }),
     });
     const data = await r.json();
@@ -188,8 +199,9 @@ async function enviar(id) {
     respuestas['q' + i] = sel.value;
   }
   try {
+    const t = await getToken();
     const r = await fetch('/api/supervision-cafeteria', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${t}` },
       body: JSON.stringify({
         accion: 'responder', id, respuestas,
         obs_salubridad: document.getElementById('obs_salubridad').value.trim() || null,
