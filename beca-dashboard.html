@@ -261,16 +261,16 @@ const criterioLabels = {
   c7:'Evidencias', c8:'Becas anteriores', c9:'Domicilio',
 };
 
-// ── CARGAR CRONOGRAMAS ──
+// ── CARGAR CRONOGRAMAS (vía API, no lee la tabla directo) ──
+let CRONOGRAMAS = [];
 async function cargarCronogramas() {
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/cronograma_becas?order=fecha_inicio.desc`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-    });
+    const r = await fetch('/api/beca?accion=cronograma-lista');
     const data = await r.json();
-    if (data && data.length) {
+    CRONOGRAMAS = Array.isArray(data) ? data : [];
+    if (CRONOGRAMAS.length) {
       const sel = document.getElementById('semestreSel');
-      sel.innerHTML = data.map(c => `<option value="${c.semestre}">${c.semestre}</option>`).join('');
+      sel.innerHTML = CRONOGRAMAS.map(c => `<option value="${c.semestre}">${c.semestre}</option>`).join('');
     }
   } catch(e) { /* si falla, usa el semestre por defecto del selector */ }
   await cargarSemestre();
@@ -280,12 +280,8 @@ async function cargarCronogramas() {
 async function cargarSemestre() {
   const semestre = document.getElementById('semestreSel').value;
 
-  // Cronograma
-  const rc = await fetch(`${SUPABASE_URL}/rest/v1/cronograma_becas?semestre=eq.${encodeURIComponent(semestre)}&limit=1`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-  });
-  const crons = await rc.json();
-  cronogramaActual = crons?.[0] || null;
+  // Cronograma (de la lista ya cargada por API)
+  cronogramaActual = CRONOGRAMAS.find(c => c.semestre === semestre) || null;
 
   if (cronogramaActual) {
     const hoy    = new Date().toISOString().split('T')[0];

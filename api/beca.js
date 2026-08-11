@@ -180,6 +180,12 @@ export default async function handler(req, res) {
       res.json({ cronograma: data?.[0] || null }); return;
     }
 
+    // ── GET: lista de cronogramas (público, sin datos personales) ──
+    if (req.method === 'GET' && req.query?.accion === 'cronograma-lista') {
+      const data = await query('cronograma_becas', 'GET', null, '?order=fecha_inicio.desc');
+      res.json(data || []); return;
+    }
+
     // ── GET: lista de todos los periodos (admin) ──
     if (req.method === 'GET' && req.query?.accion === 'periodos') {
       const director = await verificarDirector(req, res);
