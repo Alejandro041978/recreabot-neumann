@@ -121,6 +121,8 @@ const sb = supabase.createClient(
   'sb_publishable_EP2Y83o7nj7CGCUd0pH3VA_vSNkeg99'
 );
 let token = null;
+  // Mantener el token de sesion fresco cuando Supabase lo renueva (evita 'Sesion invalida' en formularios largos)
+  sb.auth.onAuthStateChange((_e, s) => { if (s && s.access_token) token = s.access_token; });
 let periodos = [];
 
 const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];

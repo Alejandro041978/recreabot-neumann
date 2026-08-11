@@ -180,6 +180,8 @@ const sb = supabase.createClient(
 );
 
 let token = null;
+  // Mantener el token de sesion fresco cuando Supabase lo renueva (evita 'Sesion invalida' en formularios largos)
+  sb.auth.onAuthStateChange((_e, s) => { if (s && s.access_token) token = s.access_token; });
 let periodoActual = null;
 let staffDetalleActual = null;
 
