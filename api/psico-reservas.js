@@ -441,6 +441,57 @@ export default async function handler(req, res) {
       const updates = { estado };
       if (notas !== undefined) updates.notas = notas;
       await sbFetch(`psico_reservas?id=eq.${id}`, 'PATCH', updates);
+
+      // Al completar la cita, enviar encuesta de satisfacción al estudiante
+      if (estado === 'completada') {
+        try {
+          const rv = (await query('psico_reservas', 'GET', null, `?id=eq.${id}&limit=1`))?.[0];
+          let email = rv?.email || null;
+          const nombreEst = rv?.nombre || '';
+          if (!email && rv?.codigo) {
+            const est = await query('estudiantes', 'GET', null, `?codigo=eq.${encodeURIComponent(rv.codigo)}&limit=1`);
+            email = est?.[0]?.email || null;
+          }
+          const RESEND_KEY = process.env.RESEND_API_KEY;
+          const EMAIL_FROM = process.env.EMAIL_FROM || 'Instituto Neumann <onboarding@resend.dev>';
+          if (email && RESEND_KEY) {
+            const evalUrl = `https://recreabot-neumann.vercel.app/psico-atencion-eval?id=${id}`;
+            const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif">
+<div style="max-width:520px;margin:30px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
+  <div style="background:linear-gradient(135deg,#1e1b4b,#0f1117);padding:28px 32px">
+    <div style="font-size:28px;margin-bottom:8px">🧠</div>
+    <h1 style="margin:0;color:#a5b4fc;font-size:20px">Evalúa tu sesión psicopedagógica</h1>
+    <p style="margin:6px 0 0;color:#94a3b8;font-size:14px">Instituto Superior Neumann</p>
+  </div>
+  <div style="padding:28px 32px">
+    <p style="font-size:15px;color:#334155;margin-bottom:16px">Hola${nombreEst ? ' <strong>'+nombreEst+'</strong>' : ''},</p>
+    <p style="font-size:14px;color:#334155;margin-bottom:24px;line-height:1.6">
+      Hoy tuviste tu cita en el servicio psicopedagógico del instituto. Nos gustaría conocer tu experiencia. Son solo <strong>3 preguntas rápidas</strong> y es completamente confidencial.
+    </p>
+    <div style="text-align:center;margin-bottom:24px">
+      <a href="${evalUrl}" style="display:inline-block;background:#6366f1;color:#fff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none">
+        Evaluar mi sesión →
+      </a>
+    </div>
+    <p style="font-size:12px;color:#94a3b8;text-align:center">Tu opinión es anónima y nos ayuda a mejorar el servicio.</p>
+  </div>
+</div>
+</body></html>`;
+            fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                from: EMAIL_FROM,
+                to: [email],
+                subject: '🧠 Evalúa tu sesión psicopedagógica — Instituto Neumann',
+                html,
+              }),
+            }).catch(err => console.error('psico encuesta email error:', err));
+          }
+        } catch (encErr) { console.error('psico encuesta error:', encErr.message); }
+      }
+
       res.json({ ok: true }); return;
     }
 
