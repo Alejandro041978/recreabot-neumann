@@ -249,7 +249,9 @@ function accionesHTML(r) {
   if (r.estado === 'completada') {
     return `<button class="btn-accion btn-ficha" onclick="verFicha('${r.id}')">📋 Ver ficha</button>`;
   }
-  if (r.estado === 'cancelada' || r.estado === 'no_asistio') return '—';
+  if (r.estado === 'cancelada' || r.estado === 'no_asistio') {
+    return `<button class="btn-accion btn-ficha" onclick="verFicha('${r.id}')">📋 Ver ficha</button>`;
+  }
   let btns = '';
   if (r.estado === 'pendiente') {
     btns += `<button class="btn-accion btn-confirmar" onclick="cambiarEstado('${r.id}','confirmada')">✓ Confirmar</button>`;
