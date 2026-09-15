@@ -116,10 +116,10 @@ body{padding:24px 16px 60px;max-width:560px;margin:0 auto}
 <!-- PASO 1: Identificación -->
 <div class="step activo" id="paso1">
   <div class="card">
-    <div class="card-titulo">👤 Ingresa tu código de estudiante</div>
+    <div class="card-titulo">👤 Ingresa tu código (DNI)</div>
     <div class="field">
-      <label>Código</label>
-      <input type="text" id="codigoInput" placeholder="Ej: 2024001"
+      <label>Código (DNI)</label>
+      <input type="text" id="codigoInput" placeholder="Ej: 71234567"
              maxlength="20" autocomplete="off"
              onkeydown="if(event.key==='Enter') verificar()">
     </div>
@@ -293,7 +293,7 @@ async function verificar() {
   const codigo = document.getElementById('codigoInput').value.trim();
   const err = document.getElementById('errPaso1');
   err.style.display = 'none';
-  if (!codigo) { err.textContent = 'Ingresa tu código de estudiante'; err.style.display = 'block'; return; }
+  if (!codigo) { err.textContent = 'Ingresa tu código (DNI)'; err.style.display = 'block'; return; }
 
   const btn = document.getElementById('btnVerificar');
   btn.disabled = true; btn.textContent = 'Verificando...';
