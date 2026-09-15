@@ -44,7 +44,7 @@ export default async function handler(req, res) {
           query('atenciones_psico',            'GET', null, '?order=ts.desc&limit=1000'),
           query('psico_reservas',              'GET', null, '?order=fecha.desc,hora_inicio.desc&limit=2000&select=id,codigo,nombre,fecha,hora_inicio,estado,n_sesion,problema_hallado,created_at'),
           query('evaluaciones_psico_charla',   'GET', null, '?order=ts.desc&limit=500'),
-          query('evaluaciones_psico_atencion', 'GET', null, '?order=ts.desc&limit=500'),
+          query('evaluaciones_psico_atencion', 'GET', null, '?order=ts.desc&limit=5000'),
         ]);
         res.json({ atenciones: atenciones||[], reservas: reservas||[], charlas: charlas||[], eval_atenciones: evals||[] }); return;
       }

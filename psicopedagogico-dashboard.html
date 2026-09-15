@@ -53,6 +53,8 @@ body{padding:20px 16px 60px;max-width:1040px;margin:0 auto}
 .panel{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px}
 .panel-titulo{font-size:0.82rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:6px;color:var(--text)}
 .panel-titulo span.sub{font-size:0.72rem;color:var(--t3);font-weight:400;margin-left:auto}
+.sat-q{background:var(--s2);border:1px solid var(--b);border-radius:7px;padding:6px 10px;color:var(--t2);font-size:0.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.sat-q:hover{border-color:var(--acc);color:var(--acc2)}
 
 /* Tabla */
 table{width:100%;border-collapse:collapse;font-size:0.78rem}
@@ -135,6 +137,21 @@ tbody tr:hover td{background:rgba(255,255,255,.02)}
     </div>
     <div class="panel">
       <div class="panel-titulo">⭐ Satisfacción — Sesiones</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:12px">
+        <div>
+          <label style="display:block;font-size:0.62rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Desde</label>
+          <input type="date" id="satDesde" onchange="renderSat()" style="background:var(--s2);border:1px solid var(--b);border-radius:7px;padding:6px 9px;color:var(--text);font-size:0.78rem;font-family:'Inter',sans-serif;outline:none">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.62rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Hasta</label>
+          <input type="date" id="satHasta" onchange="renderSat()" style="background:var(--s2);border:1px solid var(--b);border-radius:7px;padding:6px 9px;color:var(--text);font-size:0.78rem;font-family:'Inter',sans-serif;outline:none">
+        </div>
+        <div style="display:flex;gap:5px">
+          <button onclick="satRango(6)" class="sat-q">7 días</button>
+          <button onclick="satRango(29)" class="sat-q">30 días</button>
+          <button onclick="satRango(null)" class="sat-q">Todo</button>
+        </div>
+      </div>
       <div id="satPanel">
         <div style="text-align:center;color:var(--t3);padding:16px;font-size:0.82rem">Cargando...</div>
       </div>
@@ -190,6 +207,55 @@ function scoreColor(v) {
   return v >= 4 ? 'var(--green)' : v >= 3 ? 'var(--yellow)' : 'var(--red)';
 }
 
+// ── Satisfacción de sesiones con filtro por fecha ──
+let evalAtenciones = [];
+
+function satRango(dias) {
+  const hasta = new Date();
+  document.getElementById('satHasta').value = hasta.toISOString().slice(0,10);
+  if (dias === null) {
+    document.getElementById('satDesde').value = '';
+  } else {
+    const desde = new Date(); desde.setDate(desde.getDate() - dias);
+    document.getElementById('satDesde').value = desde.toISOString().slice(0,10);
+  }
+  renderSat();
+}
+
+function renderSat() {
+  const desdeVal = document.getElementById('satDesde')?.value || '';
+  const hastaVal = document.getElementById('satHasta')?.value || '';
+  const desde = desdeVal ? new Date(desdeVal + 'T00:00:00') : null;
+  const hasta = hastaVal ? new Date(hastaVal + 'T23:59:59') : null;
+
+  const filtradas = evalAtenciones.filter(e => {
+    if (!e.ts) return !desde && !hasta;
+    const t = new Date(e.ts);
+    if (desde && t < desde) return false;
+    if (hasta && t > hasta) return false;
+    return true;
+  });
+
+  const el = document.getElementById('satPanel');
+  if (!filtradas.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--t3);padding:14px;font-size:0.82rem">Sin evaluaciones en este rango</div>';
+    return;
+  }
+  const n = filtradas.length;
+  const p1 = filtradas.reduce((s,e)=>s+e.p1,0)/n;
+  const p2 = filtradas.reduce((s,e)=>s+e.p2,0)/n;
+  const p3 = filtradas.reduce((s,e)=>s+e.p3,0)/n;
+  const tot = (p1+p2+p3)/3;
+  el.innerHTML = `
+    <div class="sat-score" style="color:${scoreColor(tot)}">${tot.toFixed(2)}<span style="font-size:1rem;color:var(--t3)"> / 5</span></div>
+    <div class="sat-sub">${n} evaluación${n>1?'es':''} en el rango</div>
+    ${[['Trato recibido',p1],['Utilidad',p2],['Recomendaría',p3]].map(([nm,v])=>`
+      <div class="criterio-row">
+        <div class="criterio-header"><span class="criterio-nombre">${nm}</span><span class="criterio-prom">${v.toFixed(2)}</span></div>
+        <div class="barra-bg"><div class="barra-fill" style="width:${(v/5)*100}%;background:${scoreColor(v)}"></div></div>
+      </div>`).join('')}`;
+}
+
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = '/login'; return false; }
@@ -209,6 +275,7 @@ async function cargarKpis() {
   try {
     const r = await fetch('/api/psicopedagogico?accion=kpis');
     const { reservas, charlas, eval_atenciones } = await r.json();
+    evalAtenciones = eval_atenciones || [];
 
     // ── Cálculos sesiones ──
     const corte10    = new Date(); corte10.setDate(corte10.getDate() - 70);
@@ -309,24 +376,8 @@ async function cargarKpis() {
       }).join('');
     }
 
-    // ── Panel satisfacción atenciones ──
-    if (!eval_atenciones.length) {
-      document.getElementById('satPanel').innerHTML =
-        '<div style="text-align:center;color:var(--t3);padding:14px;font-size:0.82rem">Sin evaluaciones aún</div>';
-    } else {
-      const p1 = eval_atenciones.reduce((s,e)=>s+e.p1,0)/eval_atenciones.length;
-      const p2 = eval_atenciones.reduce((s,e)=>s+e.p2,0)/eval_atenciones.length;
-      const p3 = eval_atenciones.reduce((s,e)=>s+e.p3,0)/eval_atenciones.length;
-      const tot = (p1+p2+p3)/3;
-      document.getElementById('satPanel').innerHTML = `
-        <div class="sat-score" style="color:${scoreColor(tot)}">${tot.toFixed(2)}<span style="font-size:1rem;color:var(--t3)"> / 5</span></div>
-        <div class="sat-sub">${eval_atenciones.length} evaluaciones recibidas</div>
-        ${[['Trato recibido',p1],['Utilidad',p2],['Recomendaría',p3]].map(([n,v])=>`
-          <div class="criterio-row">
-            <div class="criterio-header"><span class="criterio-nombre">${n}</span><span class="criterio-prom">${v.toFixed(2)}</span></div>
-            <div class="barra-bg"><div class="barra-fill" style="width:${(v/5)*100}%;background:${scoreColor(v)}"></div></div>
-          </div>`).join('')}`;
-    }
+    // ── Panel satisfacción sesiones (con filtro de fecha) ──
+    renderSat();
 
   } catch(e) {
     document.getElementById('kpisSesiones').innerHTML =
