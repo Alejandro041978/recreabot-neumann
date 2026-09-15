@@ -32,7 +32,6 @@
     { "src": "api/john-metrics.js",    "use": "@vercel/node" },
     { "src": "api/supervision-cron.js",      "use": "@vercel/node" },
     { "src": "api/supervision-cafeteria.js", "use": "@vercel/node" },
-    { "src": "api/email-test.js",            "use": "@vercel/node" },
     { "src": "*.html",                   "use": "@vercel/static" },
     { "src": "sidebar.js",               "use": "@vercel/static" },
     { "src": "favicon.svg",              "use": "@vercel/static" }
@@ -85,7 +84,6 @@
     { "src": "/api/sesiones-charla",        "dest": "/api/sesiones-charla.js"          },
     { "src": "/api/otp",                    "dest": "/api/otp.js"                      },
     { "src": "/api/zoho-ticket",            "dest": "/api/zoho-ticket.js"              },
-    { "src": "/api/email-test",             "dest": "/api/email-test.js"               },
     { "src": "/api/conocimientos",          "dest": "/api/conocimientos.js"            },
     { "src": "/conocimientos",              "dest": "/conocimientos.html"              },
     { "src": "/api/banos",                  "dest": "/api/banos.js"                    },
