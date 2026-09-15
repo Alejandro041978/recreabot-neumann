@@ -291,7 +291,7 @@ export default async function handler(req, res) {
           const e = await buscarPorCodigo(posibleCod);
           if (e && e.activo !== false && e.activo !== 0) est = e;
           else if (e) { res.status(200).send(twiml('Tu código está inactivo. Acércate a Secretaría para más información.')); return; }
-          else { res.status(200).send(twiml(`No encontré el código ${posibleCod} en el sistema. Verifica que esté bien escrito e inténtalo de nuevo.`)); return; }
+          else { res.status(200).send(twiml(`No encontré el código (DNI) ${posibleCod} en el sistema. Verifica que esté bien escrito e inténtalo de nuevo.`)); return; }
         }
       }
       if (est) {
@@ -305,7 +305,7 @@ export default async function handler(req, res) {
         res.status(200).send(twiml(saludo)); return;
       }
       // no identificado → pedir código
-      res.status(200).send(twiml('👋 Hola, soy el asistente del Instituto Neumann. Para ayudarte necesito tu código de estudiante. ¿Me lo compartes?'));
+      res.status(200).send(twiml('👋 Hola, soy el asistente del Instituto Neumann. Para ayudarte necesito tu código (DNI). ¿Me lo compartes?'));
       return;
     }
 
