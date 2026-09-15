@@ -539,8 +539,8 @@ function buildSystem(asistenciaData = null, conocimientosData = null) {
     return `Te llamas ${nombreBot}, el asistente digital del Instituto Superior Neumann.
 REGLA ABSOLUTA: Antes de hacer CUALQUIER cosa debes identificar al estudiante.
 NO respondas preguntas, NO des recomendaciones, NO des información de ningún tipo.
-Tu ÚNICA respuesta permitida es pedir el código de estudiante de forma amable.
-Sin importar lo que escriba el estudiante, responde SOLO pidiendo su código.`;
+Tu ÚNICA respuesta permitida es pedir el código (DNI) del estudiante de forma amable.
+Sin importar lo que escriba el estudiante, responde SOLO pidiendo su código (DNI).`;
   }
 
   const estudianteInfo = `ESTUDIANTE IDENTIFICADO:
@@ -631,8 +631,8 @@ Responde usando esta información de forma natural y conversacional. Si la infor
 function getBienvenida() {
   const n = (BOT_CFG && BOT_CFG.nombre_bot) || 'John';
   return AREA
-    ? `👋 Hola, soy ${n}, el asistente del Instituto Neumann.\n\n¡Vas a usar ${AREA}! Para registrar necesito tu código de estudiante.`
-    : `👋 Hola, soy ${n}, el asistente del Instituto Neumann.\n\n¿En qué te puedo ayudar hoy?\n\n📅 Reservar un área recreativa\n📊 Consultar tu asistencia al campus\n🏛️ Visitar museos virtuales\n\nPrimero dime tu código de estudiante.`;
+    ? `👋 Hola, soy ${n}, el asistente del Instituto Neumann.\n\n¡Vas a usar ${AREA}! Para registrar necesito tu código (DNI).`
+    : `👋 Hola, soy ${n}, el asistente del Instituto Neumann.\n\n¿En qué te puedo ayudar hoy?\n\n📅 Reservar un área recreativa\n📊 Consultar tu asistencia al campus\n🏛️ Visitar museos virtuales\n\nPrimero dime tu código (DNI).`;
 }
 
 const chipsIniciales = ['Tengo mi código', 'Reservar área', 'Ver mi asistencia', 'Museos virtuales'];
